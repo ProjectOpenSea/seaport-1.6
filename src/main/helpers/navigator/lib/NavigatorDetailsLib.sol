@@ -18,23 +18,22 @@ library NavigatorDetailsLib {
     /**
      * @dev Calculate OrderDetails for each order and add them to the NavigatorResponse.
      */
-    function withDetails(
-        NavigatorContext memory context
-    ) internal view returns (NavigatorContext memory) {
+    function withDetails(NavigatorContext memory context)
+        internal
+        view
+        returns (NavigatorContext memory)
+    {
         UnavailableReason[] memory unavailableReasons = context
             .response
             .orders
             .unavailableReasons(
-                context.request.maximumFulfilled,
-                context.request.seaport
-            );
+            context.request.maximumFulfilled, context.request.seaport
+        );
         bytes32[] memory orderHashes = context.response.orders.getOrderHashes(
             address(context.request.seaport)
         );
         context.response.orderDetails = context.response.orders.getOrderDetails(
-            context.response.criteriaResolvers,
-            orderHashes,
-            unavailableReasons
+            context.response.criteriaResolvers, orderHashes, unavailableReasons
         );
         return context;
     }

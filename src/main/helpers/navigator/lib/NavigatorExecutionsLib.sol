@@ -1,19 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {
-    ConsiderationInterface
-} from "seaport-types/src/interfaces/ConsiderationInterface.sol";
+import { ConsiderationInterface } from
+    "seaport-types/src/interfaces/ConsiderationInterface.sol";
 
 import { Execution } from "seaport-types/src/lib/ConsiderationStructs.sol";
 
-import {
-    FulfillmentDetails
-} from "seaport-sol/src/fulfillments/lib/Structs.sol";
+import { FulfillmentDetails } from
+    "seaport-sol/src/fulfillments/lib/Structs.sol";
 
-import {
-    ExecutionHelper
-} from "seaport-sol/src/executions/ExecutionHelper.sol";
+import { ExecutionHelper } from "seaport-sol/src/executions/ExecutionHelper.sol";
 
 import { NavigatorContext } from "./SeaportNavigatorTypes.sol";
 
@@ -30,9 +26,11 @@ library NavigatorExecutionsLib {
      * @dev Calculate executions for the provided orders and add them to the
      *      NavigatorResponse.
      */
-    function withExecutions(
-        NavigatorContext memory context
-    ) internal pure returns (NavigatorContext memory) {
+    function withExecutions(NavigatorContext memory context)
+        internal
+        pure
+        returns (NavigatorContext memory)
+    {
         // Extract the suggested action from the response.
         bytes memory callData = context.response.suggestedCallData;
         bytes4 _suggestedAction = bytes4(callData);
@@ -58,10 +56,10 @@ library NavigatorExecutionsLib {
         // Call the appropriate method on the FulfillmentDetails struct to get
         // the executions.
         if (
-            _suggestedAction ==
-            ConsiderationInterface.fulfillAvailableOrders.selector ||
-            _suggestedAction ==
-            ConsiderationInterface.fulfillAvailableAdvancedOrders.selector
+            _suggestedAction
+                == ConsiderationInterface.fulfillAvailableOrders.selector
+                || _suggestedAction
+                    == ConsiderationInterface.fulfillAvailableAdvancedOrders.selector
         ) {
             (
                 explicitExecutions,
@@ -74,9 +72,9 @@ library NavigatorExecutionsLib {
                 context.response.orderDetails
             );
         } else if (
-            _suggestedAction == ConsiderationInterface.matchOrders.selector ||
-            _suggestedAction ==
-            ConsiderationInterface.matchAdvancedOrders.selector
+            _suggestedAction == ConsiderationInterface.matchOrders.selector
+                || _suggestedAction
+                    == ConsiderationInterface.matchAdvancedOrders.selector
         ) {
             (
                 explicitExecutions,
@@ -87,20 +85,22 @@ library NavigatorExecutionsLib {
                 context.response.fulfillments
             );
         } else if (
-            _suggestedAction == ConsiderationInterface.fulfillOrder.selector ||
-            _suggestedAction ==
-            ConsiderationInterface.fulfillAdvancedOrder.selector
+            _suggestedAction == ConsiderationInterface.fulfillOrder.selector
+                || _suggestedAction
+                    == ConsiderationInterface.fulfillAdvancedOrder.selector
         ) {
-            (implicitExecutions, nativeTokensReturned) = fulfillmentDetails
-                .getStandardExecutions();
+            (implicitExecutions, nativeTokensReturned) =
+                fulfillmentDetails.getStandardExecutions();
         } else if (
-            _suggestedAction ==
-            ConsiderationInterface.fulfillBasicOrder.selector ||
-            _suggestedAction ==
-            ConsiderationInterface.fulfillBasicOrder_efficient_6GL6yc.selector
+            _suggestedAction
+                == ConsiderationInterface.fulfillBasicOrder.selector
+                || _suggestedAction
+                    == ConsiderationInterface
+                        .fulfillBasicOrder_efficient_6GL6yc
+                        .selector
         ) {
-            (implicitExecutions, nativeTokensReturned) = fulfillmentDetails
-                .getBasicExecutions();
+            (implicitExecutions, nativeTokensReturned) =
+                fulfillmentDetails.getBasicExecutions();
         } else {
             revert UnknownAction();
         }

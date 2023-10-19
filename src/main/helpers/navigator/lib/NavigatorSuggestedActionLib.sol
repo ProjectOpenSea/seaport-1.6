@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {
-    ConsiderationInterface
-} from "seaport-types/src/interfaces/ConsiderationInterface.sol";
+import { ConsiderationInterface } from
+    "seaport-types/src/interfaces/ConsiderationInterface.sol";
 
 import {
     AdvancedOrder,
@@ -49,9 +48,11 @@ library NavigatorSuggestedActionLib {
      * @dev Choose a suggested fulfillment method based on the structure of the
      *      orders and add it to the NavigatorResponse.
      */
-    function withSuggestedAction(
-        NavigatorContext memory context
-    ) internal view returns (NavigatorContext memory) {
+    function withSuggestedAction(NavigatorContext memory context)
+        internal
+        view
+        returns (NavigatorContext memory)
+    {
         bytes memory callData = suggestedCallData(context);
         bytes4 selector = bytes4(callData);
         context.response.suggestedActionName = actionName(selector);
@@ -63,7 +64,11 @@ library NavigatorSuggestedActionLib {
      * @dev Add the human-readable name of the selected fulfillment method to
      *      the NavigatorResponse.
      */
-    function actionName(bytes4 selector) internal pure returns (string memory) {
+    function actionName(bytes4 selector)
+        internal
+        pure
+        returns (string memory)
+    {
         if (selector == 0xe7acab24) return "fulfillAdvancedOrder";
         if (selector == 0x87201b41) return "fulfillAvailableAdvancedOrders";
         if (selector == 0xed98a574) return "fulfillAvailableOrders";
@@ -80,9 +85,11 @@ library NavigatorSuggestedActionLib {
      * @dev Choose a suggested fulfillment method based on the structure of the
      *      orders.
      */
-    function suggestedCallData(
-        NavigatorContext memory context
-    ) internal view returns (bytes memory) {
+    function suggestedCallData(NavigatorContext memory context)
+        internal
+        view
+        returns (bytes memory)
+    {
         // Get the family of the orders (single or combined).
         Family family = context.response.orders.getFamily();
 
@@ -100,8 +107,8 @@ library NavigatorSuggestedActionLib {
             address(context.request.seaport)
         );
 
-        bool contextHasExcessOrders = context.response.orders.length >
-            context.request.maximumFulfilled;
+        bool contextHasExcessOrders =
+            context.response.orders.length > context.request.maximumFulfilled;
 
         bool contextHasUnavailableOrders;
 
@@ -109,8 +116,8 @@ library NavigatorSuggestedActionLib {
         // unavailable reason.
         for (uint256 i = 0; i < context.response.orderDetails.length; ++i) {
             if (
-                context.response.orderDetails[i].unavailableReason !=
-                UnavailableReason.AVAILABLE
+                context.response.orderDetails[i].unavailableReason
+                    != UnavailableReason.AVAILABLE
             ) {
                 contextHasUnavailableOrders = true;
                 break;
@@ -120,15 +127,13 @@ library NavigatorSuggestedActionLib {
         // The match* methods are only an option if everything is going to find
         // a partner (the first half of the if statement below) and if there are
         // no unavailable orders (the second half of the if statement below).
-        bool cannotMatch = (context
-            .response
-            .unmetConsiderationComponents
-            .length !=
-            0 ||
-            contextHasExcessOrders);
+        bool cannotMatch = (
+            context.response.unmetConsiderationComponents.length != 0
+                || contextHasExcessOrders
+        );
 
-        bool contextHasExcessOrUnavailableOrders = contextHasExcessOrders ||
-            contextHasUnavailableOrders;
+        bool contextHasExcessOrUnavailableOrders =
+            contextHasExcessOrders || contextHasUnavailableOrders;
 
         // If there are excess or unavailable orders, follow this branch.
         if (contextHasExcessOrUnavailableOrders) {
@@ -142,33 +147,31 @@ library NavigatorSuggestedActionLib {
             // If there are excess or unavailable orders and the orders are
             // advanced, use fulfillAvailableAdvancedOrders.
             if (structure == Structure.ADVANCED) {
-                return
-                    abi.encodeCall(
-                        ConsiderationInterface.fulfillAvailableAdvancedOrders,
-                        (
-                            context.response.orders,
-                            context.response.criteriaResolvers,
-                            context.response.offerFulfillments,
-                            context.response.considerationFulfillments,
-                            context.request.fulfillerConduitKey,
-                            context.request.recipient,
-                            context.request.maximumFulfilled
-                        )
-                    );
+                return abi.encodeCall(
+                    ConsiderationInterface.fulfillAvailableAdvancedOrders,
+                    (
+                        context.response.orders,
+                        context.response.criteriaResolvers,
+                        context.response.offerFulfillments,
+                        context.response.considerationFulfillments,
+                        context.request.fulfillerConduitKey,
+                        context.request.recipient,
+                        context.request.maximumFulfilled
+                    )
+                );
             } else {
                 // If there are excess or unavailable orders and the orders are
                 // not advanced, use fulfillAvailableOrders.
-                return
-                    abi.encodeCall(
-                        ConsiderationInterface.fulfillAvailableOrders,
-                        (
-                            context.response.orders.toOrders(),
-                            context.response.offerFulfillments,
-                            context.response.considerationFulfillments,
-                            context.request.fulfillerConduitKey,
-                            context.request.maximumFulfilled
-                        )
-                    );
+                return abi.encodeCall(
+                    ConsiderationInterface.fulfillAvailableOrders,
+                    (
+                        context.response.orders.toOrders(),
+                        context.response.offerFulfillments,
+                        context.response.considerationFulfillments,
+                        context.request.fulfillerConduitKey,
+                        context.request.maximumFulfilled
+                    )
+                );
             }
         }
 
@@ -181,42 +184,34 @@ library NavigatorSuggestedActionLib {
             // fulfillBasicOrder_efficient_6GL6yc for maximum gas efficiency.
             if (structure == Structure.BASIC) {
                 AdvancedOrder memory order = context.response.orders[0];
-                return
-                    abi.encodeCall(
-                        ConsiderationInterface
-                            .fulfillBasicOrder_efficient_6GL6yc,
-                        (
-                            order.toBasicOrderParameters(
-                                order.getBasicOrderType()
-                            )
-                        )
-                    );
+                return abi.encodeCall(
+                    ConsiderationInterface.fulfillBasicOrder_efficient_6GL6yc,
+                    (order.toBasicOrderParameters(order.getBasicOrderType()))
+                );
             }
 
             // If the order structure is standard, use fulfillOrder.
             if (structure == Structure.STANDARD) {
-                return
-                    abi.encodeCall(
-                        ConsiderationInterface.fulfillOrder,
-                        (
-                            context.response.orders[0].toOrder(),
-                            context.request.fulfillerConduitKey
-                        )
-                    );
+                return abi.encodeCall(
+                    ConsiderationInterface.fulfillOrder,
+                    (
+                        context.response.orders[0].toOrder(),
+                        context.request.fulfillerConduitKey
+                    )
+                );
             }
 
             // If the order structure is advanced, use fulfillAdvancedOrder.
             if (structure == Structure.ADVANCED) {
-                return
-                    abi.encodeCall(
-                        ConsiderationInterface.fulfillAdvancedOrder,
-                        (
-                            context.response.orders[0],
-                            context.response.criteriaResolvers,
-                            context.request.fulfillerConduitKey,
-                            context.request.recipient
-                        )
-                    );
+                return abi.encodeCall(
+                    ConsiderationInterface.fulfillAdvancedOrder,
+                    (
+                        context.response.orders[0],
+                        context.response.criteriaResolvers,
+                        context.request.fulfillerConduitKey,
+                        context.request.recipient
+                    )
+                );
             }
         }
 
@@ -229,8 +224,73 @@ library NavigatorSuggestedActionLib {
         // If it's not possible to use match*, use fulfillAvailable*.
         if (cannotMatch) {
             if (structure == Structure.ADVANCED) {
-                return
-                    abi.encodeCall(
+                return abi.encodeCall(
+                    ConsiderationInterface.fulfillAvailableAdvancedOrders,
+                    (
+                        context.response.orders,
+                        context.response.criteriaResolvers,
+                        context.response.offerFulfillments,
+                        context.response.considerationFulfillments,
+                        context.request.fulfillerConduitKey,
+                        context.request.recipient,
+                        context.request.maximumFulfilled
+                    )
+                );
+            } else {
+                return abi.encodeCall(
+                    ConsiderationInterface.fulfillAvailableOrders,
+                    (
+                        context.response.orders.toOrders(),
+                        context.response.offerFulfillments,
+                        context.response.considerationFulfillments,
+                        context.request.fulfillerConduitKey,
+                        context.request.maximumFulfilled
+                    )
+                );
+            }
+        } else if (containsOrderThatDemandsMatch) {
+            // Here, matching is an option and "containsOrderThatDemandsMatch"
+            // means that match is mandatory, so pick the appropriate match*
+            // method based on structure.
+            if (structure == Structure.ADVANCED) {
+                return abi.encodeCall(
+                    ConsiderationInterface.matchAdvancedOrders,
+                    (
+                        context.response.orders,
+                        context.response.criteriaResolvers,
+                        context.response.fulfillments,
+                        context.request.recipient
+                    )
+                );
+            } else {
+                return abi.encodeCall(
+                    ConsiderationInterface.matchOrders,
+                    (
+                        context.response.orders.toOrders(),
+                        context.response.fulfillments
+                    )
+                );
+            }
+        } else {
+            // If match* is an option and there are no excess or unavailable
+            // offer items, follow this branch.
+            //
+            // If the structure is advanced, use matchAdvancedOrders or use
+            // fulfillAvailableAdvancedOrders depending on the caller's
+            // preference.
+            if (structure == Structure.ADVANCED) {
+                if (context.request.preferMatch) {
+                    return abi.encodeCall(
+                        ConsiderationInterface.matchAdvancedOrders,
+                        (
+                            context.response.orders,
+                            context.response.criteriaResolvers,
+                            context.response.fulfillments,
+                            context.request.recipient
+                        )
+                    );
+                } else {
+                    return abi.encodeCall(
                         ConsiderationInterface.fulfillAvailableAdvancedOrders,
                         (
                             context.response.orders,
@@ -242,9 +302,20 @@ library NavigatorSuggestedActionLib {
                             context.request.maximumFulfilled
                         )
                     );
+                }
             } else {
-                return
-                    abi.encodeCall(
+                // If the structure is not advanced, use matchOrders or
+                // fulfillAvailableOrders depending on the caller's preference.
+                if (context.request.preferMatch) {
+                    return abi.encodeCall(
+                        ConsiderationInterface.matchOrders,
+                        (
+                            context.response.orders.toOrders(),
+                            context.response.fulfillments
+                        )
+                    );
+                } else {
+                    return abi.encodeCall(
                         ConsiderationInterface.fulfillAvailableOrders,
                         (
                             context.response.orders.toOrders(),
@@ -254,91 +325,6 @@ library NavigatorSuggestedActionLib {
                             context.request.maximumFulfilled
                         )
                     );
-            }
-        } else if (containsOrderThatDemandsMatch) {
-            // Here, matching is an option and "containsOrderThatDemandsMatch"
-            // means that match is mandatory, so pick the appropriate match*
-            // method based on structure.
-            if (structure == Structure.ADVANCED) {
-                return
-                    abi.encodeCall(
-                        ConsiderationInterface.matchAdvancedOrders,
-                        (
-                            context.response.orders,
-                            context.response.criteriaResolvers,
-                            context.response.fulfillments,
-                            context.request.recipient
-                        )
-                    );
-            } else {
-                return
-                    abi.encodeCall(
-                        ConsiderationInterface.matchOrders,
-                        (
-                            context.response.orders.toOrders(),
-                            context.response.fulfillments
-                        )
-                    );
-            }
-        } else {
-            // If match* is an option and there are no excess or unavailable
-            // offer items, follow this branch.
-            //
-            // If the structure is advanced, use matchAdvancedOrders or use
-            // fulfillAvailableAdvancedOrders depending on the caller's
-            // preference.
-            if (structure == Structure.ADVANCED) {
-                if (context.request.preferMatch) {
-                    return
-                        abi.encodeCall(
-                            ConsiderationInterface.matchAdvancedOrders,
-                            (
-                                context.response.orders,
-                                context.response.criteriaResolvers,
-                                context.response.fulfillments,
-                                context.request.recipient
-                            )
-                        );
-                } else {
-                    return
-                        abi.encodeCall(
-                            ConsiderationInterface
-                                .fulfillAvailableAdvancedOrders,
-                            (
-                                context.response.orders,
-                                context.response.criteriaResolvers,
-                                context.response.offerFulfillments,
-                                context.response.considerationFulfillments,
-                                context.request.fulfillerConduitKey,
-                                context.request.recipient,
-                                context.request.maximumFulfilled
-                            )
-                        );
-                }
-            } else {
-                // If the structure is not advanced, use matchOrders or
-                // fulfillAvailableOrders depending on the caller's preference.
-                if (context.request.preferMatch) {
-                    return
-                        abi.encodeCall(
-                            ConsiderationInterface.matchOrders,
-                            (
-                                context.response.orders.toOrders(),
-                                context.response.fulfillments
-                            )
-                        );
-                } else {
-                    return
-                        abi.encodeCall(
-                            ConsiderationInterface.fulfillAvailableOrders,
-                            (
-                                context.response.orders.toOrders(),
-                                context.response.offerFulfillments,
-                                context.response.considerationFulfillments,
-                                context.request.fulfillerConduitKey,
-                                context.request.maximumFulfilled
-                            )
-                        );
                 }
             }
         }
@@ -348,9 +334,11 @@ library NavigatorSuggestedActionLib {
      * @dev Return whether the provided orders must be matched using matchOrders
      *      or matchAdvancedOrders.
      */
-    function mustUseMatch(
-        NavigatorContext memory context
-    ) internal pure returns (bool) {
+    function mustUseMatch(NavigatorContext memory context)
+        internal
+        pure
+        returns (bool)
+    {
         OrderDetails[] memory orders = context.response.orderDetails;
 
         // Iterate through the orders and check if any of the non-contract
@@ -411,16 +399,16 @@ library NavigatorSuggestedActionLib {
                         ++l
                     ) {
                         // Get the consideration item.
-                        ReceivedItem memory considerationItem = comparisonOrder
-                            .consideration[l];
+                        ReceivedItem memory considerationItem =
+                            comparisonOrder.consideration[l];
 
                         // If the consideration item is an ERC721, and the ID is
                         // the same as the offer item, and the token address is
                         // the same as the offer item, must use match.
                         if (
-                            considerationItem.itemType == ItemType.ERC721 &&
-                            considerationItem.identifier == item.identifier &&
-                            considerationItem.token == item.token
+                            considerationItem.itemType == ItemType.ERC721
+                                && considerationItem.identifier == item.identifier
+                                && considerationItem.token == item.token
                         ) {
                             return true;
                         }

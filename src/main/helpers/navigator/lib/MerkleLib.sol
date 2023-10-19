@@ -14,10 +14,11 @@ library MerkleLib {
      *
      * @return _hash The Merkle tree hash of the two input hashes.
      */
-    function merkleHash(
-        bytes32 left,
-        bytes32 right
-    ) internal pure returns (bytes32 _hash) {
+    function merkleHash(bytes32 left, bytes32 right)
+        internal
+        pure
+        returns (bytes32 _hash)
+    {
         assembly {
             // Compare the left and right hash to order them lt(left, right)
             // returns true if left is less than right
@@ -61,7 +62,7 @@ library MerkleLib {
 
         // Loop through each proof element to compute the rolling hash.
         unchecked {
-            for (uint i = 0; i < length; ++i) {
+            for (uint256 i = 0; i < length; ++i) {
                 rollingHash = hashLeafPairs(rollingHash, proof[i]);
             }
         }
@@ -139,10 +140,8 @@ library MerkleLib {
             uint256 length = data.length;
             if (length & 0x1 == 1) {
                 result = new bytes32[](length / 2 + 1);
-                result[result.length - 1] = hashLeafPairs(
-                    data[length - 1],
-                    bytes32(0)
-                );
+                result[result.length - 1] =
+                    hashLeafPairs(data[length - 1], bytes32(0));
             } else {
                 result = new bytes32[](length / 2);
             }
@@ -156,14 +155,16 @@ library MerkleLib {
         return result;
     }
 
-    /******************
+    /**
+     *
      * MATH "LIBRARY" *
-     ******************/
+     *
+     */
 
     /// @dev  Note that x is assumed > 0
     function log2ceil(uint256 x) internal pure returns (uint256) {
         uint256 ceil = 0;
-        uint pOf2;
+        uint256 pOf2;
         // If x is a power of 2, then this function will return a ceiling
         // that is 1 greater than the actual ceiling. So we need to check if
         // x is a power of 2, and subtract one from ceil if so.

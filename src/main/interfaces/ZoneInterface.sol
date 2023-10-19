@@ -22,9 +22,9 @@ interface ZoneInterface is IERC165 {
      * @return validOrderMagicValue The magic value that indicates a valid
      *                              order.
      */
-    function validateOrder(
-        ZoneParameters calldata zoneParameters
-    ) external returns (bytes4 validOrderMagicValue);
+    function validateOrder(ZoneParameters calldata zoneParameters)
+        external
+        returns (bytes4 validOrderMagicValue);
 
     /**
      * @dev Returns the metadata for this zone.
@@ -35,12 +35,11 @@ interface ZoneInterface is IERC165 {
     function getSeaportMetadata()
         external
         view
-        returns (
-            string memory name,
-            Schema[] memory schemas // map to Seaport Improvement Proposal IDs
-        );
+        returns (string memory name, Schema[] memory schemas); // map to Seaport Improvement Proposal IDs
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) external view override returns (bool);
+    function supportsInterface(bytes4 interfaceId)
+        external
+        view
+        override
+        returns (bool);
 }

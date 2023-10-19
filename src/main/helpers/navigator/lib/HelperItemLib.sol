@@ -32,19 +32,21 @@ library HelperItemLib {
      *
      * @return ItemType The normalized item type.
      */
-    function normalizeType(
-        NavigatorOfferItem memory item
-    ) internal pure returns (ItemType) {
+    function normalizeType(NavigatorOfferItem memory item)
+        internal
+        pure
+        returns (ItemType)
+    {
         ItemType itemType = item.itemType;
         if (hasCriteria(item)) {
             if (
-                itemType == ItemType.ERC721 ||
-                itemType == ItemType.ERC721_WITH_CRITERIA
+                itemType == ItemType.ERC721
+                    || itemType == ItemType.ERC721_WITH_CRITERIA
             ) {
                 return ItemType.ERC721_WITH_CRITERIA;
             } else if (
-                itemType == ItemType.ERC1155 ||
-                itemType == ItemType.ERC1155_WITH_CRITERIA
+                itemType == ItemType.ERC1155
+                    || itemType == ItemType.ERC1155_WITH_CRITERIA
             ) {
                 return ItemType.ERC1155_WITH_CRITERIA;
             } else {
@@ -68,19 +70,21 @@ library HelperItemLib {
      *
      * @return ItemType The normalized item type.
      */
-    function normalizeType(
-        NavigatorConsiderationItem memory item
-    ) internal pure returns (ItemType) {
+    function normalizeType(NavigatorConsiderationItem memory item)
+        internal
+        pure
+        returns (ItemType)
+    {
         ItemType itemType = item.itemType;
         if (hasCriteria(item)) {
             if (
-                itemType == ItemType.ERC721 ||
-                itemType == ItemType.ERC721_WITH_CRITERIA
+                itemType == ItemType.ERC721
+                    || itemType == ItemType.ERC721_WITH_CRITERIA
             ) {
                 return ItemType.ERC721_WITH_CRITERIA;
             } else if (
-                itemType == ItemType.ERC1155 ||
-                itemType == ItemType.ERC1155_WITH_CRITERIA
+                itemType == ItemType.ERC1155
+                    || itemType == ItemType.ERC1155_WITH_CRITERIA
             ) {
                 return ItemType.ERC1155_WITH_CRITERIA;
             } else {
@@ -91,17 +95,21 @@ library HelperItemLib {
         }
     }
 
-    function hasCriteria(
-        NavigatorOfferItem memory item
-    ) internal pure returns (bool) {
+    function hasCriteria(NavigatorOfferItem memory item)
+        internal
+        pure
+        returns (bool)
+    {
         // Candidate identifiers are passed in by the caller as an array of
         // uint256s and converted by Navigator.
         return item.candidateIdentifiers.length > 0;
     }
 
-    function hasCriteria(
-        NavigatorConsiderationItem memory item
-    ) internal pure returns (bool) {
+    function hasCriteria(NavigatorConsiderationItem memory item)
+        internal
+        pure
+        returns (bool)
+    {
         // Candidate identifiers are passed in by the caller as an array of
         // uint256s and converted by Navigator.
         return item.candidateIdentifiers.length > 0;
@@ -127,10 +135,7 @@ library HelperItemLib {
         // were used in other contexts, this would prohibit the use of
         // legitimate 0 identifiers.
         if (item.candidateIdentifiers.length == 0 && item.identifier == 0) {
-            revert InvalidIdentifier(
-                item.identifier,
-                item.candidateIdentifiers
-            );
+            revert InvalidIdentifier(item.identifier, item.candidateIdentifiers);
         }
 
         // If the item has candidate identifiers, the item identifier must be
@@ -145,8 +150,7 @@ library HelperItemLib {
             }
             if (!identifierFound && item.identifier != 0) {
                 revert InvalidIdentifier(
-                    item.identifier,
-                    item.candidateIdentifiers
+                    item.identifier, item.candidateIdentifiers
                 );
             }
         }
@@ -167,10 +171,7 @@ library HelperItemLib {
         // If the item has no candidate identifiers, the item identifier must be
         // non-zero.
         if (item.candidateIdentifiers.length == 0 && item.identifier == 0) {
-            revert InvalidIdentifier(
-                item.identifier,
-                item.candidateIdentifiers
-            );
+            revert InvalidIdentifier(item.identifier, item.candidateIdentifiers);
         }
 
         // If the item has candidate identifiers, the item identifier must be
@@ -185,8 +186,7 @@ library HelperItemLib {
             }
             if (!identifierFound && item.identifier != 0) {
                 revert InvalidIdentifier(
-                    item.identifier,
-                    item.candidateIdentifiers
+                    item.identifier, item.candidateIdentifiers
                 );
             }
         }

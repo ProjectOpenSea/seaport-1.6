@@ -26,9 +26,8 @@ import {
     OrderType
 } from "seaport-types/src/lib/ConsiderationEnums.sol";
 
-import {
-    ConsiderationInterface
-} from "seaport-types/src/interfaces/ConsiderationInterface.sol";
+import { ConsiderationInterface } from
+    "seaport-types/src/interfaces/ConsiderationInterface.sol";
 
 error TypeNotFound();
 
@@ -100,15 +99,19 @@ library OrderStructureLib {
     using OrderLib for Order;
     using OrderParametersLib for OrderParameters;
 
-    function getQuantity(
-        AdvancedOrder[] memory orders
-    ) internal pure returns (uint256) {
+    function getQuantity(AdvancedOrder[] memory orders)
+        internal
+        pure
+        returns (uint256)
+    {
         return orders.length;
     }
 
-    function getFamily(
-        AdvancedOrder[] memory orders
-    ) internal pure returns (Family) {
+    function getFamily(AdvancedOrder[] memory orders)
+        internal
+        pure
+        returns (Family)
+    {
         uint256 quantity = getQuantity(orders);
         if (quantity > 1) {
             return Family.COMBINED;
@@ -124,9 +127,8 @@ library OrderStructureLib {
         uint256 counter = seaport.getCounter(order.parameters.offerer);
 
         // Use the counter to get the order hash.
-        bytes32 orderHash = seaport.getOrderHash(
-            order.parameters.toOrderComponents(counter)
-        );
+        bytes32 orderHash =
+            seaport.getOrderHash(order.parameters.toOrderComponents(counter));
 
         // Use the order hash to get the order status.
         (
@@ -154,13 +156,13 @@ library OrderStructureLib {
     function getType(AdvancedOrder memory order) internal pure returns (Type) {
         OrderType orderType = order.parameters.orderType;
         if (
-            orderType == OrderType.FULL_OPEN ||
-            orderType == OrderType.PARTIAL_OPEN
+            orderType == OrderType.FULL_OPEN
+                || orderType == OrderType.PARTIAL_OPEN
         ) {
             return Type.OPEN;
         } else if (
-            orderType == OrderType.FULL_RESTRICTED ||
-            orderType == OrderType.PARTIAL_RESTRICTED
+            orderType == OrderType.FULL_RESTRICTED
+                || orderType == OrderType.PARTIAL_RESTRICTED
         ) {
             return Type.RESTRICTED;
         } else if (orderType == OrderType.CONTRACT) {
@@ -170,10 +172,11 @@ library OrderStructureLib {
         }
     }
 
-    function getStructure(
-        AdvancedOrder memory order,
-        address seaport
-    ) internal view returns (Structure) {
+    function getStructure(AdvancedOrder memory order, address seaport)
+        internal
+        view
+        returns (Structure)
+    {
         // If the order has extraData, it's advanced
         if (order.extraData.length > 0) return Structure.ADVANCED;
 
@@ -207,10 +210,11 @@ library OrderStructureLib {
         return Structure.STANDARD;
     }
 
-    function getStructure(
-        AdvancedOrder[] memory orders,
-        address seaport
-    ) internal view returns (Structure) {
+    function getStructure(AdvancedOrder[] memory orders, address seaport)
+        internal
+        view
+        returns (Structure)
+    {
         if (orders.length == 1) {
             return getStructure(orders[0], seaport);
         }
@@ -230,9 +234,8 @@ library OrderStructureLib {
         address seaport
     ) internal view returns (bool) {
         uint256 i;
-        ConsiderationItem[] memory consideration = order
-            .parameters
-            .consideration;
+        ConsiderationItem[] memory consideration =
+            order.parameters.consideration;
         OfferItem[] memory offer = order.parameters.offer;
 
         // Order must contain exactly one offer item and one or more
@@ -241,8 +244,8 @@ library OrderStructureLib {
             return false;
         }
         if (
-            consideration.length == 0 ||
-            order.parameters.totalOriginalConsiderationItems == 0
+            consideration.length == 0
+                || order.parameters.totalOriginalConsiderationItems == 0
         ) {
             return false;
         }
@@ -264,16 +267,14 @@ library OrderStructureLib {
         }
 
         // Order cannot be partially filled.
-        ConsiderationInterface seaportInterface = ConsiderationInterface(
-            seaport
-        );
+        ConsiderationInterface seaportInterface =
+            ConsiderationInterface(seaport);
         uint256 counter = seaportInterface.getCounter(order.parameters.offerer);
-        OrderComponents memory orderComponents = order
-            .parameters
-            .toOrderComponents(counter);
+        OrderComponents memory orderComponents =
+            order.parameters.toOrderComponents(counter);
         bytes32 orderHash = seaportInterface.getOrderHash(orderComponents);
-        (, , uint256 totalFilled, uint256 totalSize) = seaportInterface
-            .getOrderStatus(orderHash);
+        (,, uint256 totalFilled, uint256 totalSize) =
+            seaportInterface.getOrderStatus(orderHash);
 
         if (totalFilled != totalSize) {
             return false;
@@ -282,16 +283,16 @@ library OrderStructureLib {
         // Order cannot contain any criteria-based items.
         for (i = 0; i < consideration.length; ++i) {
             if (
-                consideration[i].itemType == ItemType.ERC721_WITH_CRITERIA ||
-                consideration[i].itemType == ItemType.ERC1155_WITH_CRITERIA
+                consideration[i].itemType == ItemType.ERC721_WITH_CRITERIA
+                    || consideration[i].itemType == ItemType.ERC1155_WITH_CRITERIA
             ) {
                 return false;
             }
         }
 
         if (
-            offer[0].itemType == ItemType.ERC721_WITH_CRITERIA ||
-            offer[0].itemType == ItemType.ERC1155_WITH_CRITERIA
+            offer[0].itemType == ItemType.ERC721_WITH_CRITERIA
+                || offer[0].itemType == ItemType.ERC1155_WITH_CRITERIA
         ) {
             return false;
         }
@@ -304,15 +305,15 @@ library OrderStructureLib {
         // Order must contain exactly one NFT item.
         uint256 totalNFTs;
         if (
-            offer[0].itemType == ItemType.ERC721 ||
-            offer[0].itemType == ItemType.ERC1155
+            offer[0].itemType == ItemType.ERC721
+                || offer[0].itemType == ItemType.ERC1155
         ) {
             totalNFTs += 1;
         }
         for (i = 0; i < consideration.length; ++i) {
             if (
-                consideration[i].itemType == ItemType.ERC721 ||
-                consideration[i].itemType == ItemType.ERC1155
+                consideration[i].itemType == ItemType.ERC721
+                    || consideration[i].itemType == ItemType.ERC1155
             ) {
                 totalNFTs += 1;
             }
@@ -325,10 +326,10 @@ library OrderStructureLib {
         // The one NFT must appear either as the offer item or as the first
         // consideration item.
         if (
-            offer[0].itemType != ItemType.ERC721 &&
-            offer[0].itemType != ItemType.ERC1155 &&
-            consideration[0].itemType != ItemType.ERC721 &&
-            consideration[0].itemType != ItemType.ERC1155
+            offer[0].itemType != ItemType.ERC721
+                && offer[0].itemType != ItemType.ERC1155
+                && consideration[0].itemType != ItemType.ERC721
+                && consideration[0].itemType != ItemType.ERC1155
         ) {
             return false;
         }
@@ -336,8 +337,8 @@ library OrderStructureLib {
         // All items that are not the NFT must share the same item type and
         // token (and the identifier must be zero).
         if (
-            offer[0].itemType == ItemType.ERC721 ||
-            offer[0].itemType == ItemType.ERC1155
+            offer[0].itemType == ItemType.ERC721
+                || offer[0].itemType == ItemType.ERC1155
         ) {
             ItemType expectedItemType = consideration[0].itemType;
             address expectedToken = consideration[0].token;
@@ -358,8 +359,8 @@ library OrderStructureLib {
         }
 
         if (
-            consideration[0].itemType == ItemType.ERC721 ||
-            consideration[0].itemType == ItemType.ERC1155
+            consideration[0].itemType == ItemType.ERC721
+                || consideration[0].itemType == ItemType.ERC1155
         ) {
             if (consideration.length >= 2) {
                 ItemType expectedItemType = offer[0].itemType;
@@ -389,8 +390,8 @@ library OrderStructureLib {
         // all the other consideration items cannot exceed the amount of the
         // offer item.
         if (
-            consideration[0].itemType == ItemType.ERC721 ||
-            consideration[0].itemType == ItemType.ERC1155
+            consideration[0].itemType == ItemType.ERC721
+                || consideration[0].itemType == ItemType.ERC1155
         ) {
             uint256 totalConsiderationAmount;
             for (i = 1; i < consideration.length; ++i) {
@@ -426,9 +427,11 @@ library OrderStructureLib {
         return true;
     }
 
-    function getBasicOrderType(
-        AdvancedOrder memory order
-    ) internal pure returns (BasicOrderType basicOrderType) {
+    function getBasicOrderType(AdvancedOrder memory order)
+        internal
+        pure
+        returns (BasicOrderType basicOrderType)
+    {
         // Get the route (ETH ⇒ ERC721, etc.) for the order.
         BasicOrderRouteType route = getBasicOrderRouteType(order);
 
@@ -442,9 +445,11 @@ library OrderStructureLib {
         }
     }
 
-    function getBasicOrderRouteType(
-        AdvancedOrder memory order
-    ) internal pure returns (BasicOrderRouteType route) {
+    function getBasicOrderRouteType(AdvancedOrder memory order)
+        internal
+        pure
+        returns (BasicOrderRouteType route)
+    {
         // Get the route (ETH ⇒ ERC721, etc.) for the order.
         ItemType providingItemType = order.parameters.consideration[0].itemType;
         ItemType offeredItemType = order.parameters.offer[0].itemType;
@@ -482,35 +487,38 @@ library OrderStructureLib {
      * @return hasNonzeroCriteria Whether any offer or consideration item has
      *                            nonzero criteria.
      */
-    function _checkCriteria(
-        AdvancedOrder memory order
-    ) internal pure returns (bool hasCriteria, bool hasNonzeroCriteria) {
+    function _checkCriteria(AdvancedOrder memory order)
+        internal
+        pure
+        returns (bool hasCriteria, bool hasNonzeroCriteria)
+    {
         // Check if any offer item has criteria
         OfferItem[] memory offer = order.parameters.offer;
         for (uint256 i; i < offer.length; ++i) {
             OfferItem memory offerItem = offer[i];
             ItemType itemType = offerItem.itemType;
-            hasCriteria = (itemType == ItemType.ERC721_WITH_CRITERIA ||
-                itemType == ItemType.ERC1155_WITH_CRITERIA);
+            hasCriteria = (
+                itemType == ItemType.ERC721_WITH_CRITERIA
+                    || itemType == ItemType.ERC1155_WITH_CRITERIA
+            );
             if (hasCriteria) {
                 return (hasCriteria, offerItem.identifierOrCriteria != 0);
             }
         }
 
         // Check if any consideration item has criteria
-        ConsiderationItem[] memory consideration = order
-            .parameters
-            .consideration;
+        ConsiderationItem[] memory consideration =
+            order.parameters.consideration;
         for (uint256 i; i < consideration.length; ++i) {
             ConsiderationItem memory considerationItem = consideration[i];
             ItemType itemType = considerationItem.itemType;
-            hasCriteria = (itemType == ItemType.ERC721_WITH_CRITERIA ||
-                itemType == ItemType.ERC1155_WITH_CRITERIA);
+            hasCriteria = (
+                itemType == ItemType.ERC721_WITH_CRITERIA
+                    || itemType == ItemType.ERC1155_WITH_CRITERIA
+            );
             if (hasCriteria) {
-                return (
-                    hasCriteria,
-                    considerationItem.identifierOrCriteria != 0
-                );
+                return
+                    (hasCriteria, considerationItem.identifierOrCriteria != 0);
             }
         }
 

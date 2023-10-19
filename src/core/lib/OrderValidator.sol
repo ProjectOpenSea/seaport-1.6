@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {OrderType} from "seaport-types/src/lib/ConsiderationEnums.sol";
+import { OrderType } from "seaport-types/src/lib/ConsiderationEnums.sol";
 
 import {
     AdvancedOrder,
@@ -21,11 +21,11 @@ import {
     _revertPartialFillsNotEnabledForOrder
 } from "seaport-types/src/lib/ConsiderationErrors.sol";
 
-import {Executor} from "./Executor.sol";
+import { Executor } from "./Executor.sol";
 
-import {ZoneInteraction} from "./ZoneInteraction.sol";
+import { ZoneInteraction } from "./ZoneInteraction.sol";
 
-import {MemoryPointer} from "seaport-types/src/helpers/PointerLibraries.sol";
+import { MemoryPointer } from "seaport-types/src/helpers/PointerLibraries.sol";
 
 import {
     AdvancedOrder_denominator_offset,
@@ -72,7 +72,7 @@ contract OrderValidator is Executor, ZoneInteraction {
      *                          that may optionally be used to transfer approved
      *                          ERC20/721/1155 tokens.
      */
-    constructor(address conduitController) Executor(conduitController) {}
+    constructor(address conduitController) Executor(conduitController) { }
 
     /**
      * @dev Internal function to verify and update the status of a basic order.
@@ -84,7 +84,10 @@ contract OrderValidator is Executor, ZoneInteraction {
      * @param signature A signature from the offerer indicating that the order
      *                  has been approved.
      */
-    function _validateBasicOrderAndUpdateStatus(bytes32 orderHash, bytes calldata signature) internal {
+    function _validateBasicOrderAndUpdateStatus(
+        bytes32 orderHash,
+        bytes calldata signature
+    ) internal {
         // Retrieve offerer directly using fixed calldata offset based on strict
         // basic parameter encoding.
         address offerer;
@@ -132,7 +135,10 @@ contract OrderValidator is Executor, ZoneInteraction {
      *                        will be filled.
      * @return denominator    A value indicating the total size of the order.
      */
-    function _validateOrderAndUpdateStatus(AdvancedOrder memory advancedOrder, bool revertOnInvalid)
+    function _validateOrderAndUpdateStatus(
+        AdvancedOrder memory advancedOrder,
+        bool revertOnInvalid
+    )
         internal
         returns (bytes32 orderHash, uint256 numerator, uint256 denominator)
     {
@@ -140,7 +146,13 @@ contract OrderValidator is Executor, ZoneInteraction {
         OrderParameters memory orderParameters = advancedOrder.parameters;
 
         // Ensure current timestamp falls between order start time and end time.
-        if (!_verifyTime(orderParameters.startTime, orderParameters.endTime, revertOnInvalid)) {
+        if (
+            !_verifyTime(
+                orderParameters.startTime,
+                orderParameters.endTime,
+                revertOnInvalid
+            )
+        ) {
             // Assuming an invalid time and no revert, return zeroed out values.
             return (bytes32(0), 0, 0);
         }
@@ -148,9 +160,17 @@ contract OrderValidator is Executor, ZoneInteraction {
         // Read numerator and denominator from memory and place on the stack.
         // Note that overflowed values are masked.
         assembly {
-            numerator := and(mload(add(advancedOrder, AdvancedOrder_numerator_offset)), MaxUint120)
+            numerator :=
+                and(
+                    mload(add(advancedOrder, AdvancedOrder_numerator_offset)),
+                    MaxUint120
+                )
 
-            denominator := and(mload(add(advancedOrder, AdvancedOrder_denominator_offset)), MaxUint120)
+            denominator :=
+                and(
+                    mload(add(advancedOrder, AdvancedOrder_denominator_offset)),
+                    MaxUint120
+                )
         }
 
         // Declare variable for tracking the validity of the supplied fraction.
@@ -175,7 +195,9 @@ contract OrderValidator is Executor, ZoneInteraction {
             // Return the generated order based on the order params and the
             // provided extra data. If revertOnInvalid is true, the function
             // will revert if the input is invalid.
-            return _getGeneratedOrder(orderParameters, advancedOrder.extraData, revertOnInvalid);
+            return _getGeneratedOrder(
+                orderParameters, advancedOrder.extraData, revertOnInvalid
+            );
         }
 
         // Ensure numerator does not exceed denominator and is not zero.
@@ -189,7 +211,11 @@ contract OrderValidator is Executor, ZoneInteraction {
         }
 
         // If attempting partial fill (n < d) check order type & ensure support.
-        if (_doesNotSupportPartialFills(orderParameters.orderType, numerator, denominator)) {
+        if (
+            _doesNotSupportPartialFills(
+                orderParameters.orderType, numerator, denominator
+            )
+        ) {
             // Revert if partial fill was attempted on an unsupported order.
             _revertPartialFillsNotEnabledForOrder();
         }
@@ -211,7 +237,9 @@ contract OrderValidator is Executor, ZoneInteraction {
 
         // If the order is not already validated, verify the supplied signature.
         if (!orderStatus.isValidated) {
-            _verifySignature(orderParameters.offerer, orderHash, advancedOrder.signature);
+            _verifySignature(
+                orderParameters.offerer, orderHash, advancedOrder.signature
+            );
         }
 
         // Utilize assembly to determine the fraction to fill and update status.
@@ -219,10 +247,11 @@ contract OrderValidator is Executor, ZoneInteraction {
             let orderStatusSlot := orderStatus.slot
             // Read filled amount as numerator and denominator and put on stack.
             let filledNumerator := sload(orderStatusSlot)
-            let filledDenominator := shr(OrderStatus_filledDenominator_offset, filledNumerator)
+            let filledDenominator :=
+                shr(OrderStatus_filledDenominator_offset, filledNumerator)
 
             // "Loop" until the appropriate fill fraction has been determined.
-            for {} 1 {} {
+            for { } 1 { } {
                 // If no portion of the order has been filled yet...
                 if iszero(filledDenominator) {
                     // fill the full supplied fraction.
@@ -233,7 +262,11 @@ contract OrderValidator is Executor, ZoneInteraction {
                 }
 
                 // Shift and mask to calculate the current filled numerator.
-                filledNumerator := and(shr(OrderStatus_filledNumerator_offset, filledNumerator), MaxUint120)
+                filledNumerator :=
+                    and(
+                        shr(OrderStatus_filledNumerator_offset, filledNumerator),
+                        MaxUint120
+                    )
 
                 // If denominator of 1 supplied, fill entire remaining amount.
                 if eq(denominator, 1) {
@@ -257,7 +290,11 @@ contract OrderValidator is Executor, ZoneInteraction {
 
                     // Once adjusted, if current + supplied numerator exceeds
                     // the denominator:
-                    let carry := mul(sub(filledNumerator, denominator), gt(filledNumerator, denominator))
+                    let carry :=
+                        mul(
+                            sub(filledNumerator, denominator),
+                            gt(filledNumerator, denominator)
+                        )
 
                     // reduce the amount to fill by the excess.
                     numerator := sub(numerator, carry)
@@ -282,7 +319,11 @@ contract OrderValidator is Executor, ZoneInteraction {
 
                 // Once adjusted, if current + supplied numerator exceeds
                 // denominator:
-                let carry := mul(sub(filledNumerator, denominator), gt(filledNumerator, denominator))
+                let carry :=
+                    mul(
+                        sub(filledNumerator, denominator),
+                        gt(filledNumerator, denominator)
+                    )
 
                 // reduce the amount to fill by the excess.
                 numerator := sub(numerator, carry)
@@ -291,11 +332,13 @@ contract OrderValidator is Executor, ZoneInteraction {
                 filledNumerator := sub(filledNumerator, carry)
 
                 // Check filledNumerator and denominator for uint120 overflow.
-                if or(gt(filledNumerator, MaxUint120), gt(denominator, MaxUint120)) {
+                if or(
+                    gt(filledNumerator, MaxUint120), gt(denominator, MaxUint120)
+                ) {
                     // Derive greatest common divisor using euclidean algorithm.
                     function gcd(_a, _b) -> out {
                         // "Loop" until only one non-zero value remains.
-                        for {} _b {} {
+                        for { } _b { } {
                             // Assign the second value to a temporary variable.
                             let _c := _b
 
@@ -311,7 +354,8 @@ contract OrderValidator is Executor, ZoneInteraction {
                     }
 
                     // Determine the amount to scale down the fill fractions.
-                    let scaleDown := gcd(numerator, gcd(filledNumerator, denominator))
+                    let scaleDown :=
+                        gcd(numerator, gcd(filledNumerator, denominator))
 
                     // Ensure that the divisor is at least one.
                     let safeScaleDown := add(scaleDown, iszero(scaleDown))
@@ -322,7 +366,10 @@ contract OrderValidator is Executor, ZoneInteraction {
                     denominator := div(denominator, safeScaleDown)
 
                     // Perform the overflow check a second time.
-                    if or(gt(filledNumerator, MaxUint120), gt(denominator, MaxUint120)) {
+                    if or(
+                        gt(filledNumerator, MaxUint120),
+                        gt(denominator, MaxUint120)
+                    ) {
                         // Store the Panic error signature.
                         mstore(0, Panic_error_selector)
                         // Store the arithmetic (0x11) panic code.
@@ -394,14 +441,23 @@ contract OrderValidator is Executor, ZoneInteraction {
                         // originalItem.token == newItem.token &&
                         // originalItem.itemType == newItem.itemType
                         and(
-                            eq(mload(add(originalItem, Common_token_offset)), mload(add(newItem, Common_token_offset))),
+                            eq(
+                                mload(add(originalItem, Common_token_offset)),
+                                mload(add(newItem, Common_token_offset))
+                            ),
                             eq(itemType, mload(newItem))
                         ),
                         // originalItem.identifier == newItem.identifier &&
                         // originalItem.startAmount == originalItem.endAmount
                         and(
-                            eq(identifier, mload(add(newItem, Common_identifier_offset))),
-                            eq(originalAmount, mload(add(originalItem, Common_endAmount_offset)))
+                            eq(
+                                identifier,
+                                mload(add(newItem, Common_identifier_offset))
+                            ),
+                            eq(
+                                originalAmount,
+                                mload(add(originalItem, Common_endAmount_offset))
+                            )
                         )
                     )
                 )
@@ -424,7 +480,13 @@ contract OrderValidator is Executor, ZoneInteraction {
         returns (uint256 isInvalid)
     {
         assembly {
-            isInvalid := iszero(or(iszero(originalRecipient), eq(newRecipient, originalRecipient)))
+            isInvalid :=
+                iszero(
+                    or(
+                        iszero(originalRecipient),
+                        eq(newRecipient, originalRecipient)
+                    )
+                )
         }
     }
 
@@ -447,20 +509,28 @@ contract OrderValidator is Executor, ZoneInteraction {
      * @return numerator   The numerator.
      * @return denominator The denominator.
      */
-    function _getGeneratedOrder(OrderParameters memory orderParameters, bytes memory context, bool revertOnInvalid)
+    function _getGeneratedOrder(
+        OrderParameters memory orderParameters,
+        bytes memory context,
+        bool revertOnInvalid
+    )
         internal
         returns (bytes32 orderHash, uint256 numerator, uint256 denominator)
     {
         // Ensure that consideration array length is equal to the total original
         // consideration items value.
-        if (orderParameters.consideration.length != orderParameters.totalOriginalConsiderationItems) {
+        if (
+            orderParameters.consideration.length
+                != orderParameters.totalOriginalConsiderationItems
+        ) {
             _revertConsiderationLengthNotEqualToTotalOriginal();
         }
 
         {
             address offerer = orderParameters.offerer;
             bool success;
-            (MemoryPointer cdPtr, uint256 size) = _encodeGenerateOrder(orderParameters, context);
+            (MemoryPointer cdPtr, uint256 size) =
+                _encodeGenerateOrder(orderParameters, context);
             assembly {
                 success := call(gas(), offerer, 0, cdPtr, size, 0, 0)
             }
@@ -478,7 +548,11 @@ contract OrderValidator is Executor, ZoneInteraction {
 
                 assembly {
                     // Shift offerer address up 96 bytes and combine with nonce.
-                    orderHash := xor(contractNonce, shl(ContractOrder_orderHash_offerer_shift, offerer))
+                    orderHash :=
+                        xor(
+                            contractNonce,
+                            shl(ContractOrder_orderHash_offerer_shift, offerer)
+                        )
                 }
             }
 
@@ -493,8 +567,11 @@ contract OrderValidator is Executor, ZoneInteraction {
         // consideration items being sent to their designated recipients.
 
         // Decode the returned contract order and/or update the error buffer.
-        (uint256 errorBuffer, OfferItem[] memory offer, ConsiderationItem[] memory consideration) =
-            _convertGetGeneratedOrderResult(_decodeGenerateOrderReturndata)();
+        (
+            uint256 errorBuffer,
+            OfferItem[] memory offer,
+            ConsiderationItem[] memory consideration
+        ) = _convertGetGeneratedOrderResult(_decodeGenerateOrderReturndata)();
 
         // Revert if the returndata could not be decoded correctly.
         if (errorBuffer != 0) {
@@ -514,7 +591,8 @@ contract OrderValidator is Executor, ZoneInteraction {
             // Iterate over each specified offer (e.g. minimumReceived) item.
             for (uint256 i = 0; i < originalOfferLength;) {
                 // Retrieve the pointer to the originally supplied item.
-                MemoryPointer mPtrOriginal = orderParameters.offer[i].toMemoryPointer();
+                MemoryPointer mPtrOriginal =
+                    orderParameters.offer[i].toMemoryPointer();
 
                 // Retrieve the pointer to the newly returned item.
                 MemoryPointer mPtrNew = offer[i].toMemoryPointer();
@@ -537,7 +615,8 @@ contract OrderValidator is Executor, ZoneInteraction {
 
         {
             // Designate lengths & memory locations.
-            ConsiderationItem[] memory originalConsiderationArray = (orderParameters.consideration);
+            ConsiderationItem[] memory originalConsiderationArray =
+                (orderParameters.consideration);
             uint256 newConsiderationLength = consideration.length;
 
             // New consideration items cannot be created.
@@ -548,7 +627,8 @@ contract OrderValidator is Executor, ZoneInteraction {
             // Iterate over returned consideration & do not exceed maximumSpent.
             for (uint256 i = 0; i < newConsiderationLength;) {
                 // Retrieve the pointer to the originally supplied item.
-                MemoryPointer mPtrOriginal = originalConsiderationArray[i].toMemoryPointer();
+                MemoryPointer mPtrOriginal =
+                    originalConsiderationArray[i].toMemoryPointer();
 
                 // Retrieve the pointer to the newly returned item.
                 MemoryPointer mPtrNew = consideration[i].toMemoryPointer();
@@ -560,7 +640,8 @@ contract OrderValidator is Executor, ZoneInteraction {
                         > mPtrOriginal.offset(Common_amount_offset).readUint256()
                 ) | _compareItems(mPtrOriginal, mPtrNew)
                     | _checkRecipients(
-                        mPtrOriginal.offset(ConsiderItem_recipient_offset).readAddress(),
+                        mPtrOriginal.offset(ConsiderItem_recipient_offset)
+                            .readAddress(),
                         mPtrNew.offset(ConsiderItem_recipient_offset).readAddress()
                     );
 
@@ -595,7 +676,10 @@ contract OrderValidator is Executor, ZoneInteraction {
      * @return cancelled A boolean indicating whether the supplied orders were
      *                   successfully cancelled.
      */
-    function _cancel(OrderComponents[] calldata orders) internal returns (bool cancelled) {
+    function _cancel(OrderComponents[] calldata orders)
+        internal
+        returns (bool cancelled)
+    {
         // Ensure that the reentrancy guard is not currently set.
         _assertNonReentrant();
 
@@ -627,12 +711,19 @@ contract OrderValidator is Executor, ZoneInteraction {
                             anyInvalidCallerOrContractOrder,
                             // orderType == CONTRACT ||
                             // !(caller == offerer || caller == zone)
-                            or(eq(orderType, 4), iszero(or(eq(caller(), offerer), eq(caller(), zone))))
+                            or(
+                                eq(orderType, 4),
+                                iszero(
+                                    or(eq(caller(), offerer), eq(caller(), zone))
+                                )
+                            )
                         )
                 }
 
                 bytes32 orderHash = _deriveOrderHash(
-                    _toOrderParametersReturnType(_decodeOrderComponentsAsOrderParameters)(order.toCalldataPointer()),
+                    _toOrderParametersReturnType(
+                        _decodeOrderComponentsAsOrderParameters
+                    )(order.toCalldataPointer()),
                     order.counter
                 );
 
@@ -674,7 +765,10 @@ contract OrderValidator is Executor, ZoneInteraction {
      * @return validated A boolean indicating whether the supplied orders were
      *                   successfully validated.
      */
-    function _validate(Order[] memory orders) internal returns (bool validated) {
+    function _validate(Order[] memory orders)
+        internal
+        returns (bool validated)
+    {
         // Ensure that the reentrancy guard is not currently set.
         _assertNonReentrant();
 
@@ -705,7 +799,8 @@ contract OrderValidator is Executor, ZoneInteraction {
                 offerer = orderParameters.offerer;
 
                 // Get current counter & use it w/ params to derive order hash.
-                orderHash = _assertConsiderationLengthAndGetOrderHash(orderParameters);
+                orderHash =
+                    _assertConsiderationLengthAndGetOrderHash(orderParameters);
 
                 // Retrieve the order status using the derived order hash.
                 orderStatus = _orderStatus[orderHash];
@@ -722,7 +817,10 @@ contract OrderValidator is Executor, ZoneInteraction {
                 if (!orderStatus.isValidated) {
                     // Ensure that consideration array length is equal to the
                     // total original consideration items value.
-                    if (orderParameters.consideration.length != orderParameters.totalOriginalConsiderationItems) {
+                    if (
+                        orderParameters.consideration.length
+                            != orderParameters.totalOriginalConsiderationItems
+                    ) {
                         _revertConsiderationLengthNotEqualToTotalOriginal();
                     }
 
@@ -762,13 +860,23 @@ contract OrderValidator is Executor, ZoneInteraction {
     function _getOrderStatus(bytes32 orderHash)
         internal
         view
-        returns (bool isValidated, bool isCancelled, uint256 totalFilled, uint256 totalSize)
+        returns (
+            bool isValidated,
+            bool isCancelled,
+            uint256 totalFilled,
+            uint256 totalSize
+        )
     {
         // Retrieve the order status using the order hash.
         OrderStatus storage orderStatus = _orderStatus[orderHash];
 
         // Return the fields on the order status.
-        return (orderStatus.isValidated, orderStatus.isCancelled, orderStatus.numerator, orderStatus.denominator);
+        return (
+            orderStatus.isValidated,
+            orderStatus.isCancelled,
+            orderStatus.numerator,
+            orderStatus.denominator
+        );
     }
 
     /**
@@ -782,7 +890,10 @@ contract OrderValidator is Executor, ZoneInteraction {
      * @return numerator   The numerator.
      * @return denominator The denominator.
      */
-    function _revertOrReturnEmpty(bool revertOnInvalid, bytes32 contractOrderHash)
+    function _revertOrReturnEmpty(
+        bool revertOnInvalid,
+        bytes32 contractOrderHash
+    )
         internal
         pure
         returns (bytes32 orderHash, uint256 numerator, uint256 denominator)
@@ -806,17 +917,18 @@ contract OrderValidator is Executor, ZoneInteraction {
      * @return isFullOrder A boolean indicating whether the order type only
      *                     supports full fills.
      */
-    function _doesNotSupportPartialFills(OrderType orderType, uint256 numerator, uint256 denominator)
-        internal
-        pure
-        returns (bool isFullOrder)
-    {
+    function _doesNotSupportPartialFills(
+        OrderType orderType,
+        uint256 numerator,
+        uint256 denominator
+    ) internal pure returns (bool isFullOrder) {
         // The "full" order types are even, while "partial" order types are odd.
         // Bitwise and by 1 is equivalent to modulo by 2, but 2 gas cheaper. The
         // check is only necessary if numerator is less than denominator.
         assembly {
             // Equivalent to `uint256(orderType) & 1 == 0`.
-            isFullOrder := and(lt(numerator, denominator), iszero(and(orderType, 1)))
+            isFullOrder :=
+                and(lt(numerator, denominator), iszero(and(orderType, 1)))
         }
     }
 }

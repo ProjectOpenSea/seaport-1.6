@@ -10,9 +10,11 @@ import { HelperInterface } from "./HelperInterface.sol";
 contract OrderDetailsHelper is HelperInterface {
     using NavigatorDetailsLib for NavigatorContext;
 
-    function prepare(
-        NavigatorContext memory context
-    ) public view returns (NavigatorContext memory) {
+    function prepare(NavigatorContext memory context)
+        public
+        view
+        returns (NavigatorContext memory)
+    {
         return context.withDetails();
     }
 }

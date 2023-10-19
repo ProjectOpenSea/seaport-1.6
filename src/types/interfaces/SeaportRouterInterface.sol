@@ -32,8 +32,9 @@ interface SeaportRouterInterface {
         CriteriaResolver[] criteriaResolvers;
         FulfillmentComponent[][] offerFulfillments;
         FulfillmentComponent[][] considerationFulfillments;
-        uint256 etherValue; /// The ether value to send with the set of orders.
+        uint256 etherValue;
     }
+    /// The ether value to send with the set of orders.
 
     /**
      * @dev Parameters for using fulfillAvailableAdvancedOrders
@@ -71,9 +72,7 @@ interface SeaportRouterInterface {
      *      fails.
      */
     error EtherReturnTransferFailed(
-        address recipient,
-        uint256 amount,
-        bytes returnData
+        address recipient, uint256 amount, bytes returnData
     );
 
     /**

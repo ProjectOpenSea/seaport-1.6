@@ -26,10 +26,10 @@ interface SeaportValidatorInterface {
      * @param order The order to validate.
      * @return errorsAndWarnings The errors and warnings found in the order.
      */
-    function isValidOrder(
-        Order calldata order,
-        address seaportAddress
-    ) external view returns (ErrorsAndWarnings memory errorsAndWarnings);
+    function isValidOrder(Order calldata order, address seaportAddress)
+        external
+        view
+        returns (ErrorsAndWarnings memory errorsAndWarnings);
 
     /**
      * @notice Same as `isValidOrder` but allows for more configuration related to fee validation.
@@ -44,10 +44,10 @@ interface SeaportValidatorInterface {
      * @param conduitKey The conduit key to check.
      * @return errorsAndWarnings The errors and warnings
      */
-    function isValidConduit(
-        bytes32 conduitKey,
-        address seaportAddress
-    ) external view returns (ErrorsAndWarnings memory errorsAndWarnings);
+    function isValidConduit(bytes32 conduitKey, address seaportAddress)
+        external
+        view
+        returns (ErrorsAndWarnings memory errorsAndWarnings);
 
     // TODO: Need to add support for order with extra data
     /**
@@ -55,14 +55,14 @@ interface SeaportValidatorInterface {
      * @param orderParameters The parameters for the order to validate
      * @return errorsAndWarnings An ErrorsAndWarnings structs with results
      */
-    function isValidZone(
-        OrderParameters memory orderParameters
-    ) external view returns (ErrorsAndWarnings memory errorsAndWarnings);
+    function isValidZone(OrderParameters memory orderParameters)
+        external
+        view
+        returns (ErrorsAndWarnings memory errorsAndWarnings);
 
-    function validateSignature(
-        Order memory order,
-        address seaportAddress
-    ) external returns (ErrorsAndWarnings memory errorsAndWarnings);
+    function validateSignature(Order memory order, address seaportAddress)
+        external
+        returns (ErrorsAndWarnings memory errorsAndWarnings);
 
     function validateSignatureWithCounter(
         Order memory order,
@@ -213,10 +213,7 @@ interface SeaportValidatorInterface {
      * @param conduitKey Conduit key to get approval address for
      * @return errorsAndWarnings An ErrorsAndWarnings structs with results
      */
-    function getApprovalAddress(
-        bytes32 conduitKey,
-        address seaportAddress
-    )
+    function getApprovalAddress(bytes32 conduitKey, address seaportAddress)
         external
         view
         returns (address, ErrorsAndWarnings memory errorsAndWarnings);
@@ -226,10 +223,10 @@ interface SeaportValidatorInterface {
      * @param token The token address to check
      * @param interfaceHash The interface hash to check
      */
-    function checkInterface(
-        address token,
-        bytes4 interfaceHash
-    ) external view returns (bool);
+    function checkInterface(address token, bytes4 interfaceHash)
+        external
+        view
+        returns (bool);
 
     function isPaymentToken(ItemType itemType) external pure returns (bool);
 
@@ -243,9 +240,10 @@ interface SeaportValidatorInterface {
      * @param includedTokens An array of included token ids.
      * @return sortedTokens The sorted `includedTokens` array.
      */
-    function sortMerkleTokens(
-        uint256[] memory includedTokens
-    ) external view returns (uint256[] memory sortedTokens);
+    function sortMerkleTokens(uint256[] memory includedTokens)
+        external
+        view
+        returns (uint256[] memory sortedTokens);
 
     /**
      * @notice Creates a merkle root for includedTokens.
@@ -253,15 +251,10 @@ interface SeaportValidatorInterface {
      * @return merkleRoot The merkle root
      * @return errorsAndWarnings Errors and warnings from the operation
      */
-    function getMerkleRoot(
-        uint256[] memory includedTokens
-    )
+    function getMerkleRoot(uint256[] memory includedTokens)
         external
         view
-        returns (
-            bytes32 merkleRoot,
-            ErrorsAndWarnings memory errorsAndWarnings
-        );
+        returns (bytes32 merkleRoot, ErrorsAndWarnings memory errorsAndWarnings);
 
     /**
      * @notice Creates a merkle proof for the the targetIndex contained in includedTokens.

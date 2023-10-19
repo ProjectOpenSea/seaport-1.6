@@ -11,9 +11,8 @@ uint256 constant Error_selector_offset = 0x1c;
  *    - 0x20: side
  * Revert buffer is memory[0x1c:0x40]
  */
-uint256 constant MissingFulfillmentComponentOnAggregation_error_selector = (
-    0x375c24c1
-);
+uint256 constant MissingFulfillmentComponentOnAggregation_error_selector =
+    (0x375c24c1);
 uint256 constant MissingFulfillmentComponentOnAggregation_error_side_ptr = 0x20;
 uint256 constant MissingFulfillmentComponentOnAggregation_error_length = 0x24;
 
@@ -24,9 +23,8 @@ uint256 constant MissingFulfillmentComponentOnAggregation_error_length = 0x24;
  *    - 0x00: Left-padded selector (data begins at 0x1c)
  * Revert buffer is memory[0x1c:0x20]
  */
-uint256 constant OfferAndConsiderationRequiredOnFulfillment_error_selector = (
-    0x98e9db6e
-);
+uint256 constant OfferAndConsiderationRequiredOnFulfillment_error_selector =
+    (0x98e9db6e);
 uint256 constant OfferAndConsiderationRequiredOnFulfillment_error_length = 0x04;
 
 /*
@@ -39,9 +37,8 @@ uint256 constant OfferAndConsiderationRequiredOnFulfillment_error_length = 0x04;
  *    - 0x20: fulfillmentIndex
  * Revert buffer is memory[0x1c:0x40]
  */
-uint256 constant MismatchedOfferAndConsiderationComponents_error_selector = (
-    0xbced929d
-);
+uint256 constant MismatchedOfferAndConsiderationComponents_error_selector =
+    (0xbced929d);
 uint256 constant MismatchedOfferAndConsiderationComponents_error_idx_ptr = 0x20;
 uint256 constant MismatchedOfferAndConsiderationComponents_error_length = 0x24;
 
@@ -105,9 +102,8 @@ uint256 constant UnresolvedOfferCriteria_error_length = 0x44;
  */
 uint256 constant UnresolvedConsiderationCriteria_error_selector = 0xa8930e9a;
 uint256 constant UnresolvedConsiderationCriteria_error_orderIndex_ptr = 0x20;
-uint256 constant UnresolvedConsiderationCriteria_error_considerationIdx_ptr = (
-    0x40
-);
+uint256 constant UnresolvedConsiderationCriteria_error_considerationIdx_ptr =
+    (0x40);
 uint256 constant UnresolvedConsiderationCriteria_error_length = 0x44;
 
 /*
@@ -127,12 +123,10 @@ uint256 constant OfferCriteriaResolverOutOfRange_error_selector = 0xbfb3f8ce;
  *    - 0x00: Left-padded selector (data begins at 0x1c)
  * Revert buffer is memory[0x1c:0x20]
  */
-uint256 constant ConsiderationCriteriaResolverOutOfRange_error_selector = (
-    0x6088d7de
-);
-uint256 constant ConsiderationCriteriaResolverOutOfRange_err_selector = (
-    0x6088d7de
-);
+uint256 constant ConsiderationCriteriaResolverOutOfRange_error_selector =
+    (0x6088d7de);
+uint256 constant ConsiderationCriteriaResolverOutOfRange_err_selector =
+    (0x6088d7de);
 // uint256 constant ConsiderationCriteriaResolverOutOfRange_error_length = 0x04;
 
 /*
@@ -472,9 +466,8 @@ uint256 constant InvalidNativeOfferItem_error_length = 0x04;
  *    - 0x00: Left-padded selector (data begins at 0x1c)
  * Revert buffer is memory[0x1c:0x20]
  */
-uint256 constant ConsiderationLengthNotEqualToTotalOriginal_error_selector = (
-    0x2165628a
-);
+uint256 constant ConsiderationLengthNotEqualToTotalOriginal_error_selector =
+    (0x2165628a);
 uint256 constant ConsiderationLengthNotEqualToTotalOriginal_error_length = 0x04;
 
 /*

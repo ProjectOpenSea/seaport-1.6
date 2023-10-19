@@ -31,11 +31,13 @@ library NavigatorAdvancedOrderLib {
      * @dev Converts an array of AdvancedOrders to an array of
      *      NavigatorAdvancedOrders.
      */
-    function fromAdvancedOrders(
-        AdvancedOrder[] memory orders
-    ) internal pure returns (NavigatorAdvancedOrder[] memory) {
-        NavigatorAdvancedOrder[]
-            memory helperOrders = new NavigatorAdvancedOrder[](orders.length);
+    function fromAdvancedOrders(AdvancedOrder[] memory orders)
+        internal
+        pure
+        returns (NavigatorAdvancedOrder[] memory)
+    {
+        NavigatorAdvancedOrder[] memory helperOrders =
+            new NavigatorAdvancedOrder[](orders.length);
         for (uint256 i; i < orders.length; i++) {
             helperOrders[i] = fromAdvancedOrder(orders[i]);
         }
@@ -45,9 +47,11 @@ library NavigatorAdvancedOrderLib {
     /*
      * @dev Converts an AdvancedOrder to a NavigatorAdvancedOrder.
      */
-    function fromAdvancedOrder(
-        AdvancedOrder memory order
-    ) internal pure returns (NavigatorAdvancedOrder memory) {
+    function fromAdvancedOrder(AdvancedOrder memory order)
+        internal
+        pure
+        returns (NavigatorAdvancedOrder memory)
+    {
         // Copy over the offer items.
         NavigatorOfferItem[] memory offerItems = new NavigatorOfferItem[](
             order.parameters.offer.length
@@ -65,8 +69,8 @@ library NavigatorAdvancedOrderLib {
         }
 
         // Copy over the consideration items.
-        NavigatorConsiderationItem[]
-            memory considerationItems = new NavigatorConsiderationItem[](
+        NavigatorConsiderationItem[] memory considerationItems =
+        new NavigatorConsiderationItem[](
                 order.parameters.consideration.length
             );
         for (uint256 i; i < order.parameters.consideration.length; i++) {
@@ -81,28 +85,27 @@ library NavigatorAdvancedOrderLib {
                 candidateIdentifiers: new uint256[](0)
             });
         }
-        return
-            NavigatorAdvancedOrder({
-                parameters: NavigatorOrderParameters({
-                    offerer: order.parameters.offerer,
-                    zone: order.parameters.zone,
-                    offer: offerItems,
-                    consideration: considerationItems,
-                    orderType: order.parameters.orderType,
-                    startTime: order.parameters.startTime,
-                    endTime: order.parameters.endTime,
-                    zoneHash: order.parameters.zoneHash,
-                    salt: order.parameters.salt,
-                    conduitKey: order.parameters.conduitKey,
-                    totalOriginalConsiderationItems: order
-                        .parameters
-                        .totalOriginalConsiderationItems
-                }),
-                numerator: order.numerator,
-                denominator: order.denominator,
-                signature: order.signature,
-                extraData: order.extraData
-            });
+        return NavigatorAdvancedOrder({
+            parameters: NavigatorOrderParameters({
+                offerer: order.parameters.offerer,
+                zone: order.parameters.zone,
+                offer: offerItems,
+                consideration: considerationItems,
+                orderType: order.parameters.orderType,
+                startTime: order.parameters.startTime,
+                endTime: order.parameters.endTime,
+                zoneHash: order.parameters.zoneHash,
+                salt: order.parameters.salt,
+                conduitKey: order.parameters.conduitKey,
+                totalOriginalConsiderationItems: order
+                    .parameters
+                    .totalOriginalConsiderationItems
+            }),
+            numerator: order.numerator,
+            denominator: order.denominator,
+            signature: order.signature,
+            extraData: order.extraData
+        });
     }
 
     /*
@@ -137,7 +140,7 @@ library NavigatorAdvancedOrderLib {
                     token: item.token,
                     identifierOrCriteria: uint256(
                         item.candidateIdentifiers.criteriaRoot()
-                    ),
+                        ),
                     startAmount: item.startAmount,
                     endAmount: item.endAmount
                 });
@@ -148,7 +151,7 @@ library NavigatorAdvancedOrderLib {
                     identifier: item.identifier,
                     criteriaProof: item.candidateIdentifiers.criteriaProof(
                         item.identifier
-                    )
+                        )
                 });
                 criteriaResolverLen++;
             } else {
@@ -169,9 +172,8 @@ library NavigatorAdvancedOrderLib {
             order.parameters.consideration.length
         );
         for (uint256 i; i < order.parameters.consideration.length; i++) {
-            NavigatorConsiderationItem memory item = order
-                .parameters
-                .consideration[i];
+            NavigatorConsiderationItem memory item =
+                order.parameters.consideration[i];
             if (item.hasCriteria()) {
                 item.validate();
                 consideration[i] = ConsiderationItem({
@@ -179,7 +181,7 @@ library NavigatorAdvancedOrderLib {
                     token: item.token,
                     identifierOrCriteria: uint256(
                         item.candidateIdentifiers.criteriaRoot()
-                    ),
+                        ),
                     startAmount: item.startAmount,
                     endAmount: item.endAmount,
                     recipient: item.recipient
@@ -191,7 +193,7 @@ library NavigatorAdvancedOrderLib {
                     identifier: item.identifier,
                     criteriaProof: item.candidateIdentifiers.criteriaProof(
                         item.identifier
-                    )
+                        )
                 });
                 criteriaResolverLen++;
             } else {
@@ -245,9 +247,7 @@ library NavigatorAdvancedOrderLib {
      * @dev Converts an array of NavigatorAdvancedOrders to an array of
      *      AdvancedOrders and an array of CriteriaResolvers.
      */
-    function toAdvancedOrders(
-        NavigatorAdvancedOrder[] memory orders
-    )
+    function toAdvancedOrders(NavigatorAdvancedOrder[] memory orders)
         internal
         pure
         returns (AdvancedOrder[] memory, CriteriaResolver[] memory)
@@ -264,8 +264,8 @@ library NavigatorAdvancedOrderLib {
         uint256 maxCriteriaResolvers;
         for (uint256 i; i < orders.length; i++) {
             NavigatorOrderParameters memory parameters = orders[i].parameters;
-            maxCriteriaResolvers += (parameters.offer.length +
-                parameters.consideration.length);
+            maxCriteriaResolvers +=
+                (parameters.offer.length + parameters.consideration.length);
         }
         uint256 criteriaResolverIndex;
         CriteriaResolver[] memory criteriaResolvers = new CriteriaResolver[](

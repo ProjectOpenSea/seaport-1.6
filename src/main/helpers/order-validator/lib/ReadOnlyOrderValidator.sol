@@ -15,9 +15,8 @@ import {
     _revertMissingOriginalConsiderationItems
 } from "seaport-types/src/lib/ConsiderationErrors.sol";
 
-import {
-    SignatureVerification
-} from "seaport-core/src/lib/SignatureVerification.sol";
+import { SignatureVerification } from
+    "seaport-core/src/lib/SignatureVerification.sol";
 
 import {
     _revertOrderAlreadyFilled,
@@ -70,10 +69,11 @@ import {
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
 contract ReadOnlyOrderValidator is SignatureVerification {
-    function canValidate(
-        address seaport,
-        Order[] memory orders
-    ) external view returns (bool) {
+    function canValidate(address seaport, Order[] memory orders)
+        external
+        view
+        returns (bool)
+    {
         return _validate(orders, SeaportInterface(seaport));
     }
 
@@ -92,11 +92,12 @@ contract ReadOnlyOrderValidator is SignatureVerification {
      * @return validated A boolean indicating whether the supplied orders were
      *                   successfully validated.
      */
-    function _validate(
-        Order[] memory orders,
-        SeaportInterface seaport
-    ) internal view returns (bool validated) {
-        (, bytes32 domainSeparator, ) = seaport.information();
+    function _validate(Order[] memory orders, SeaportInterface seaport)
+        internal
+        view
+        returns (bool validated)
+    {
+        (, bytes32 domainSeparator,) = seaport.information();
 
         // Declare variables outside of the loop.
         OrderStatus memory orderStatus;
@@ -126,8 +127,7 @@ contract ReadOnlyOrderValidator is SignatureVerification {
 
                 // Get current counter & use it w/ params to derive order hash.
                 orderHash = _assertConsiderationLengthAndGetOrderHash(
-                    orderParameters,
-                    seaport
+                    orderParameters, seaport
                 );
 
                 {
@@ -159,18 +159,15 @@ contract ReadOnlyOrderValidator is SignatureVerification {
                     // Ensure that consideration array length is equal to the
                     // total original consideration items value.
                     if (
-                        orderParameters.consideration.length !=
-                        orderParameters.totalOriginalConsiderationItems
+                        orderParameters.consideration.length
+                            != orderParameters.totalOriginalConsiderationItems
                     ) {
                         _revertConsiderationLengthNotEqualToTotalOriginal();
                     }
 
                     // Verify the supplied signature.
                     _verifySignature(
-                        offerer,
-                        orderHash,
-                        order.signature,
-                        domainSeparator
+                        offerer, orderHash, order.signature, domainSeparator
                     );
 
                     // Update order status to mark the order as valid.
@@ -275,10 +272,7 @@ contract ReadOnlyOrderValidator is SignatureVerification {
         }
 
         // Derive original EIP-712 digest using domain separator and order hash.
-        bytes32 originalDigest = _deriveEIP712Digest(
-            domainSeparator,
-            orderHash
-        );
+        bytes32 originalDigest = _deriveEIP712Digest(domainSeparator, orderHash);
 
         // Read the length of the signature from memory and place on the stack.
         uint256 originalSignatureLength = signature.length;
@@ -296,11 +290,7 @@ contract ReadOnlyOrderValidator is SignatureVerification {
 
         // Ensure that the signature for the digest is valid for the offerer.
         _assertValidSignature(
-            offerer,
-            digest,
-            originalDigest,
-            originalSignatureLength,
-            signature
+            offerer, digest, originalDigest, originalSignatureLength, signature
         );
     }
 
@@ -311,28 +301,31 @@ contract ReadOnlyOrderValidator is SignatureVerification {
      *
      * @return validLength True if bulk order size is valid, false otherwise.
      */
-    function _isValidBulkOrderSize(
-        uint256 signatureLength
-    ) internal pure returns (bool validLength) {
+    function _isValidBulkOrderSize(uint256 signatureLength)
+        internal
+        pure
+        returns (bool validLength)
+    {
         // Utilize assembly to validate the length; the equivalent logic is
         // (64 + x) + 3 + 32y where (0 <= x <= 1) and (1 <= y <= 24).
         assembly {
-            validLength := and(
-                lt(
-                    sub(signatureLength, BulkOrderProof_minSize),
-                    BulkOrderProof_rangeSize
-                ),
-                lt(
-                    and(
-                        add(
-                            signatureLength,
-                            BulkOrderProof_lengthAdjustmentBeforeMask
-                        ),
-                        ThirtyOneBytes
+            validLength :=
+                and(
+                    lt(
+                        sub(signatureLength, BulkOrderProof_minSize),
+                        BulkOrderProof_rangeSize
                     ),
-                    BulkOrderProof_lengthRangeAfterMask
+                    lt(
+                        and(
+                            add(
+                                signatureLength,
+                                BulkOrderProof_lengthAdjustmentBeforeMask
+                            ),
+                            ThirtyOneBytes
+                        ),
+                        BulkOrderProof_lengthRangeAfterMask
+                    )
                 )
-            )
         }
     }
 
@@ -385,11 +378,7 @@ contract ReadOnlyOrderValidator is SignatureVerification {
             mstore(xor(scratchPtr1, OneWord), mload(proof))
 
             // Compute remaining proofs.
-            for {
-                let i := 1
-            } lt(i, height) {
-                i := add(i, 1)
-            } {
+            for { let i := 1 } lt(i, height) { i := add(i, 1) } {
                 proof := add(proof, OneWord)
                 let scratchPtr := shl(OneWordShift, and(shr(i, key), 1))
                 mstore(scratchPtr, keccak256(0, TwoWords))
@@ -423,9 +412,11 @@ contract ReadOnlyOrderValidator is SignatureVerification {
      * @return _typeHash The EIP-712 typehash for the bulk order type with the
      *                   given height.
      */
-    function _lookupBulkOrderTypehash(
-        uint256 _treeHeight
-    ) internal pure returns (bytes32 _typeHash) {
+    function _lookupBulkOrderTypehash(uint256 _treeHeight)
+        internal
+        pure
+        returns (bytes32 _typeHash)
+    {
         // Utilize assembly to efficiently retrieve correct bulk order typehash.
         assembly {
             // Use a Yul function to enable use of the `leave` keyword
@@ -438,22 +429,24 @@ contract ReadOnlyOrderValidator is SignatureVerification {
                         // Handle tree heights one and two.
                         if lt(treeHeight, 3) {
                             // Utilize branchless logic to determine typehash.
-                            typeHash := ternary(
-                                eq(treeHeight, 1),
-                                BulkOrder_Typehash_Height_One,
-                                BulkOrder_Typehash_Height_Two
-                            )
+                            typeHash :=
+                                ternary(
+                                    eq(treeHeight, 1),
+                                    BulkOrder_Typehash_Height_One,
+                                    BulkOrder_Typehash_Height_Two
+                                )
 
                             // Exit the function once typehash has been located.
                             leave
                         }
 
                         // Handle height three and four via branchless logic.
-                        typeHash := ternary(
-                            eq(treeHeight, 3),
-                            BulkOrder_Typehash_Height_Three,
-                            BulkOrder_Typehash_Height_Four
-                        )
+                        typeHash :=
+                            ternary(
+                                eq(treeHeight, 3),
+                                BulkOrder_Typehash_Height_Three,
+                                BulkOrder_Typehash_Height_Four
+                            )
 
                         // Exit the function once typehash has been located.
                         leave
@@ -462,22 +455,24 @@ contract ReadOnlyOrderValidator is SignatureVerification {
                     // Handle tree height five and six.
                     if lt(treeHeight, 7) {
                         // Utilize branchless logic to determine typehash.
-                        typeHash := ternary(
-                            eq(treeHeight, 5),
-                            BulkOrder_Typehash_Height_Five,
-                            BulkOrder_Typehash_Height_Six
-                        )
+                        typeHash :=
+                            ternary(
+                                eq(treeHeight, 5),
+                                BulkOrder_Typehash_Height_Five,
+                                BulkOrder_Typehash_Height_Six
+                            )
 
                         // Exit the function once typehash has been located.
                         leave
                     }
 
                     // Handle height seven and eight via branchless logic.
-                    typeHash := ternary(
-                        eq(treeHeight, 7),
-                        BulkOrder_Typehash_Height_Seven,
-                        BulkOrder_Typehash_Height_Eight
-                    )
+                    typeHash :=
+                        ternary(
+                            eq(treeHeight, 7),
+                            BulkOrder_Typehash_Height_Seven,
+                            BulkOrder_Typehash_Height_Eight
+                        )
 
                     // Exit the function once typehash has been located.
                     leave
@@ -490,22 +485,24 @@ contract ReadOnlyOrderValidator is SignatureVerification {
                         // Handle tree height nine and ten.
                         if lt(treeHeight, 11) {
                             // Utilize branchless logic to determine typehash.
-                            typeHash := ternary(
-                                eq(treeHeight, 9),
-                                BulkOrder_Typehash_Height_Nine,
-                                BulkOrder_Typehash_Height_Ten
-                            )
+                            typeHash :=
+                                ternary(
+                                    eq(treeHeight, 9),
+                                    BulkOrder_Typehash_Height_Nine,
+                                    BulkOrder_Typehash_Height_Ten
+                                )
 
                             // Exit the function once typehash has been located.
                             leave
                         }
 
                         // Handle height eleven and twelve via branchless logic.
-                        typeHash := ternary(
-                            eq(treeHeight, 11),
-                            BulkOrder_Typehash_Height_Eleven,
-                            BulkOrder_Typehash_Height_Twelve
-                        )
+                        typeHash :=
+                            ternary(
+                                eq(treeHeight, 11),
+                                BulkOrder_Typehash_Height_Eleven,
+                                BulkOrder_Typehash_Height_Twelve
+                            )
 
                         // Exit the function once typehash has been located.
                         leave
@@ -514,21 +511,23 @@ contract ReadOnlyOrderValidator is SignatureVerification {
                     // Handle tree height thirteen and fourteen.
                     if lt(treeHeight, 15) {
                         // Utilize branchless logic to determine typehash.
-                        typeHash := ternary(
-                            eq(treeHeight, 13),
-                            BulkOrder_Typehash_Height_Thirteen,
-                            BulkOrder_Typehash_Height_Fourteen
-                        )
+                        typeHash :=
+                            ternary(
+                                eq(treeHeight, 13),
+                                BulkOrder_Typehash_Height_Thirteen,
+                                BulkOrder_Typehash_Height_Fourteen
+                            )
 
                         // Exit the function once typehash has been located.
                         leave
                     }
                     // Handle height fifteen and sixteen via branchless logic.
-                    typeHash := ternary(
-                        eq(treeHeight, 15),
-                        BulkOrder_Typehash_Height_Fifteen,
-                        BulkOrder_Typehash_Height_Sixteen
-                    )
+                    typeHash :=
+                        ternary(
+                            eq(treeHeight, 15),
+                            BulkOrder_Typehash_Height_Fifteen,
+                            BulkOrder_Typehash_Height_Sixteen
+                        )
 
                     // Exit the function once typehash has been located.
                     leave
@@ -539,22 +538,24 @@ contract ReadOnlyOrderValidator is SignatureVerification {
                     // Handle tree height seventeen and eighteen.
                     if lt(treeHeight, 19) {
                         // Utilize branchless logic to determine typehash.
-                        typeHash := ternary(
-                            eq(treeHeight, 17),
-                            BulkOrder_Typehash_Height_Seventeen,
-                            BulkOrder_Typehash_Height_Eighteen
-                        )
+                        typeHash :=
+                            ternary(
+                                eq(treeHeight, 17),
+                                BulkOrder_Typehash_Height_Seventeen,
+                                BulkOrder_Typehash_Height_Eighteen
+                            )
 
                         // Exit the function once typehash has been located.
                         leave
                     }
 
                     // Handle height nineteen and twenty via branchless logic.
-                    typeHash := ternary(
-                        eq(treeHeight, 19),
-                        BulkOrder_Typehash_Height_Nineteen,
-                        BulkOrder_Typehash_Height_Twenty
-                    )
+                    typeHash :=
+                        ternary(
+                            eq(treeHeight, 19),
+                            BulkOrder_Typehash_Height_Nineteen,
+                            BulkOrder_Typehash_Height_Twenty
+                        )
 
                     // Exit the function once typehash has been located.
                     leave
@@ -563,22 +564,24 @@ contract ReadOnlyOrderValidator is SignatureVerification {
                 // Handle tree height twenty-one and twenty-two.
                 if lt(treeHeight, 23) {
                     // Utilize branchless logic to determine typehash.
-                    typeHash := ternary(
-                        eq(treeHeight, 21),
-                        BulkOrder_Typehash_Height_TwentyOne,
-                        BulkOrder_Typehash_Height_TwentyTwo
-                    )
+                    typeHash :=
+                        ternary(
+                            eq(treeHeight, 21),
+                            BulkOrder_Typehash_Height_TwentyOne,
+                            BulkOrder_Typehash_Height_TwentyTwo
+                        )
 
                     // Exit the function once typehash has been located.
                     leave
                 }
 
                 // Handle height twenty-three & twenty-four w/ branchless logic.
-                typeHash := ternary(
-                    eq(treeHeight, 23),
-                    BulkOrder_Typehash_Height_TwentyThree,
-                    BulkOrder_Typehash_Height_TwentyFour
-                )
+                typeHash :=
+                    ternary(
+                        eq(treeHeight, 23),
+                        BulkOrder_Typehash_Height_TwentyThree,
+                        BulkOrder_Typehash_Height_TwentyFour
+                    )
 
                 // Exit the function once typehash has been located.
                 leave
@@ -616,18 +619,18 @@ contract ReadOnlyOrderValidator is SignatureVerification {
         );
 
         // Derive and return order hash using current counter for the offerer.
-        return
-            _deriveOrderHash(
-                orderParameters,
-                _getCounter(seaport, orderParameters.offerer),
-                seaport
-            );
+        return _deriveOrderHash(
+            orderParameters,
+            _getCounter(seaport, orderParameters.offerer),
+            seaport
+        );
     }
 
-    function _getCounter(
-        SeaportInterface seaport,
-        address offerer
-    ) internal view returns (uint256) {
+    function _getCounter(SeaportInterface seaport, address offerer)
+        internal
+        view
+        returns (uint256)
+    {
         return seaport.getCounter(offerer);
     }
 
@@ -674,10 +677,11 @@ contract ReadOnlyOrderValidator is SignatureVerification {
      *
      * @return value The hash.
      */
-    function _deriveEIP712Digest(
-        bytes32 domainSeparator,
-        bytes32 orderHash
-    ) internal pure returns (bytes32 value) {
+    function _deriveEIP712Digest(bytes32 domainSeparator, bytes32 orderHash)
+        internal
+        pure
+        returns (bytes32 value)
+    {
         // Leverage scratch space to perform an efficient hash.
         assembly {
             // Place the EIP-712 prefix at the start of scratch space.

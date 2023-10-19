@@ -2,8 +2,7 @@
 pragma solidity ^0.8.7;
 
 import {
-    AdvancedOrder,
-    CriteriaResolver
+    AdvancedOrder, CriteriaResolver
 } from "../../lib/ConsiderationStructs.sol";
 
 /**

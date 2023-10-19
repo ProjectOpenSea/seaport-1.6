@@ -16,9 +16,11 @@ library NavigatorSeaportValidatorLib {
      * @dev Validate each order using SeaportValidator and add the results to
      *      the NavigatorResponse.
      */
-    function withErrors(
-        NavigatorContext memory context
-    ) internal view returns (NavigatorContext memory) {
+    function withErrors(NavigatorContext memory context)
+        internal
+        view
+        returns (NavigatorContext memory)
+    {
         AdvancedOrder[] memory orders = context.response.orders;
 
         ErrorsAndWarnings[] memory errors = new ErrorsAndWarnings[](
@@ -26,8 +28,7 @@ library NavigatorSeaportValidatorLib {
         );
         for (uint256 i; i < orders.length; i++) {
             errors[i] = context.request.validator.isValidOrder(
-                orders[i].toOrder(),
-                address(context.request.seaport)
+                orders[i].toOrder(), address(context.request.seaport)
             );
         }
         context.response.validationErrors = errors;

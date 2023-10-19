@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {
-    MatchComponent
-} from "seaport-sol/src/lib/types/MatchComponentType.sol";
+import { MatchComponent } from
+    "seaport-sol/src/lib/types/MatchComponentType.sol";
 
 import { OrderDetails } from "seaport-sol/src/fulfillments/lib/Structs.sol";
 
@@ -29,18 +28,22 @@ library NavigatorContextLib {
      *      means slotting the request into the context's request field and
      *      ignoring the response field.
      */
-    function from(
-        NavigatorRequest memory request
-    ) internal pure returns (NavigatorContext memory context) {
+    function from(NavigatorRequest memory request)
+        internal
+        pure
+        returns (NavigatorContext memory context)
+    {
         context.request = request;
     }
 
     /**
      * @dev Adds an empty response to the context.
      */
-    function withEmptyResponse(
-        NavigatorContext memory context
-    ) internal pure returns (NavigatorContext memory) {
+    function withEmptyResponse(NavigatorContext memory context)
+        internal
+        pure
+        returns (NavigatorContext memory)
+    {
         context.response = NavigatorResponse({
             orders: new AdvancedOrder[](0),
             criteriaResolvers: new CriteriaResolver[](0),

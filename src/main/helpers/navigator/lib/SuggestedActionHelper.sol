@@ -10,9 +10,11 @@ import { HelperInterface } from "./HelperInterface.sol";
 contract SuggestedActionHelper is HelperInterface {
     using NavigatorSuggestedActionLib for NavigatorContext;
 
-    function prepare(
-        NavigatorContext memory context
-    ) public view returns (NavigatorContext memory) {
+    function prepare(NavigatorContext memory context)
+        public
+        view
+        returns (NavigatorContext memory)
+    {
         return context.withSuggestedAction();
     }
 }

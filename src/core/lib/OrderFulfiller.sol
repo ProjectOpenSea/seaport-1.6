@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {ItemType, OrderType} from "seaport-types/src/lib/ConsiderationEnums.sol";
+import {
+    ItemType, OrderType
+} from "seaport-types/src/lib/ConsiderationEnums.sol";
 
 import {
     AdvancedOrder,
@@ -13,11 +15,11 @@ import {
     SpentItem
 } from "seaport-types/src/lib/ConsiderationStructs.sol";
 
-import {BasicOrderFulfiller} from "./BasicOrderFulfiller.sol";
+import { BasicOrderFulfiller } from "./BasicOrderFulfiller.sol";
 
-import {CriteriaResolution} from "./CriteriaResolution.sol";
+import { CriteriaResolution } from "./CriteriaResolution.sol";
 
-import {AmountDeriver} from "./AmountDeriver.sol";
+import { AmountDeriver } from "./AmountDeriver.sol";
 
 import {
     _revertInsufficientNativeTokensSupplied,
@@ -38,7 +40,11 @@ import {
  *         single order is being fulfilled and where basic order fulfillment is
  *         not available as an option.
  */
-contract OrderFulfiller is BasicOrderFulfiller, CriteriaResolution, AmountDeriver {
+contract OrderFulfiller is
+    BasicOrderFulfiller,
+    CriteriaResolution,
+    AmountDeriver
+{
     /**
      * @dev Derive and set hashes, reference chainId, and associated domain
      *      separator during deployment.
@@ -47,7 +53,9 @@ contract OrderFulfiller is BasicOrderFulfiller, CriteriaResolution, AmountDerive
      *                          that may optionally be used to transfer approved
      *                          ERC20/721/1155 tokens.
      */
-    constructor(address conduitController) BasicOrderFulfiller(conduitController) {}
+    constructor(address conduitController)
+        BasicOrderFulfiller(conduitController)
+    { }
 
     /**
      * @dev Internal function to validate an order and update its status, adjust
@@ -104,14 +112,22 @@ contract OrderFulfiller is BasicOrderFulfiller, CriteriaResolution, AmountDerive
         OrderParameters memory orderParameters = advancedOrders[0].parameters;
 
         // Perform each item transfer with the appropriate fractional amount.
-        _applyFractionsAndTransferEach(orderParameters, fillNumerator, fillDenominator, fulfillerConduitKey, recipient);
+        _applyFractionsAndTransferEach(
+            orderParameters,
+            fillNumerator,
+            fillDenominator,
+            fulfillerConduitKey,
+            recipient
+        );
 
         // Declare empty bytes32 array and populate with the order hash.
         bytes32[] memory orderHashes = new bytes32[](1);
         orderHashes[0] = orderHash;
 
         // Ensure restricted orders have a valid submitter or pass a zone check.
-        _assertRestrictedAdvancedOrderValidity(advancedOrders[0], orderHashes, orderHash);
+        _assertRestrictedAdvancedOrderValidity(
+            advancedOrders[0], orderHashes, orderHash
+        );
 
         // Emit an event signifying that the order has been fulfilled.
         _emitOrderFulfilledEvent(
@@ -211,22 +227,36 @@ contract OrderFulfiller is BasicOrderFulfiller, CriteriaResolution, AmountDerive
                 {
                     // Apply fill fraction to get offer item amount to transfer.
                     uint256 amount = _applyFraction(
-                        offerItem.startAmount, offerItem.endAmount, numerator, denominator, startTime, endTime, false
+                        offerItem.startAmount,
+                        offerItem.endAmount,
+                        numerator,
+                        denominator,
+                        startTime,
+                        endTime,
+                        false
                     );
 
                     // Utilize assembly to set overloaded offerItem arguments.
                     assembly {
                         // Write new fractional amount to startAmount as amount.
-                        mstore(add(offerItem, ReceivedItem_amount_offset), amount)
+                        mstore(
+                            add(offerItem, ReceivedItem_amount_offset), amount
+                        )
 
                         // Write recipient to endAmount.
-                        mstore(add(offerItem, ReceivedItem_recipient_offset), recipient)
+                        mstore(
+                            add(offerItem, ReceivedItem_recipient_offset),
+                            recipient
+                        )
                     }
                 }
 
                 // Transfer the item from the offerer to the recipient.
                 _toOfferItemInput(_transfer)(
-                    offerItem, orderParameters.offerer, orderParameters.conduitKey, accumulator
+                    offerItem,
+                    orderParameters.offerer,
+                    orderParameters.conduitKey,
+                    accumulator
                 );
             }
 
@@ -272,13 +302,15 @@ contract OrderFulfiller is BasicOrderFulfiller, CriteriaResolution, AmountDerive
         // Declare a nested scope to minimize stack depth.
         unchecked {
             // Read consideration array length from memory and place on stack.
-            uint256 totalConsiderationItems = orderParameters.consideration.length;
+            uint256 totalConsiderationItems =
+                orderParameters.consideration.length;
 
             // Iterate over each consideration item on the order.
             // Skip overflow check as for loop is indexed starting at zero.
             for (uint256 i = 0; i < totalConsiderationItems; ++i) {
                 // Retrieve the consideration item.
-                ConsiderationItem memory considerationItem = (orderParameters.consideration[i]);
+                ConsiderationItem memory considerationItem =
+                    (orderParameters.consideration[i]);
 
                 // Apply fraction & derive considerationItem amount to transfer.
                 uint256 amount = _applyFraction(
@@ -294,12 +326,20 @@ contract OrderFulfiller is BasicOrderFulfiller, CriteriaResolution, AmountDerive
                 // Use assembly to set overloaded considerationItem arguments.
                 assembly {
                     // Write derived fractional amount to startAmount as amount.
-                    mstore(add(considerationItem, ReceivedItem_amount_offset), amount)
+                    mstore(
+                        add(considerationItem, ReceivedItem_amount_offset),
+                        amount
+                    )
 
                     // Write original recipient to endAmount as recipient.
                     mstore(
                         add(considerationItem, ReceivedItem_recipient_offset),
-                        mload(add(considerationItem, ConsiderationItem_recipient_offset))
+                        mload(
+                            add(
+                                considerationItem,
+                                ConsiderationItem_recipient_offset
+                            )
+                        )
                     )
                 }
 
@@ -316,7 +356,12 @@ contract OrderFulfiller is BasicOrderFulfiller, CriteriaResolution, AmountDerive
                 }
 
                 // Transfer item from caller to recipient specified by the item.
-                _toConsiderationItemInput(_transfer)(considerationItem, msg.sender, fulfillerConduitKey, accumulator);
+                _toConsiderationItemInput(_transfer)(
+                    considerationItem,
+                    msg.sender,
+                    fulfillerConduitKey,
+                    accumulator
+                );
             }
         }
 
@@ -368,6 +413,8 @@ contract OrderFulfiller is BasicOrderFulfiller, CriteriaResolution, AmountDerive
         }
 
         // Emit an event signifying that the order has been fulfilled.
-        emit OrderFulfilled(orderHash, offerer, zone, recipient, spentItems, receivedItems);
+        emit OrderFulfilled(
+            orderHash, offerer, zone, recipient, spentItems, receivedItems
+        );
     }
 }

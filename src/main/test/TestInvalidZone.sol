@@ -11,9 +11,11 @@ import { ZoneInterface } from "seaport-types/src/interfaces/ZoneInterface.sol";
 
 contract TestInvalidZone is ERC165, ZoneInterface {
     // Returns invalid magic value
-    function validateOrder(
-        ZoneParameters calldata
-    ) external pure returns (bytes4 validOrderMagicValue) {
+    function validateOrder(ZoneParameters calldata)
+        external
+        pure
+        returns (bytes4 validOrderMagicValue)
+    {
         return ZoneInterface.getSeaportMetadata.selector;
     }
 
@@ -36,11 +38,13 @@ contract TestInvalidZone is ERC165, ZoneInterface {
         return ("TestZone", schemas);
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view override(ERC165, ZoneInterface) returns (bool) {
-        return
-            interfaceId == type(ZoneInterface).interfaceId ||
-            super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC165, ZoneInterface)
+        returns (bool)
+    {
+        return interfaceId == type(ZoneInterface).interfaceId
+            || super.supportsInterface(interfaceId);
     }
 }

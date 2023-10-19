@@ -10,9 +10,11 @@ import { HelperInterface } from "./HelperInterface.sol";
 contract FulfillmentsHelper is HelperInterface {
     using NavigatorFulfillmentsLib for NavigatorContext;
 
-    function prepare(
-        NavigatorContext memory context
-    ) public pure returns (NavigatorContext memory) {
+    function prepare(NavigatorContext memory context)
+        public
+        pure
+        returns (NavigatorContext memory)
+    {
         return context.withFulfillments();
     }
 }

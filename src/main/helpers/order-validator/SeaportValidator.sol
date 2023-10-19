@@ -12,19 +12,14 @@ import {
     ZoneParameters
 } from "seaport-types/src/lib/ConsiderationStructs.sol";
 import { ConsiderationTypeHashes } from "./lib/ConsiderationTypeHashes.sol";
-import {
-    ConsiderationInterface
-} from "seaport-types/src/interfaces/ConsiderationInterface.sol";
-import {
-    ConduitControllerInterface
-} from "seaport-types/src/interfaces/ConduitControllerInterface.sol";
-import {
-    ContractOffererInterface
-} from "seaport-types/src/interfaces/ContractOffererInterface.sol";
+import { ConsiderationInterface } from
+    "seaport-types/src/interfaces/ConsiderationInterface.sol";
+import { ConduitControllerInterface } from
+    "seaport-types/src/interfaces/ConduitControllerInterface.sol";
+import { ContractOffererInterface } from
+    "seaport-types/src/interfaces/ContractOffererInterface.sol";
 import { ZoneInterface } from "seaport-types/src/interfaces/ZoneInterface.sol";
-import {
-    GettersAndDerivers
-} from "seaport-core/src/lib/GettersAndDerivers.sol";
+import { GettersAndDerivers } from "seaport-core/src/lib/GettersAndDerivers.sol";
 import { SeaportValidatorInterface } from "./lib/SeaportValidatorInterface.sol";
 import { ZoneInterface } from "seaport-types/src/interfaces/ZoneInterface.sol";
 import {
@@ -98,13 +93,11 @@ contract SeaportValidator is
         address seaportValidatorHelperAddress,
         address conduitControllerAddress
     ) {
-        _readOnlyOrderValidator = ReadOnlyOrderValidator(
-            readOnlyOrderValidatorAddress
-        );
+        _readOnlyOrderValidator =
+            ReadOnlyOrderValidator(readOnlyOrderValidatorAddress);
         _helper = SeaportValidatorHelper(seaportValidatorHelperAddress);
-        _conduitController = ConduitControllerInterface(
-            conduitControllerAddress
-        );
+        _conduitController =
+            ConduitControllerInterface(conduitControllerAddress);
     }
 
     /**
@@ -121,23 +114,23 @@ contract SeaportValidator is
      * @param order The order to validate.
      * @return errorsAndWarnings The errors and warnings found in the order.
      */
-    function isValidOrder(
-        Order calldata order,
-        address seaportAddress
-    ) external view returns (ErrorsAndWarnings memory errorsAndWarnings) {
-        return
-            isValidOrderWithConfiguration(
-                ValidationConfiguration(
-                    seaportAddress,
-                    address(0),
-                    0,
-                    false,
-                    false,
-                    30 minutes,
-                    26 weeks
-                ),
-                order
-            );
+    function isValidOrder(Order calldata order, address seaportAddress)
+        external
+        view
+        returns (ErrorsAndWarnings memory errorsAndWarnings)
+    {
+        return isValidOrderWithConfiguration(
+            ValidationConfiguration(
+                seaportAddress,
+                address(0),
+                0,
+                false,
+                false,
+                30 minutes,
+                26 weeks
+            ),
+            order
+        );
     }
 
     /**
@@ -161,20 +154,17 @@ contract SeaportValidator is
         );
         errorsAndWarnings.concat(
             validateOrderStatus(
-                order.parameters,
-                validationConfiguration.seaport
+                order.parameters, validationConfiguration.seaport
             )
         );
         errorsAndWarnings.concat(
             validateOfferItems(
-                order.parameters,
-                validationConfiguration.seaport
+                order.parameters, validationConfiguration.seaport
             )
         );
         errorsAndWarnings.concat(
             validateConsiderationItems(
-                order.parameters,
-                validationConfiguration.seaport
+                order.parameters, validationConfiguration.seaport
             )
         );
         errorsAndWarnings.concat(isValidZone(order.parameters));
@@ -217,13 +207,12 @@ contract SeaportValidator is
         uint256 primaryFeeBips,
         bool checkCreatorFee
     ) public view returns (ErrorsAndWarnings memory errorsAndWarnings) {
-        return
-            _helper.validateStrictLogic(
-                orderParameters,
-                primaryFeeRecipient,
-                primaryFeeBips,
-                checkCreatorFee
-            );
+        return _helper.validateStrictLogic(
+            orderParameters,
+            primaryFeeRecipient,
+            primaryFeeBips,
+            checkCreatorFee
+        );
     }
 
     /**
@@ -231,10 +220,11 @@ contract SeaportValidator is
      * @param conduitKey The conduit key to check.
      * @return errorsAndWarnings The errors and warnings
      */
-    function isValidConduit(
-        bytes32 conduitKey,
-        address seaportAddress
-    ) external view returns (ErrorsAndWarnings memory errorsAndWarnings) {
+    function isValidConduit(bytes32 conduitKey, address seaportAddress)
+        external
+        view
+        returns (ErrorsAndWarnings memory errorsAndWarnings)
+    {
         (, errorsAndWarnings) = getApprovalAddress(conduitKey, seaportAddress);
     }
 
@@ -245,15 +235,17 @@ contract SeaportValidator is
      * @param orderParameters The order parameters to check.
      * @return errorsAndWarnings The errors and warnings
      */
-    function isValidZone(
-        OrderParameters memory orderParameters
-    ) public view returns (ErrorsAndWarnings memory errorsAndWarnings) {
+    function isValidZone(OrderParameters memory orderParameters)
+        public
+        view
+        returns (ErrorsAndWarnings memory errorsAndWarnings)
+    {
         errorsAndWarnings = ErrorsAndWarnings(new uint16[](0), new uint16[](0));
 
         // If not restricted, zone isn't checked
         if (
-            uint8(orderParameters.orderType) < 2 ||
-            uint8(orderParameters.orderType) == 4
+            uint8(orderParameters.orderType) < 2
+                || uint8(orderParameters.orderType) == 4
         ) {
             return errorsAndWarnings;
         }
@@ -277,7 +269,8 @@ contract SeaportValidator is
         }
 
         // Check if the zone implements SIP-5
-        try ZoneInterface(orderParameters.zone).getSeaportMetadata() {} catch {
+        try ZoneInterface(orderParameters.zone).getSeaportMetadata() { }
+        catch {
             errorsAndWarnings.addWarning(ZoneIssue.InvalidZone.parseInt());
         }
     }
@@ -289,10 +282,7 @@ contract SeaportValidator is
      * @return approvalAddress The address to use for approvals
      * @return errorsAndWarnings An ErrorsAndWarnings structs with results
      */
-    function getApprovalAddress(
-        bytes32 conduitKey,
-        address seaportAddress
-    )
+    function getApprovalAddress(bytes32 conduitKey, address seaportAddress)
         public
         view
         returns (address, ErrorsAndWarnings memory errorsAndWarnings)
@@ -303,9 +293,8 @@ contract SeaportValidator is
         if (conduitKey == 0) return (seaportAddress, errorsAndWarnings);
 
         // Pull conduit info from conduitController
-        (address conduitAddress, bool exists) = _conduitController.getConduit(
-            conduitKey
-        );
+        (address conduitAddress, bool exists) =
+            _conduitController.getConduit(conduitKey);
 
         // Conduit does not exist
         if (!exists) {
@@ -315,8 +304,8 @@ contract SeaportValidator is
 
         // Approval address does not have Seaport added as a channel
         if (
-            exists &&
-            !_conduitController.getChannelStatus(conduitAddress, seaportAddress)
+            exists
+                && !_conduitController.getChannelStatus(conduitAddress, seaportAddress)
         ) {
             errorsAndWarnings.addError(
                 ConduitIssue.MissingSeaportChannel.parseInt()
@@ -330,10 +319,11 @@ contract SeaportValidator is
      * @notice Validates the signature for the order using the offerer's current counter
      * @dev Will also check if order is validated on chain.
      */
-    function validateSignature(
-        Order memory order,
-        address seaportAddress
-    ) public view returns (ErrorsAndWarnings memory errorsAndWarnings) {
+    function validateSignature(Order memory order, address seaportAddress)
+        public
+        view
+        returns (ErrorsAndWarnings memory errorsAndWarnings)
+    {
         // Pull current counter from seaport
         uint256 currentCounter = ConsiderationInterface(seaportAddress)
             .getCounter(order.parameters.offerer);
@@ -379,7 +369,7 @@ contract SeaportValidator is
         bytes32 orderHash = _deriveOrderHash(order.parameters, counter);
 
         // Check if order is validated on chain
-        (bool isValid, , , ) = seaport.getOrderStatus(orderHash);
+        (bool isValid,,,) = seaport.getOrderStatus(orderHash);
 
         if (isValid) {
             // Shortcut success, valid on chain
@@ -392,18 +382,17 @@ contract SeaportValidator is
         // Store order in array
         orderArray[0] = order;
 
-        try
+        try _readOnlyOrderValidator
             // Call validate on Seaport
-            _readOnlyOrderValidator.canValidate(seaportAddress, orderArray)
-        returns (bool success) {
+            .canValidate(seaportAddress, orderArray) returns (bool success) {
             if (!success) {
                 // Call was unsuccessful, so signature is invalid
                 errorsAndWarnings.addError(SignatureIssue.Invalid.parseInt());
             }
         } catch {
             if (
-                order.parameters.consideration.length !=
-                order.parameters.totalOriginalConsiderationItems
+                order.parameters.consideration.length
+                    != order.parameters.totalOriginalConsiderationItems
             ) {
                 // May help diagnose signature issues
                 errorsAndWarnings.addWarning(
@@ -421,9 +410,11 @@ contract SeaportValidator is
      * @param contractOfferer The address of the contract offerer
      * @return errorsAndWarnings The errors and warnings
      */
-    function validateContractOfferer(
-        address contractOfferer
-    ) public view returns (ErrorsAndWarnings memory errorsAndWarnings) {
+    function validateContractOfferer(address contractOfferer)
+        public
+        view
+        returns (ErrorsAndWarnings memory errorsAndWarnings)
+    {
         errorsAndWarnings = ErrorsAndWarnings(new uint16[](0), new uint16[](0));
 
         // Check the EIP165 contract offerer interface
@@ -434,9 +425,8 @@ contract SeaportValidator is
         }
 
         // Check if the contract offerer implements SIP-5
-        try
-            ContractOffererInterface(contractOfferer).getSeaportMetadata()
-        {} catch {
+        try ContractOffererInterface(contractOfferer).getSeaportMetadata() { }
+        catch {
             errorsAndWarnings.addWarning(
                 ContractOffererIssue.InvalidContractOfferer.parseInt()
             );
@@ -475,9 +465,7 @@ contract SeaportValidator is
             orderParameters.endTime > block.timestamp + distantOrderExpiration
         ) {
             // Order expires in a long time
-            errorsAndWarnings.addWarning(
-                TimeIssue.DistantExpiration.parseInt()
-            );
+            errorsAndWarnings.addWarning(TimeIssue.DistantExpiration.parseInt());
         }
 
         if (orderParameters.startTime > block.timestamp) {
@@ -486,13 +474,12 @@ contract SeaportValidator is
         }
 
         if (
-            orderParameters.endTime -
-                (
+            orderParameters.endTime
+                - (
                     orderParameters.startTime > block.timestamp
                         ? orderParameters.startTime
                         : block.timestamp
-                ) <
-            shortOrderDuration
+                ) < shortOrderDuration
         ) {
             // Order has a short duration
             errorsAndWarnings.addWarning(TimeIssue.ShortOrder.parseInt());
@@ -519,17 +506,14 @@ contract SeaportValidator is
         }
 
         // Pull current counter from seaport
-        uint256 currentOffererCounter = seaport.getCounter(
-            orderParameters.offerer
-        );
+        uint256 currentOffererCounter =
+            seaport.getCounter(orderParameters.offerer);
         // Derive order hash using orderParameters and currentOffererCounter
-        bytes32 orderHash = _deriveOrderHash(
-            orderParameters,
-            currentOffererCounter
-        );
+        bytes32 orderHash =
+            _deriveOrderHash(orderParameters, currentOffererCounter);
         // Get order status from seaport
-        (, bool isCancelled, uint256 totalFilled, uint256 totalSize) = seaport
-            .getOrderStatus(orderHash);
+        (, bool isCancelled, uint256 totalFilled, uint256 totalSize) =
+            seaport.getOrderStatus(orderHash);
 
         if (isCancelled) {
             // Order is cancelled
@@ -571,9 +555,9 @@ contract SeaportValidator is
 
                 // Check if token and id are the same
                 if (
-                    offerItem1.token == offerItem2.token &&
-                    offerItem1.identifierOrCriteria ==
-                    offerItem2.identifierOrCriteria
+                    offerItem1.token == offerItem2.token
+                        && offerItem1.identifierOrCriteria
+                            == offerItem2.identifierOrCriteria
                 ) {
                     errorsAndWarnings.addError(
                         OfferIssue.DuplicateItem.parseInt()
@@ -606,9 +590,7 @@ contract SeaportValidator is
     ) public view returns (ErrorsAndWarnings memory errorsAndWarnings) {
         // First validate the parameters (correct amount, contract, etc)
         errorsAndWarnings = validateOfferItemParameters(
-            orderParameters,
-            offerItemIndex,
-            seaportAddress
+            orderParameters, offerItemIndex, seaportAddress
         );
         if (errorsAndWarnings.hasErrors()) {
             // Only validate approvals and balances if parameters are valid
@@ -618,9 +600,7 @@ contract SeaportValidator is
         // Validate approvals and balances for the offer item
         errorsAndWarnings.concat(
             validateOfferItemApprovalAndBalance(
-                orderParameters,
-                offerItemIndex,
-                seaportAddress
+                orderParameters, offerItemIndex, seaportAddress
             )
         );
     }
@@ -650,19 +630,19 @@ contract SeaportValidator is
 
         // Check that amount velocity is not too high.
         if (
-            offerItem.startAmount != offerItem.endAmount &&
-            orderParameters.endTime > orderParameters.startTime
+            offerItem.startAmount != offerItem.endAmount
+                && orderParameters.endTime > orderParameters.startTime
         ) {
             // Assign larger and smaller amount values
-            (uint256 maxAmount, uint256 minAmount) = offerItem.startAmount >
-                offerItem.endAmount
+            (uint256 maxAmount, uint256 minAmount) = offerItem.startAmount
+                > offerItem.endAmount
                 ? (offerItem.startAmount, offerItem.endAmount)
                 : (offerItem.endAmount, offerItem.startAmount);
 
             uint256 amountDelta = maxAmount - minAmount;
             // delta of time that order exists for
-            uint256 timeDelta = orderParameters.endTime -
-                orderParameters.startTime;
+            uint256 timeDelta =
+                orderParameters.endTime - orderParameters.startTime;
 
             // Velocity scaled by 1e10 for precision
             uint256 velocity = (amountDelta * 1e10) / timeDelta;
@@ -717,14 +697,12 @@ contract SeaportValidator is
                 }
             }
         } else if (
-            offerItem.itemType == ItemType.ERC1155 ||
-            offerItem.itemType == ItemType.ERC1155_WITH_CRITERIA
+            offerItem.itemType == ItemType.ERC1155
+                || offerItem.itemType == ItemType.ERC1155_WITH_CRITERIA
         ) {
             // Check the EIP165 token interface
             if (!checkInterface(offerItem.token, ERC1155_INTERFACE_ID)) {
-                errorsAndWarnings.addError(
-                    ERC1155Issue.InvalidToken.parseInt()
-                );
+                errorsAndWarnings.addError(ERC1155Issue.InvalidToken.parseInt());
             }
         } else if (offerItem.itemType == ItemType.ERC20) {
             // ERC20 must have `identifierOrCriteria` be zero
@@ -779,10 +757,8 @@ contract SeaportValidator is
         errorsAndWarnings = ErrorsAndWarnings(new uint16[](0), new uint16[](0));
 
         // Get the approval address for the given conduit key
-        (
-            address approvalAddress,
-            ErrorsAndWarnings memory ew
-        ) = getApprovalAddress(orderParameters.conduitKey, seaportAddress);
+        (address approvalAddress, ErrorsAndWarnings memory ew) =
+            getApprovalAddress(orderParameters.conduitKey, seaportAddress);
         errorsAndWarnings.concat(ew);
 
         if (ew.hasErrors()) {
@@ -911,10 +887,8 @@ contract SeaportValidator is
             ERC20Interface token = ERC20Interface(offerItem.token);
 
             // Get min required balance and approval (max(startAmount, endAmount))
-            uint256 minBalanceAndAllowance = offerItem.startAmount <
-                offerItem.endAmount
-                ? offerItem.startAmount
-                : offerItem.endAmount;
+            uint256 minBalanceAndAllowance = offerItem.startAmount
+                < offerItem.endAmount ? offerItem.startAmount : offerItem.endAmount;
 
             // Check allowance
             if (
@@ -989,12 +963,9 @@ contract SeaportValidator is
         uint256 considerationItemIndex,
         address seaportAddress
     ) public view returns (ErrorsAndWarnings memory errorsAndWarnings) {
-        return
-            _helper.validateConsiderationItem(
-                orderParameters,
-                considerationItemIndex,
-                seaportAddress
-            );
+        return _helper.validateConsiderationItem(
+            orderParameters, considerationItemIndex, seaportAddress
+        );
     }
 
     /**
@@ -1008,12 +979,9 @@ contract SeaportValidator is
         uint256 considerationItemIndex,
         address seaportAddress
     ) public view returns (ErrorsAndWarnings memory errorsAndWarnings) {
-        return
-            _helper.validateConsiderationItemParameters(
-                orderParameters,
-                considerationItemIndex,
-                seaportAddress
-            );
+        return _helper.validateConsiderationItemParameters(
+            orderParameters, considerationItemIndex, seaportAddress
+        );
     }
 
     /**
@@ -1035,8 +1003,7 @@ contract SeaportValidator is
         if (
             !orderParameters.zone.safeStaticCallBytes4(
                 abi.encodeWithSelector(
-                    ZoneInterface.validateOrder.selector,
-                    zoneParameters
+                    ZoneInterface.validateOrder.selector, zoneParameters
                 ),
                 ZoneInterface.validateOrder.selector
             )
@@ -1051,18 +1018,17 @@ contract SeaportValidator is
      * @param token The token address to check
      * @param interfaceHash The interface hash to check
      */
-    function checkInterface(
-        address token,
-        bytes4 interfaceHash
-    ) public view returns (bool) {
-        return
-            token.safeStaticCallBool(
-                abi.encodeWithSelector(
-                    IERC165.supportsInterface.selector,
-                    interfaceHash
-                ),
-                true
-            );
+    function checkInterface(address token, bytes4 interfaceHash)
+        public
+        view
+        returns (bool)
+    {
+        return token.safeStaticCallBool(
+            abi.encodeWithSelector(
+                IERC165.supportsInterface.selector, interfaceHash
+            ),
+            true
+        );
     }
 
     function isPaymentToken(ItemType itemType) public pure returns (bool) {
@@ -1079,9 +1045,11 @@ contract SeaportValidator is
      * @param includedTokens An array of included token ids.
      * @return sortedTokens The sorted `includedTokens` array.
      */
-    function sortMerkleTokens(
-        uint256[] memory includedTokens
-    ) public view returns (uint256[] memory sortedTokens) {
+    function sortMerkleTokens(uint256[] memory includedTokens)
+        public
+        view
+        returns (uint256[] memory sortedTokens)
+    {
         // Sort token ids by the keccak256 hash of the id
         return _helper.sortMerkleTokens(includedTokens);
     }
@@ -1092,9 +1060,7 @@ contract SeaportValidator is
      * @return merkleRoot The merkle root
      * @return errorsAndWarnings Errors and warnings from the operation
      */
-    function getMerkleRoot(
-        uint256[] memory includedTokens
-    )
+    function getMerkleRoot(uint256[] memory includedTokens)
         public
         view
         returns (bytes32 merkleRoot, ErrorsAndWarnings memory errorsAndWarnings)

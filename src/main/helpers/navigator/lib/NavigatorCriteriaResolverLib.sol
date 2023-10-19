@@ -23,18 +23,17 @@ library NavigatorCriteriaResolverLib {
      *      offer/consdieration items. Adds calculated criteria resolvers to
      *      the NavigatorResponse.
      */
-    function withCriteria(
-        NavigatorContext memory context
-    ) internal pure returns (NavigatorContext memory) {
-        (
-            AdvancedOrder[] memory orders,
-            CriteriaResolver[] memory resolvers
-        ) = context.request.orders.toAdvancedOrders();
+    function withCriteria(NavigatorContext memory context)
+        internal
+        pure
+        returns (NavigatorContext memory)
+    {
+        (AdvancedOrder[] memory orders, CriteriaResolver[] memory resolvers) =
+            context.request.orders.toAdvancedOrders();
         context.response.orders = orders;
         if (context.request.criteriaResolvers.length > 0) {
-            context.response.criteriaResolvers = context
-                .request
-                .criteriaResolvers;
+            context.response.criteriaResolvers =
+                context.request.criteriaResolvers;
             return context;
         } else {
             context.response.criteriaResolvers = resolvers;

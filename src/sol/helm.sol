@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {console} from "forge-std/console.sol";
+import { console } from "forge-std/console.sol";
 
-import {LibString} from "solady/src/utils/LibString.sol";
+import { LibString } from "solady/src/utils/LibString.sol";
 
-import {BasicOrderType, ItemType, OrderType, Side} from "seaport-types/src/lib/ConsiderationEnums.sol";
+import {
+    BasicOrderType,
+    ItemType,
+    OrderType,
+    Side
+} from "seaport-types/src/lib/ConsiderationEnums.sol";
 
 import {
     AdditionalRecipient,
@@ -82,7 +87,9 @@ library helm {
         console.log(gStr(i, "OfferItem: {"));
         console.log(gStr(i + 1, "itemType", _itemTypeStr(oi.itemType)));
         console.log(gStr(i + 1, "token", oi.token));
-        console.log(gStr(i + 1, "identifierOrCriteria", oi.identifierOrCriteria));
+        console.log(
+            gStr(i + 1, "identifierOrCriteria", oi.identifierOrCriteria)
+        );
         console.log(gStr(i + 1, "startAmount", oi.startAmount));
         console.log(gStr(i + 1, "endAmount", oi.endAmount));
         console.log(gStr(i, "}"));
@@ -92,7 +99,10 @@ library helm {
         logConsiderationItem(considerationItem, 0);
     }
 
-    function log(ConsiderationItem[] memory considerationItemArray) public view {
+    function log(ConsiderationItem[] memory considerationItemArray)
+        public
+        view
+    {
         console.log(gStr(0, "considerationItemArray: ["));
         for (uint256 j = 0; j < considerationItemArray.length; j++) {
             logConsiderationItem(considerationItemArray[j], 1);
@@ -107,7 +117,9 @@ library helm {
         console.log(gStr(i, "ConsiderationItem: {"));
         console.log(gStr(i + 1, "itemType", _itemTypeStr(ci.itemType)));
         console.log(gStr(i + 1, "token", ci.token));
-        console.log(gStr(i + 1, "identifierOrCriteria", ci.identifierOrCriteria));
+        console.log(
+            gStr(i + 1, "identifierOrCriteria", ci.identifierOrCriteria)
+        );
         console.log(gStr(i + 1, "startAmount", ci.startAmount));
         console.log(gStr(i + 1, "endAmount", ci.endAmount));
         console.log(gStr(i, "}"));
@@ -162,11 +174,17 @@ library helm {
         console.log(gStr(i, "}"));
     }
 
-    function log(BasicOrderParameters memory basicOrderParameters) public view {
+    function log(BasicOrderParameters memory basicOrderParameters)
+        public
+        view
+    {
         logBasicOrderParameters(basicOrderParameters, 0);
     }
 
-    function log(BasicOrderParameters[] memory basicOrderParametersArray) public view {
+    function log(BasicOrderParameters[] memory basicOrderParametersArray)
+        public
+        view
+    {
         console.log(gStr(0, "basicOrderParametersArray: ["));
         for (uint256 j = 0; j < basicOrderParametersArray.length; j++) {
             logBasicOrderParameters(basicOrderParametersArray[j], 1);
@@ -180,21 +198,33 @@ library helm {
     ) internal view {
         console.log(gStr(i, "BasicOrderParameters: {"));
         console.log(gStr(i + 1, "considerationToken", bop.considerationToken));
-        console.log(gStr(i + 1, "considerationIdentifier", bop.considerationIdentifier));
+        console.log(
+            gStr(i + 1, "considerationIdentifier", bop.considerationIdentifier)
+        );
         console.log(gStr(i + 1, "considerationAmount", bop.considerationAmount));
         console.log(gStr(i + 1, "offerer", bop.offerer));
         console.log(gStr(i + 1, "zone", bop.zone));
         console.log(gStr(i + 1, "offerToken", bop.offerToken));
         console.log(gStr(i + 1, "offerIdentifier", bop.offerIdentifier));
         console.log(gStr(i + 1, "offerAmount", bop.offerAmount));
-        console.log(gStr(i + 1, "basicOrderType", _basicOrderTypeStr(bop.basicOrderType)));
+        console.log(
+            gStr(
+                i + 1, "basicOrderType", _basicOrderTypeStr(bop.basicOrderType)
+            )
+        );
         console.log(gStr(i + 1, "startTime", bop.startTime));
         console.log(gStr(i + 1, "endTime", bop.endTime));
         console.log(gStr(i + 1, "zoneHash", bop.zoneHash));
         console.log(gStr(i + 1, "salt", bop.salt));
         console.log(gStr(i + 1, "offererConduitKey", bop.offererConduitKey));
         console.log(gStr(i + 1, "fulfillerConduitKey", bop.fulfillerConduitKey));
-        console.log(gStr(i + 1, "totalOriginalAdditionalRecipients", bop.totalOriginalAdditionalRecipients));
+        console.log(
+            gStr(
+                i + 1,
+                "totalOriginalAdditionalRecipients",
+                bop.totalOriginalAdditionalRecipients
+            )
+        );
         console.log(gStr(i + 1, "additionalRecipients: ["));
         for (uint256 j = 0; j < bop.additionalRecipients.length; j++) {
             logAdditionalRecipient(bop.additionalRecipients[j], i + 1);
@@ -208,7 +238,10 @@ library helm {
         logAdditionalRecipient(additionalRecipient, 0);
     }
 
-    function log(AdditionalRecipient[] memory additionalRecipientArray) public view {
+    function log(AdditionalRecipient[] memory additionalRecipientArray)
+        public
+        view
+    {
         console.log(gStr(0, "additionalRecipientArray: ["));
         for (uint256 j = 0; j < additionalRecipientArray.length; j++) {
             logAdditionalRecipient(additionalRecipientArray[j], 1);
@@ -253,7 +286,13 @@ library helm {
         console.log(gStr(i + 1, "zoneHash", op.zoneHash));
         console.log(gStr(i + 1, "salt", op.salt));
         console.log(gStr(i + 1, "conduitKey", op.conduitKey));
-        console.log(gStr(i + 1, "totalOriginalConsiderationItems", op.totalOriginalConsiderationItems));
+        console.log(
+            gStr(
+                i + 1,
+                "totalOriginalConsiderationItems",
+                op.totalOriginalConsiderationItems
+            )
+        );
         console.log(gStr(i, "}"));
     }
 
@@ -269,7 +308,10 @@ library helm {
         console.log(gStr(0, "]"));
     }
 
-    function logOrder(Order memory order, uint256 i /* indent */ ) internal view {
+    function logOrder(Order memory order, uint256 i /* indent */ )
+        internal
+        view
+    {
         console.log(gStr(i, "Order: {"));
         logOrderParameters(order.parameters, i + 1);
         console.log(gStr(i + 1, "signature", order.signature));
@@ -358,11 +400,17 @@ library helm {
         console.log(gStr(i, "}"));
     }
 
-    function log(FulfillmentComponent memory fulfillmentComponent) public view {
+    function log(FulfillmentComponent memory fulfillmentComponent)
+        public
+        view
+    {
         logFulfillmentComponent(fulfillmentComponent, 0);
     }
 
-    function log(FulfillmentComponent[] memory fulfillmentComponentArray) public view {
+    function log(FulfillmentComponent[] memory fulfillmentComponentArray)
+        public
+        view
+    {
         console.log(gStr(0, "fulfillmentComponentArray: ["));
         for (uint256 j = 0; j < fulfillmentComponentArray.length; j++) {
             logFulfillmentComponent(fulfillmentComponentArray[j], 1);
@@ -474,7 +522,9 @@ library helm {
         string memory valueString
     ) public pure returns (string memory) {
         string memory indentString = generateIndentString(i);
-        return string.concat(indentString, string.concat(labelString, ": ", valueString));
+        return string.concat(
+            indentString, string.concat(labelString, ": ", valueString)
+        );
     }
 
     function gStr(
@@ -483,7 +533,10 @@ library helm {
         uint256 value
     ) public pure returns (string memory) {
         string memory indentString = generateIndentString(i);
-        return string.concat(indentString, string.concat(labelString, ": ", LibString.toString(value)));
+        return string.concat(
+            indentString,
+            string.concat(labelString, ": ", LibString.toString(value))
+        );
     }
 
     function gStr(
@@ -492,7 +545,10 @@ library helm {
         address value
     ) public pure returns (string memory) {
         string memory indentString = generateIndentString(i);
-        return string.concat(indentString, string.concat(labelString, ": ", LibString.toHexString(value)));
+        return string.concat(
+            indentString,
+            string.concat(labelString, ": ", LibString.toHexString(value))
+        );
     }
 
     function gStr(
@@ -501,7 +557,12 @@ library helm {
         bytes32 value
     ) public pure returns (string memory) {
         string memory indentString = generateIndentString(i);
-        return string.concat(indentString, string.concat(labelString, ": ", LibString.toHexString(uint256(value))));
+        return string.concat(
+            indentString,
+            string.concat(
+                labelString, ": ", LibString.toHexString(uint256(value))
+            )
+        );
     }
 
     function gStr(
@@ -510,14 +571,20 @@ library helm {
         bytes memory value
     ) public pure returns (string memory) {
         string memory indentString = generateIndentString(i);
-        return string.concat(indentString, string.concat(labelString, ": ", LibString.toHexString(value)));
+        return string.concat(
+            indentString,
+            string.concat(labelString, ": ", LibString.toHexString(value))
+        );
     }
 
     ////////////////////////////////////////////////////////////////////////////
     //                              Log Arrays                                //
     ////////////////////////////////////////////////////////////////////////////
 
-    function logOffer(OfferItem[] memory offer, uint256 i /* indent */ ) public view {
+    function logOffer(OfferItem[] memory offer, uint256 i /* indent */ )
+        public
+        view
+    {
         console.log(gStr(i, "offer: ["));
         for (uint256 j = 0; j < offer.length; j++) {
             logOfferItem(offer[j], i + 1);
@@ -540,7 +607,11 @@ library helm {
     //                          Get Enum String Values                        //
     ////////////////////////////////////////////////////////////////////////////
 
-    function _itemTypeStr(ItemType itemType) internal pure returns (string memory) {
+    function _itemTypeStr(ItemType itemType)
+        internal
+        pure
+        returns (string memory)
+    {
         if (itemType == ItemType.NATIVE) return "NATIVE";
         if (itemType == ItemType.ERC20) return "ERC20";
         if (itemType == ItemType.ERC721) return "ERC721";
@@ -555,7 +626,11 @@ library helm {
         return "UNKNOWN";
     }
 
-    function _orderTypeStr(OrderType orderType) internal pure returns (string memory) {
+    function _orderTypeStr(OrderType orderType)
+        internal
+        pure
+        returns (string memory)
+    {
         if (orderType == OrderType.FULL_OPEN) return "FULL_OPEN";
         if (orderType == OrderType.PARTIAL_OPEN) return "PARTIAL_OPEN";
         if (orderType == OrderType.FULL_RESTRICTED) return "FULL_RESTRICTED";
@@ -567,7 +642,11 @@ library helm {
         return "UNKNOWN";
     }
 
-    function _basicOrderTypeStr(BasicOrderType basicOrderType) internal pure returns (string memory) {
+    function _basicOrderTypeStr(BasicOrderType basicOrderType)
+        internal
+        pure
+        returns (string memory)
+    {
         if (basicOrderType == BasicOrderType.ETH_TO_ERC721_FULL_OPEN) {
             return "ETH_TO_ERC721_FULL_OPEN";
         }
@@ -589,7 +668,8 @@ library helm {
         if (basicOrderType == BasicOrderType.ETH_TO_ERC1155_FULL_RESTRICTED) {
             return "ETH_TO_ERC1155_FULL_RESTRICTED";
         }
-        if (basicOrderType == BasicOrderType.ETH_TO_ERC1155_PARTIAL_RESTRICTED) {
+        if (basicOrderType == BasicOrderType.ETH_TO_ERC1155_PARTIAL_RESTRICTED)
+        {
             return "ETH_TO_ERC1155_PARTIAL_RESTRICTED";
         }
         if (basicOrderType == BasicOrderType.ERC20_TO_ERC721_FULL_OPEN) {
@@ -601,7 +681,8 @@ library helm {
         if (basicOrderType == BasicOrderType.ERC20_TO_ERC721_FULL_RESTRICTED) {
             return "ERC20_TO_ERC721_FULL_RESTRICTED";
         }
-        if (basicOrderType == BasicOrderType.ERC20_TO_ERC721_PARTIAL_RESTRICTED) {
+        if (basicOrderType == BasicOrderType.ERC20_TO_ERC721_PARTIAL_RESTRICTED)
+        {
             return "ERC20_TO_ERC721_PARTIAL_RESTRICTED";
         }
         if (basicOrderType == BasicOrderType.ERC20_TO_ERC1155_FULL_OPEN) {
@@ -613,7 +694,9 @@ library helm {
         if (basicOrderType == BasicOrderType.ERC20_TO_ERC1155_FULL_RESTRICTED) {
             return "ERC20_TO_ERC1155_FULL_RESTRICTED";
         }
-        if (basicOrderType == BasicOrderType.ERC20_TO_ERC1155_PARTIAL_RESTRICTED) {
+        if (
+            basicOrderType == BasicOrderType.ERC20_TO_ERC1155_PARTIAL_RESTRICTED
+        ) {
             return "ERC20_TO_ERC1155_PARTIAL_RESTRICTED";
         }
         if (basicOrderType == BasicOrderType.ERC721_TO_ERC20_FULL_OPEN) {
@@ -625,7 +708,8 @@ library helm {
         if (basicOrderType == BasicOrderType.ERC721_TO_ERC20_FULL_RESTRICTED) {
             return "ERC721_TO_ERC20_FULL_RESTRICTED";
         }
-        if (basicOrderType == BasicOrderType.ERC721_TO_ERC20_PARTIAL_RESTRICTED) {
+        if (basicOrderType == BasicOrderType.ERC721_TO_ERC20_PARTIAL_RESTRICTED)
+        {
             return "ERC721_TO_ERC20_PARTIAL_RESTRICTED";
         }
         if (basicOrderType == BasicOrderType.ERC1155_TO_ERC20_FULL_OPEN) {
@@ -637,7 +721,9 @@ library helm {
         if (basicOrderType == BasicOrderType.ERC1155_TO_ERC20_FULL_RESTRICTED) {
             return "ERC1155_TO_ERC20_FULL_RESTRICTED";
         }
-        if (basicOrderType == BasicOrderType.ERC1155_TO_ERC20_PARTIAL_RESTRICTED) {
+        if (
+            basicOrderType == BasicOrderType.ERC1155_TO_ERC20_PARTIAL_RESTRICTED
+        ) {
             return "ERC1155_TO_ERC20_PARTIAL_RESTRICTED";
         }
 

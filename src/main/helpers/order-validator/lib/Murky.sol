@@ -2,8 +2,7 @@
 pragma solidity ^0.8.10;
 
 import {
-    ErrorsAndWarnings,
-    ErrorsAndWarningsLib
+    ErrorsAndWarnings, ErrorsAndWarningsLib
 } from "./ErrorsAndWarnings.sol";
 
 import { IssueParser, MerkleIssue } from "./SeaportValidatorTypes.sol";
@@ -30,9 +29,11 @@ contract Murky {
         return root == rollingHash;
     }
 
-    /********************
+    /**
+     *
      * HASHING FUNCTION *
-     ********************/
+     *
+     */
 
     /// ascending sort and concat prior to hashing
     function _hashLeafPairs(bytes32 left, bytes32 right)
@@ -54,9 +55,11 @@ contract Murky {
         }
     }
 
-    /********************
+    /**
+     *
      * PROOF GENERATION *
-     ********************/
+     *
+     */
 
     function _getRoot(uint256[] memory data)
         internal
@@ -105,9 +108,7 @@ contract Murky {
                     newLength := add(1, div(length, 2))
                     oddLength := 1
                 }
-                default {
-                    newLength := div(length, 2)
-                }
+                default { newLength := div(length, 2) }
                 // todo: necessary?
                 // mstore(_data, newLength)
                 let resultIndexPointer := add(0x20, _data)
@@ -116,11 +117,7 @@ contract Murky {
                 // stop iterating over for loop at length-1
                 let stopIteration := add(_data, mul(length, 0x20))
                 // write result array in-place over data array
-                for {
-
-                } lt(dataIndexPointer, stopIteration) {
-
-                } {
+                for { } lt(dataIndexPointer, stopIteration) { } {
                     // get next two elements from data, hash them together
                     let data1 := mload(dataIndexPointer)
                     let data2 := mload(add(dataIndexPointer, 0x20))
@@ -137,22 +134,14 @@ contract Murky {
                     let data1 := mload(dataIndexPointer)
                     let nextValue
                     switch _hashOddWithZero
-                    case 0 {
-                        nextValue := data1
-                    }
-                    default {
-                        nextValue := hashLeafPairs(data1, 0)
-                    }
+                    case 0 { nextValue := data1 }
+                    default { nextValue := hashLeafPairs(data1, 0) }
                     mstore(resultIndexPointer, nextValue)
                 }
             }
 
             let dataLength := mload(data)
-            for {
-
-            } gt(dataLength, 1) {
-
-            } {
+            for { } gt(dataLength, 1) { } {
                 dataLength := hashLevel(data, dataLength, hashOddWithZero)
             }
             result := mload(add(0x20, data))
@@ -214,9 +203,7 @@ contract Murky {
                     newLength := add(1, div(length, 2))
                     oddLength := 1
                 }
-                default {
-                    newLength := div(length, 2)
-                }
+                default { newLength := div(length, 2) }
                 // todo: necessary?
                 // mstore(_data, newLength)
                 let resultIndexPointer := add(0x20, _data)
@@ -225,11 +212,7 @@ contract Murky {
                 // stop iterating over for loop at length-1
                 let stopIteration := add(_data, mul(length, 0x20))
                 // write result array in-place over data array
-                for {
-
-                } lt(dataIndexPointer, stopIteration) {
-
-                } {
+                for { } lt(dataIndexPointer, stopIteration) { } {
                     // get next two elements from data, hash them together
                     let data1 := mload(dataIndexPointer)
                     let data2 := mload(add(dataIndexPointer, 0x20))
@@ -246,12 +229,8 @@ contract Murky {
                     let data1 := mload(dataIndexPointer)
                     let nextValue
                     switch _hashOddWithZero
-                    case 0 {
-                        nextValue := data1
-                    }
-                    default {
-                        nextValue := hashLeafPairs(data1, 0)
-                    }
+                    case 0 { nextValue := data1 }
+                    default { nextValue := hashLeafPairs(data1, 0) }
                     mstore(resultIndexPointer, nextValue)
                 }
             }
@@ -266,9 +245,7 @@ contract Murky {
             let dataLength := mload(data)
             for {
                 // repeat until only one element is left
-            } gt(dataLength, 1) {
-
-            } {
+            } gt(dataLength, 1) { } {
                 // bool if node is odd
                 let oddNodeIndex := and(node, 1)
                 // bool if node is last
@@ -339,9 +316,7 @@ contract Murky {
                             mload(add(data, mul(0x20, add(1, sub(i, 1)))))
                         )
                     )
-                ) {
-                    sorted := 0 // Elements not ordered by hash
-                }
+                ) { sorted := 0 } // Elements not ordered by hash
             }
         }
     }
@@ -359,10 +334,8 @@ contract Murky {
     {
         HashAndIntTuple[] memory toSort = new HashAndIntTuple[](values.length);
         for (uint256 i = 0; i < values.length; i++) {
-            toSort[i] = HashAndIntTuple(
-                values[i],
-                keccak256(abi.encode(values[i]))
-            );
+            toSort[i] =
+                HashAndIntTuple(values[i], keccak256(abi.encode(values[i])));
         }
 
         _quickSort(toSort, 0, int256(toSort.length - 1));
@@ -373,11 +346,10 @@ contract Murky {
         }
     }
 
-    function _quickSort(
-        HashAndIntTuple[] memory arr,
-        int256 left,
-        int256 right
-    ) internal pure {
+    function _quickSort(HashAndIntTuple[] memory arr, int256 left, int256 right)
+        internal
+        pure
+    {
         int256 i = left;
         int256 j = right;
         if (i == j) return;
@@ -386,10 +358,8 @@ contract Murky {
             while (arr[uint256(i)].hash < pivot) i++;
             while (pivot < arr[uint256(j)].hash) j--;
             if (i <= j) {
-                (arr[uint256(i)], arr[uint256(j)]) = (
-                    arr[uint256(j)],
-                    arr[uint256(i)]
-                );
+                (arr[uint256(i)], arr[uint256(j)]) =
+                    (arr[uint256(j)], arr[uint256(i)]);
                 i++;
                 j--;
             }

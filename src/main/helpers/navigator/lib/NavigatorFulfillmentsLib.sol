@@ -3,9 +3,8 @@ pragma solidity ^0.8.17;
 
 import { Fulfillment } from "seaport-types/src/lib/ConsiderationStructs.sol";
 
-import {
-    FulfillmentGeneratorLib
-} from "seaport-sol/src/fulfillments/lib/FulfillmentLib.sol";
+import { FulfillmentGeneratorLib } from
+    "seaport-sol/src/fulfillments/lib/FulfillmentLib.sol";
 
 import {
     FulfillmentComponent,
@@ -22,9 +21,11 @@ library NavigatorFulfillmentsLib {
      * @dev Calculate fulfillments and match components for the provided orders
      *      and add them to the NavigatorResponse.
      */
-    function withFulfillments(
-        NavigatorContext memory context
-    ) internal pure returns (NavigatorContext memory) {
+    function withFulfillments(NavigatorContext memory context)
+        internal
+        pure
+        returns (NavigatorContext memory)
+    {
         (
             ,
             FulfillmentComponent[][] memory offerFulfillments,
@@ -33,19 +34,18 @@ library NavigatorFulfillmentsLib {
             MatchComponent[] memory unspentOfferComponents,
             MatchComponent[] memory unmetConsiderationComponents
         ) = context.response.orderDetails.getFulfillments(
-                context.request.fulfillmentStrategy,
-                context.request.recipient,
-                context.request.caller,
-                context.request.seed
-            );
+            context.request.fulfillmentStrategy,
+            context.request.recipient,
+            context.request.caller,
+            context.request.seed
+        );
 
         context.response.offerFulfillments = offerFulfillments;
         context.response.considerationFulfillments = considerationFulfillments;
         context.response.fulfillments = fulfillments;
         context.response.unspentOfferComponents = unspentOfferComponents;
-        context
-            .response
-            .unmetConsiderationComponents = unmetConsiderationComponents;
+        context.response.unmetConsiderationComponents =
+            unmetConsiderationComponents;
         return context;
     }
 }

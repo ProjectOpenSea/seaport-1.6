@@ -2,16 +2,10 @@
 pragma solidity ^0.8.13;
 
 import {
-    BasicOrderType,
-    ItemType,
-    OrderType,
-    Side
+    BasicOrderType, ItemType, OrderType, Side
 } from "./ConsiderationEnums.sol";
 
-import {
-    CalldataPointer,
-    MemoryPointer
-} from "../helpers/PointerLibraries.sol";
+import { CalldataPointer, MemoryPointer } from "../helpers/PointerLibraries.sol";
 
 /**
  * @dev An order contains eleven components: an offerer, a zone (or account that
@@ -121,7 +115,7 @@ struct BasicOrderParameters {
     uint256 totalOriginalAdditionalRecipients; // 0x204
     AdditionalRecipient[] additionalRecipients; // 0x224
     bytes signature; // 0x244
-    // Total length, excluding dynamic array data: 0x264 (580)
+        // Total length, excluding dynamic array data: 0x264 (580)
 }
 
 /**
@@ -152,7 +146,7 @@ struct OrderParameters {
     uint256 salt; // 0x100
     bytes32 conduitKey; // 0x120
     uint256 totalOriginalConsiderationItems; // 0x140
-    // offer.length                          // 0x160
+        // offer.length                          // 0x160
 }
 
 /**
@@ -304,9 +298,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        OrderComponents memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(OrderComponents memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -319,9 +315,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        OrderComponents calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(OrderComponents calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -334,9 +332,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        OfferItem memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(OfferItem memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -349,9 +349,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        OfferItem calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(OfferItem calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -364,9 +366,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        ConsiderationItem memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(ConsiderationItem memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -379,9 +383,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        ConsiderationItem calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(ConsiderationItem calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -394,9 +400,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        SpentItem memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(SpentItem memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -409,9 +417,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        SpentItem calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(SpentItem calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -424,9 +434,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        ReceivedItem memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(ReceivedItem memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -439,9 +451,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        ReceivedItem calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(ReceivedItem calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -454,9 +468,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        BasicOrderParameters memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(BasicOrderParameters memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -469,9 +485,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        BasicOrderParameters calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(BasicOrderParameters calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -484,9 +502,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        AdditionalRecipient memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(AdditionalRecipient memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -499,9 +519,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        AdditionalRecipient calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(AdditionalRecipient calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -514,9 +536,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        OrderParameters memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(OrderParameters memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -529,9 +553,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        OrderParameters calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(OrderParameters calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -544,9 +570,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        Order memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(Order memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -559,9 +587,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        Order calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(Order calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -574,9 +604,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        AdvancedOrder memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(AdvancedOrder memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -589,9 +621,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        AdvancedOrder calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(AdvancedOrder calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -604,9 +638,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        OrderStatus memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(OrderStatus memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -619,9 +655,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        OrderStatus calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(OrderStatus calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -634,9 +672,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        CriteriaResolver memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(CriteriaResolver memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -649,9 +689,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        CriteriaResolver calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(CriteriaResolver calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -664,9 +706,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        Fulfillment memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(Fulfillment memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -679,9 +723,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        Fulfillment calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(Fulfillment calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -694,9 +740,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        FulfillmentComponent memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(FulfillmentComponent memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -709,9 +757,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        FulfillmentComponent calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(FulfillmentComponent calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -724,9 +774,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        Execution memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(Execution memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -739,9 +791,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        Execution calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(Execution calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -754,9 +808,11 @@ library StructPointers {
      *
      * @return ptr The MemoryPointer.
      */
-    function toMemoryPointer(
-        ZoneParameters memory obj
-    ) internal pure returns (MemoryPointer ptr) {
+    function toMemoryPointer(ZoneParameters memory obj)
+        internal
+        pure
+        returns (MemoryPointer ptr)
+    {
         assembly {
             ptr := obj
         }
@@ -769,9 +825,11 @@ library StructPointers {
      *
      * @return ptr The CalldataPointer.
      */
-    function toCalldataPointer(
-        ZoneParameters calldata obj
-    ) internal pure returns (CalldataPointer ptr) {
+    function toCalldataPointer(ZoneParameters calldata obj)
+        internal
+        pure
+        returns (CalldataPointer ptr)
+    {
         assembly {
             ptr := obj
         }

@@ -32,10 +32,11 @@ library ArrayHelpers {
         }
     }
 
-    function flatten(
-        MemoryPointer array1,
-        MemoryPointer array2
-    ) internal view returns (MemoryPointer newArray) {
+    function flatten(MemoryPointer array1, MemoryPointer array2)
+        internal
+        view
+        returns (MemoryPointer newArray)
+    {
         unchecked {
             uint256 arrayLength1 = array1.readUint256();
             uint256 arrayLength2 = array2.readUint256();
@@ -68,9 +69,8 @@ library ArrayHelpers {
             uint256 array2HeadSize = arrayLength2 * 32;
             uint256 array3HeadSize = arrayLength3 * 32;
 
-            newArray = malloc(
-                array1HeadSize + array2HeadSize + array3HeadSize + 32
-            );
+            newArray =
+                malloc(array1HeadSize + array2HeadSize + array3HeadSize + 32);
             newArray.write(arrayLength1 + arrayLength2 + arrayLength3);
 
             MemoryPointer dst = newArray.next();
@@ -82,8 +82,7 @@ library ArrayHelpers {
             }
             if (arrayLength3 > 0) {
                 array3.next().copy(
-                    dst.offset(array1HeadSize + array2HeadSize),
-                    array3HeadSize
+                    dst.offset(array1HeadSize + array2HeadSize), array3HeadSize
                 );
             }
         }
@@ -604,18 +603,20 @@ library ArrayHelpers {
      * @param array         array to search
      * @param searchElement the value to locate in the array.
      */
-    function indexOf(
-        MemoryPointer array,
-        uint256 searchElement
-    ) internal pure returns (int256 index) {
+    function indexOf(MemoryPointer array, uint256 searchElement)
+        internal
+        pure
+        returns (int256 index)
+    {
         unchecked {
             int256 length = array.readInt256();
             MemoryPointer src = array;
             int256 reachedEnd;
             while (
-                ((reachedEnd = toInt(index == length)) |
-                    toInt((src = src.next()).readUint256() == searchElement)) ==
-                0
+                (
+                    (reachedEnd = toInt(index == length))
+                        | toInt((src = src.next()).readUint256() == searchElement)
+                ) == 0
             ) {
                 index += 1;
             }
@@ -696,10 +697,11 @@ library ArrayHelpers {
     //                      includes with one argument                      //
     // =====================================================================//
 
-    function includes(
-        MemoryPointer array,
-        uint256 value
-    ) internal pure returns (bool) {
+    function includes(MemoryPointer array, uint256 value)
+        internal
+        pure
+        returns (bool)
+    {
         return indexOf(array, value) != -1;
     }
 }

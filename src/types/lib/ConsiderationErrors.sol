@@ -125,8 +125,7 @@ function _revertConsiderationNotMet(
         // Store arguments.
         mstore(ConsiderationNotMet_error_orderIndex_ptr, orderIndex)
         mstore(
-            ConsiderationNotMet_error_considerationIndex_ptr,
-            considerationIndex
+            ConsiderationNotMet_error_considerationIndex_ptr, considerationIndex
         )
         mstore(ConsiderationNotMet_error_shortfallAmount_ptr, shortfallAmount)
 
@@ -167,8 +166,7 @@ function _revertInsufficientNativeTokensSupplied() pure {
 
         // revert(abi.encodeWithSignature("InsufficientNativeTokensSupplied()"))
         revert(
-            Error_selector_offset,
-            InsufficientNativeTokensSupplied_error_length
+            Error_selector_offset, InsufficientNativeTokensSupplied_error_length
         )
     }
 }
@@ -552,8 +550,7 @@ function _revertOrderCriteriaResolverOutOfRange(Side side) pure {
         //     side
         // ))
         revert(
-            Error_selector_offset,
-            OrderCriteriaResolverOutOfRange_error_length
+            Error_selector_offset, OrderCriteriaResolverOutOfRange_error_length
         )
     }
 }
@@ -614,8 +611,7 @@ function _revertPartialFillsNotEnabledForOrder() pure {
 
         // revert(abi.encodeWithSignature("PartialFillsNotEnabledForOrder()"))
         revert(
-            Error_selector_offset,
-            PartialFillsNotEnabledForOrder_error_length
+            Error_selector_offset, PartialFillsNotEnabledForOrder_error_length
         )
     }
 }
@@ -646,8 +642,7 @@ function _revertUnresolvedConsiderationCriteria(
         //     considerationIndex
         // ))
         revert(
-            Error_selector_offset,
-            UnresolvedConsiderationCriteria_error_length
+            Error_selector_offset, UnresolvedConsiderationCriteria_error_length
         )
     }
 }
@@ -655,10 +650,9 @@ function _revertUnresolvedConsiderationCriteria(
 /**
  * @dev Reverts execution with an "UnresolvedOfferCriteria" error message.
  */
-function _revertUnresolvedOfferCriteria(
-    uint256 orderIndex,
-    uint256 offerIndex
-) pure {
+function _revertUnresolvedOfferCriteria(uint256 orderIndex, uint256 offerIndex)
+    pure
+{
     assembly {
         // Store left-padded selector with push4 (reduces bytecode),
         // mem[28:32] = selector

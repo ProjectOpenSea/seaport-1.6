@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {AmountDerivationErrors} from "seaport-types/src/interfaces/AmountDerivationErrors.sol";
+import { AmountDerivationErrors } from
+    "seaport-types/src/interfaces/AmountDerivationErrors.sol";
 
 import {
     Error_selector_offset,
@@ -64,7 +65,8 @@ contract AmountDeriver is AmountDerivationErrors {
             }
 
             // Aggregate new amounts weighted by time with rounding factor.
-            uint256 totalBeforeDivision = ((startAmount * remaining) + (endAmount * elapsed));
+            uint256 totalBeforeDivision =
+                ((startAmount * remaining) + (endAmount * elapsed));
 
             // Use assembly to combine operations and skip divide-by-zero check.
             assembly {
@@ -78,7 +80,10 @@ contract AmountDeriver is AmountDerivationErrors {
                         // roundUp is true to get the proper rounding direction.
                         // Division is performed with no zero check as duration
                         // cannot be zero as long as startTime < endTime.
-                        add(div(sub(totalBeforeDivision, roundUp), duration), roundUp)
+                        add(
+                            div(sub(totalBeforeDivision, roundUp), duration),
+                            roundUp
+                        )
                     )
             }
 

@@ -22,19 +22,19 @@ library CriteriaHelperLib {
      * @notice Calculate the Merkle root of a criteria tree containing the given
      *         integer token ids.
      */
-    function criteriaRoot(
-        uint256[] memory tokenIds
-    ) internal pure returns (bytes32) {
+    function criteriaRoot(uint256[] memory tokenIds)
+        internal
+        pure
+        returns (bytes32)
+    {
         if (tokenIds.length == 0) {
             return bytes32(0);
         } else if (tokenIds.length == 1) {
             revert CannotDeriveRootForSingleTokenId();
         } else {
-            return
-                MerkleLib.getRoot(
-                    toSortedHashes(tokenIds),
-                    MerkleLib.merkleHash
-                );
+            return MerkleLib.getRoot(
+                toSortedHashes(tokenIds), MerkleLib.merkleHash
+            );
         }
     }
 
@@ -42,10 +42,11 @@ library CriteriaHelperLib {
      * @notice Calculate the Merkle proof that the given token id is a member of
      *         the criteria tree containing the provided tokenIds.
      */
-    function criteriaProof(
-        uint256[] memory tokenIds,
-        uint256 id
-    ) internal pure returns (bytes32[] memory) {
+    function criteriaProof(uint256[] memory tokenIds, uint256 id)
+        internal
+        pure
+        returns (bytes32[] memory)
+    {
         if (tokenIds.length == 0) {
             return new bytes32[](0);
         } else if (tokenIds.length == 1) {
@@ -69,9 +70,11 @@ library CriteriaHelperLib {
     /**
      * @notice Sort an array of integer token ids by their hashed values.
      */
-    function sortByHash(
-        uint256[] memory tokenIds
-    ) internal pure returns (uint256[] memory sortedIds) {
+    function sortByHash(uint256[] memory tokenIds)
+        internal
+        pure
+        returns (uint256[] memory sortedIds)
+    {
         // Instantiate a new array of HashAndIntTuple structs.
         HashAndIntTuple[] memory toSort = new HashAndIntTuple[](
             tokenIds.length
@@ -79,10 +82,8 @@ library CriteriaHelperLib {
 
         // Populate the array of HashAndIntTuple structs.
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            toSort[i] = HashAndIntTuple(
-                tokenIds[i],
-                keccak256(abi.encode(tokenIds[i]))
-            );
+            toSort[i] =
+                HashAndIntTuple(tokenIds[i], keccak256(abi.encode(tokenIds[i])));
         }
 
         // Sort the array of HashAndIntTuple structs.
@@ -99,9 +100,11 @@ library CriteriaHelperLib {
      * @notice Convert an array of integer token ids to a sorted array of
      *         their hashed values.
      */
-    function toSortedHashes(
-        uint256[] memory tokenIds
-    ) internal pure returns (bytes32[] memory hashes) {
+    function toSortedHashes(uint256[] memory tokenIds)
+        internal
+        pure
+        returns (bytes32[] memory hashes)
+    {
         // Instantiate a new array of hashes.
         hashes = new bytes32[](tokenIds.length);
 
@@ -122,11 +125,10 @@ library CriteriaHelperLib {
      *  @param left  The starting index of the segment to be sorted.
      *  @param right The ending index of the segment to be sorted.
      */
-    function _quickSort(
-        HashAndIntTuple[] memory arr,
-        int256 left,
-        int256 right
-    ) internal pure {
+    function _quickSort(HashAndIntTuple[] memory arr, int256 left, int256 right)
+        internal
+        pure
+    {
         // Initialize pointers i and j to the left and right ends of the array
         // segment.
         int256 i = left;
@@ -149,10 +151,8 @@ library CriteriaHelperLib {
 
             // Swap the elements at i and j if needed.
             if (i <= j) {
-                (arr[uint256(i)], arr[uint256(j)]) = (
-                    arr[uint256(j)],
-                    arr[uint256(i)]
-                );
+                (arr[uint256(i)], arr[uint256(j)]) =
+                    (arr[uint256(j)], arr[uint256(i)]);
                 i++;
                 j--;
             }

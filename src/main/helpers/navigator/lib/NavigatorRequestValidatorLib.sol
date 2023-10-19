@@ -20,9 +20,11 @@ library NavigatorRequestValidatorLib {
      * @dev Validate the provided orders. Checks that none of the provided orders
      *      are contract orders and applies basic criteria constraint validations.
      */
-    function validate(
-        NavigatorContext memory context
-    ) internal pure returns (NavigatorContext memory) {
+    function validate(NavigatorContext memory context)
+        internal
+        pure
+        returns (NavigatorContext memory)
+    {
         validateNoContractOrders(context);
         return context;
     }
@@ -30,9 +32,11 @@ library NavigatorRequestValidatorLib {
     /**
      * @dev Checks that none of the provided orders are contract orders.
      */
-    function validateNoContractOrders(
-        NavigatorContext memory context
-    ) internal pure returns (NavigatorContext memory) {
+    function validateNoContractOrders(NavigatorContext memory context)
+        internal
+        pure
+        returns (NavigatorContext memory)
+    {
         for (uint256 i; i < context.response.orders.length; i++) {
             AdvancedOrder memory order = context.response.orders[i];
             if (order.getType() == Type.CONTRACT) {

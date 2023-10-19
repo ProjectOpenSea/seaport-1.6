@@ -16,9 +16,8 @@ import {
 
 import { ItemType, Side } from "seaport-types/src/lib/ConsiderationEnums.sol";
 
-import {
-    ContractOffererInterface
-} from "seaport-types/src/interfaces/ContractOffererInterface.sol";
+import { ContractOffererInterface } from
+    "seaport-types/src/interfaces/ContractOffererInterface.sol";
 
 import { ZoneInterface } from "seaport-types/src/interfaces/ZoneInterface.sol";
 import { OffererZoneFailureReason } from "./OffererZoneFailureReason.sol";
@@ -28,11 +27,12 @@ import { OffererZoneFailureReason } from "./OffererZoneFailureReason.sol";
  *      TestTransferValidationZoneOfferer to validate transfers within the
  *      zone/offerer.
  */
-contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
+contract HashValidationZoneOfferer is
+    ContractOffererInterface,
+    ZoneInterface
+{
     error InvalidNativeTokenBalance(
-        uint256 expectedBalance,
-        uint256 actualBalance,
-        address checkedAddress
+        uint256 expectedBalance, uint256 actualBalance, address checkedAddress
     );
     error InvalidERC20Balance(
         uint256 expectedBalance,
@@ -54,11 +54,11 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         uint256 checkedTokenId
     );
     error IncorrectSeaportBalance(
-        uint256 expectedBalance,
-        uint256 actualBalance
+        uint256 expectedBalance, uint256 actualBalance
     );
     error HashValidationZoneOffererValidateOrderReverts();
     error HashValidationZoneOffererRatifyOrderReverts();
+
     event ValidateOrderDataHash(bytes32 dataHash);
 
     struct ItemAmountMutation {
@@ -81,11 +81,9 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
     DropItemMutation[] public dropItemMutations;
     ExtraItemMutation[] public extraItemMutations;
 
-    function addItemAmountMutation(
-        Side side,
-        uint256 index,
-        uint256 newAmount
-    ) external {
+    function addItemAmountMutation(Side side, uint256 index, uint256 newAmount)
+        external
+    {
         itemAmountMutations.push(ItemAmountMutation(side, index, newAmount));
     }
 
@@ -93,10 +91,9 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         dropItemMutations.push(DropItemMutation(side, index));
     }
 
-    function addExtraItemMutation(
-        Side side,
-        ReceivedItem calldata item
-    ) external {
+    function addExtraItemMutation(Side side, ReceivedItem calldata item)
+        external
+    {
         extraItemMutations.push(ExtraItemMutation(side, item));
     }
 
@@ -130,16 +127,16 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
             _consideration = consideration;
         } else {
             _offer = offer;
-            _consideration = _cast(
-                dropIndex(_cast(consideration), mutation.index)
-            );
+            _consideration =
+                _cast(dropIndex(_cast(consideration), mutation.index));
         }
     }
 
-    function dropIndex(
-        SpentItem[] memory items,
-        uint256 index
-    ) internal pure returns (SpentItem[] memory newItems) {
+    function dropIndex(SpentItem[] memory items, uint256 index)
+        internal
+        pure
+        returns (SpentItem[] memory newItems)
+    {
         newItems = new SpentItem[](items.length - 1);
         uint256 newIndex = 0;
         uint256 originalLength = items.length;
@@ -151,17 +148,21 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         }
     }
 
-    function _cast(
-        ReceivedItem[] memory items
-    ) internal pure returns (SpentItem[] memory _items) {
+    function _cast(ReceivedItem[] memory items)
+        internal
+        pure
+        returns (SpentItem[] memory _items)
+    {
         assembly {
             _items := items
         }
     }
 
-    function _cast(
-        SpentItem[] memory items
-    ) internal pure returns (ReceivedItem[] memory _items) {
+    function _cast(SpentItem[] memory items)
+        internal
+        pure
+        returns (ReceivedItem[] memory _items)
+    {
         assembly {
             _items := items
         }
@@ -188,10 +189,11 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         }
     }
 
-    function appendItem(
-        ReceivedItem[] memory items,
-        ReceivedItem memory item
-    ) internal pure returns (ReceivedItem[] memory newItems) {
+    function appendItem(ReceivedItem[] memory items, ReceivedItem memory item)
+        internal
+        pure
+        returns (ReceivedItem[] memory newItems)
+    {
         newItems = new ReceivedItem[](items.length + 1);
         for (uint256 i = 0; i < items.length; i++) {
             newItems[i] = items[i];
@@ -199,7 +201,7 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         newItems[items.length] = item;
     }
 
-    receive() external payable {}
+    receive() external payable { }
 
     address internal _expectedOfferRecipient;
 
@@ -211,7 +213,7 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
     }
 
     bool public called = false;
-    uint public callCount = 0;
+    uint256 public callCount = 0;
 
     mapping(bytes32 => OffererZoneFailureReason) public failureReasons;
 
@@ -230,15 +232,16 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
      *
      * @return validOrderMagicValue The magic value to indicate things are OK.
      */
-    function validateOrder(
-        ZoneParameters calldata zoneParameters
-    ) external override returns (bytes4 validOrderMagicValue) {
+    function validateOrder(ZoneParameters calldata zoneParameters)
+        external
+        override
+        returns (bytes4 validOrderMagicValue)
+    {
         // Get the orderHash from zoneParameters
         bytes32 orderHash = zoneParameters.orderHash;
 
-        if (
-            failureReasons[orderHash] == OffererZoneFailureReason.Zone_reverts
-        ) {
+        if (failureReasons[orderHash] == OffererZoneFailureReason.Zone_reverts)
+        {
             revert HashValidationZoneOffererValidateOrderReverts();
         }
         // Validate the order.
@@ -283,8 +286,8 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         callCount++;
 
         if (
-            failureReasons[orderHash] ==
-            OffererZoneFailureReason.Zone_InvalidMagicValue
+            failureReasons[orderHash]
+                == OffererZoneFailureReason.Zone_InvalidMagicValue
         ) {
             validOrderMagicValue = bytes4(0x12345678);
         } else {
@@ -308,33 +311,22 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         override
         returns (SpentItem[] memory offer, ReceivedItem[] memory consideration)
     {
-        (offer, consideration) = previewOrder(
-            address(this),
-            address(this),
-            a,
-            b,
-            c
-        );
+        (offer, consideration) =
+            previewOrder(address(this), address(this), a, b, c);
 
         for (uint256 i; i < itemAmountMutations.length; i++) {
             (offer, consideration) = applyItemAmountMutation(
-                offer,
-                consideration,
-                itemAmountMutations[i]
+                offer, consideration, itemAmountMutations[i]
             );
         }
         for (uint256 i; i < extraItemMutations.length; i++) {
             (offer, consideration) = applyExtraItemMutation(
-                offer,
-                consideration,
-                extraItemMutations[i]
+                offer, consideration, extraItemMutations[i]
             );
         }
         for (uint256 i; i < dropItemMutations.length; i++) {
             (offer, consideration) = applyDropItemMutation(
-                offer,
-                consideration,
-                dropItemMutations[i]
+                offer, consideration, dropItemMutations[i]
             );
         }
 
@@ -375,12 +367,12 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
      * @return ratifyOrderMagicValue The magic value to indicate things are OK.
      */
     function ratifyOrder(
-        SpentItem[] calldata minimumReceived /* offer */,
-        ReceivedItem[] calldata maximumSpent /* consideration */,
-        bytes calldata context /* context */,
-        bytes32[] calldata /* orderHashes */,
+        SpentItem[] calldata minimumReceived, /* offer */
+        ReceivedItem[] calldata maximumSpent, /* consideration */
+        bytes calldata context, /* context */
+        bytes32[] calldata, /* orderHashes */
         uint256 /* contractNonce */
-    ) external override returns (bytes4 /* ratifyOrderMagicValue */) {
+    ) external override returns (bytes4 /* ratifyOrderMagicValue */ ) {
         // Ratify the order.
         // Check if Seaport is empty. This makes sure that we've transferred
         // all native token balance out of Seaport before we do the validation.
@@ -425,9 +417,11 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         schemas[0].metadata = new bytes(0);
     }
 
-    function _convertSpentToReceived(
-        SpentItem[] calldata spentItems
-    ) internal view returns (ReceivedItem[] memory) {
+    function _convertSpentToReceived(SpentItem[] calldata spentItems)
+        internal
+        view
+        returns (ReceivedItem[] memory)
+    {
         ReceivedItem[] memory receivedItems = new ReceivedItem[](
             spentItems.length
         );
@@ -437,22 +431,24 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         return receivedItems;
     }
 
-    function _convertSpentToReceived(
-        SpentItem calldata spentItem
-    ) internal view returns (ReceivedItem memory) {
-        return
-            ReceivedItem({
-                itemType: spentItem.itemType,
-                token: spentItem.token,
-                identifier: spentItem.identifier,
-                amount: spentItem.amount,
-                recipient: payable(address(this))
-            });
+    function _convertSpentToReceived(SpentItem calldata spentItem)
+        internal
+        view
+        returns (ReceivedItem memory)
+    {
+        return ReceivedItem({
+            itemType: spentItem.itemType,
+            token: spentItem.token,
+            identifier: spentItem.identifier,
+            amount: spentItem.amount,
+            recipient: payable(address(this))
+        });
     }
 
-    function _assertValidReceivedItems(
-        ReceivedItem[] calldata receivedItems
-    ) internal view {
+    function _assertValidReceivedItems(ReceivedItem[] calldata receivedItems)
+        internal
+        view
+    {
         address recipient;
         ItemType itemType;
         ReceivedItem memory receivedItem;
@@ -473,16 +469,12 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
             } else if (itemType == ItemType.ERC20) {
                 // ERC20 Token
                 _assertERC20Transfer(
-                    receivedItem.amount,
-                    receivedItem.token,
-                    recipient
+                    receivedItem.amount, receivedItem.token, recipient
                 );
             } else if (itemType == ItemType.ERC721) {
                 // ERC721 Token
                 _assertERC721Transfer(
-                    receivedItem.identifier,
-                    receivedItem.token,
-                    recipient
+                    receivedItem.identifier, receivedItem.token, recipient
                 );
             } else if (itemType == ItemType.ERC1155) {
                 // ERC1155 Token
@@ -517,16 +509,12 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
             } else if (itemType == ItemType.ERC20) {
                 // ERC20 Token
                 _assertERC20Transfer(
-                    spentItem.amount,
-                    spentItem.token,
-                    expectedRecipient
+                    spentItem.amount, spentItem.token, expectedRecipient
                 );
             } else if (itemType == ItemType.ERC721) {
                 // ERC721 Token
                 _assertERC721Transfer(
-                    spentItem.identifier,
-                    spentItem.token,
-                    expectedRecipient
+                    spentItem.identifier, spentItem.token, expectedRecipient
                 );
             } else if (itemType == ItemType.ERC1155) {
                 // ERC1155 Token
@@ -566,9 +554,8 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         // If the amount we read from the spent item or received item (the
         // expected transfer value) is greater than the balance of the expected
         // recipient, revert.
-        if (
-            expectedAmount > ERC20Interface(token).balanceOf(expectedRecipient)
-        ) {
+        if (expectedAmount > ERC20Interface(token).balanceOf(expectedRecipient))
+        {
             revert InvalidERC20Balance(
                 expectedAmount,
                 ERC20Interface(token).balanceOf(expectedRecipient),
@@ -588,10 +575,7 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         address actualOwner = ERC721Interface(token).ownerOf(checkedTokenId);
         if (expectedRecipient != actualOwner) {
             revert InvalidOwner(
-                expectedRecipient,
-                actualOwner,
-                token,
-                checkedTokenId
+                expectedRecipient, actualOwner, token, checkedTokenId
             );
         }
     }
@@ -606,15 +590,12 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         // expected transfer value) is greater than the balance of the expected
         // recipient, revert.
         if (
-            expectedAmount >
-            ERC1155Interface(token).balanceOf(expectedRecipient, identifier)
+            expectedAmount
+                > ERC1155Interface(token).balanceOf(expectedRecipient, identifier)
         ) {
             revert InvalidERC1155Balance(
                 expectedAmount,
-                ERC1155Interface(token).balanceOf(
-                    expectedRecipient,
-                    identifier
-                ),
+                ERC1155Interface(token).balanceOf(expectedRecipient, identifier),
                 expectedRecipient,
                 token
             );
@@ -625,17 +606,14 @@ contract HashValidationZoneOfferer is ContractOffererInterface, ZoneInterface {
         _expectedOfferRecipient = expectedOfferRecipient;
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    )
+    function supportsInterface(bytes4 interfaceId)
         public
         view
         virtual
         override(ContractOffererInterface, ZoneInterface)
         returns (bool)
     {
-        return
-            interfaceId == type(ContractOffererInterface).interfaceId ||
-            interfaceId == type(ZoneInterface).interfaceId;
+        return interfaceId == type(ContractOffererInterface).interfaceId
+            || interfaceId == type(ZoneInterface).interfaceId;
     }
 }

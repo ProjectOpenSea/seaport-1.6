@@ -1,6 +1,6 @@
 [profile.default]
 solc = '0.8.21'
-src = 'contracts'
+src = 'src'
 out = 'out'
 libs = ["node_modules", "lib"]
 test = 'test/foundry'
@@ -32,7 +32,7 @@ fs_permissions = [
 
 [profile.validator]
 solc = '0.8.17'
-src = 'contracts/helpers/order-validator'
+src = 'src/main/helpers/order-validator'
 optimizer_runs = 1
 
 [fuzz]
@@ -50,10 +50,10 @@ test = 'reference'
 [profile.optimized]
 via_ir = true
 out = 'optimized-out'
-script = 'contracts'
+script = 'src/main'
 bytecode_hash = 'none'
 # no need to compile tests with via-ir since they load optimized bytecode directly by default
-test ='contracts'
+test ='src/main'
 
 [profile.test]
 src = 'test/foundry'
@@ -65,7 +65,7 @@ runs = 1_000
 out = 'optimized-out'
 
 [profile.debug]
-src = 'contracts'
+src = 'src/main'
 optimizer = false
 
 [profile.moat_debug]

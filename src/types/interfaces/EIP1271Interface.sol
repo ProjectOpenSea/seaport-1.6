@@ -15,8 +15,8 @@ interface EIP1271Interface {
      *
      * @return bytes4 The magic value, if the signature is valid.
      */
-    function isValidSignature(
-        bytes32 digest,
-        bytes calldata signature
-    ) external view returns (bytes4);
+    function isValidSignature(bytes32 digest, bytes calldata signature)
+        external
+        view
+        returns (bytes4);
 }

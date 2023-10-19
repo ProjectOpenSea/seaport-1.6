@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {
-    ConsiderationInterface
-} from "seaport-types/src/interfaces/ConsiderationInterface.sol";
+import { ConsiderationInterface } from
+    "seaport-types/src/interfaces/ConsiderationInterface.sol";
 
-import {
-    SeaportValidatorInterface
-} from "../order-validator/SeaportValidator.sol";
+import { SeaportValidatorInterface } from
+    "../order-validator/SeaportValidator.sol";
 
 import { NavigatorContextLib } from "./lib/NavigatorContextLib.sol";
 
@@ -77,12 +75,13 @@ contract SeaportNavigator is SeaportNavigatorInterface {
         helpers.push(executionsHelper);
     }
 
-    function prepare(
-        NavigatorRequest calldata request
-    ) public view returns (NavigatorResponse memory) {
-        NavigatorContext memory context = NavigatorContextLib
-            .from(request)
-            .withEmptyResponse();
+    function prepare(NavigatorRequest calldata request)
+        public
+        view
+        returns (NavigatorResponse memory)
+    {
+        NavigatorContext memory context =
+            NavigatorContextLib.from(request).withEmptyResponse();
 
         for (uint256 i; i < helpers.length; i++) {
             context = helpers[i].prepare(context);
@@ -101,9 +100,11 @@ contract SeaportNavigator is SeaportNavigatorInterface {
      * @return The bytes32 merkle root of a criteria tree containing the given
      *         token IDs.
      */
-    function criteriaRoot(
-        uint256[] memory tokenIds
-    ) external pure returns (bytes32) {
+    function criteriaRoot(uint256[] memory tokenIds)
+        external
+        pure
+        returns (bytes32)
+    {
         return tokenIds.criteriaRoot();
     }
 
@@ -118,10 +119,11 @@ contract SeaportNavigator is SeaportNavigatorInterface {
      * @return Merkle proof that the given token ID is  amember of the criteria
      *         tree containing the given token IDs.
      */
-    function criteriaProof(
-        uint256[] memory tokenIds,
-        uint256 id
-    ) external pure returns (bytes32[] memory) {
+    function criteriaProof(uint256[] memory tokenIds, uint256 id)
+        external
+        pure
+        returns (bytes32[] memory)
+    {
         return tokenIds.criteriaProof(id);
     }
 }

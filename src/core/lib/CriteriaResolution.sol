@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {ItemType, Side} from "seaport-types/src/lib/ConsiderationEnums.sol";
+import { ItemType, Side } from "seaport-types/src/lib/ConsiderationEnums.sol";
 
 import {
     AdvancedOrder,
@@ -19,7 +19,8 @@ import {
     _revertUnresolvedOfferCriteria
 } from "seaport-types/src/lib/ConsiderationErrors.sol";
 
-import {CriteriaResolutionErrors} from "seaport-types/src/interfaces/CriteriaResolutionErrors.sol";
+import { CriteriaResolutionErrors } from
+    "seaport-types/src/interfaces/CriteriaResolutionErrors.sol";
 
 import {
     OneWord,
@@ -56,10 +57,10 @@ contract CriteriaResolution is CriteriaResolutionErrors {
      *                           any transferable token identifier is valid and
      *                           that no proof needs to be supplied.
      */
-    function _applyCriteriaResolvers(AdvancedOrder[] memory advancedOrders, CriteriaResolver[] memory criteriaResolvers)
-        internal
-        pure
-    {
+    function _applyCriteriaResolvers(
+        AdvancedOrder[] memory advancedOrders,
+        CriteriaResolver[] memory criteriaResolvers
+    ) internal pure {
         // Skip overflow checks as all for loops are indexed starting at zero.
         unchecked {
             // Retrieve length of criteria resolvers array and place on stack.
@@ -71,14 +72,17 @@ contract CriteriaResolution is CriteriaResolutionErrors {
             // Iterate over each criteria resolver.
             for (uint256 i = 0; i < totalCriteriaResolvers; ++i) {
                 // Retrieve the criteria resolver.
-                CriteriaResolver memory criteriaResolver = (criteriaResolvers[i]);
+                CriteriaResolver memory criteriaResolver =
+                    (criteriaResolvers[i]);
 
                 // Read the order index from memory and place it on the stack.
                 uint256 orderIndex = criteriaResolver.orderIndex;
 
                 // Ensure that the order index is in range.
                 if (orderIndex >= totalAdvancedOrders) {
-                    _revertOrderCriteriaResolverOutOfRange(criteriaResolver.side);
+                    _revertOrderCriteriaResolverOutOfRange(
+                        criteriaResolver.side
+                    );
                 }
 
                 // Retrieve the referenced advanced order.
@@ -90,7 +94,8 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                 }
 
                 // Retrieve the parameters for the order.
-                OrderParameters memory orderParameters = (advancedOrder.parameters);
+                OrderParameters memory orderParameters =
+                    (advancedOrder.parameters);
 
                 {
                     // Get a pointer to the list of items to give to
@@ -103,15 +108,18 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                     uint256 componentIndex = criteriaResolver.index;
 
                     // Get error selector for `OfferCriteriaResolverOutOfRange`.
-                    uint256 errorSelector = (OfferCriteriaResolverOutOfRange_error_selector);
+                    uint256 errorSelector =
+                        (OfferCriteriaResolverOutOfRange_error_selector);
 
                     // If the resolver refers to a consideration item...
                     if (criteriaResolver.side != Side.OFFER) {
                         // Get the pointer to `orderParameters.consideration`
                         // Using the array directly has a significant impact on
                         // the optimized compiler output.
-                        MemoryPointer considerationPtr =
-                            orderParameters.toMemoryPointer().pptr(OrderParameters_consideration_head_offset);
+                        MemoryPointer considerationPtr = orderParameters
+                            .toMemoryPointer().pptr(
+                            OrderParameters_consideration_head_offset
+                        );
 
                         // Replace the items pointer with a pointer to the
                         // consideration array.
@@ -121,7 +129,9 @@ contract CriteriaResolution is CriteriaResolutionErrors {
 
                         // Replace the error selector with the selector for
                         // `ConsiderationCriteriaResolverOutOfRange`.
-                        errorSelector = (ConsiderationCriteriaResolverOutOfRange_err_selector);
+                        errorSelector = (
+                            ConsiderationCriteriaResolverOutOfRange_err_selector
+                        );
                     }
 
                     // Ensure that the component index is in range.
@@ -160,7 +170,8 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                 }
 
                 // Retrieve the parameters for the order.
-                OrderParameters memory orderParameters = (advancedOrder.parameters);
+                OrderParameters memory orderParameters =
+                    (advancedOrder.parameters);
 
                 // Read consideration length from memory and place on stack.
                 uint256 totalItems = orderParameters.consideration.length;
@@ -168,7 +179,11 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                 // Iterate over each consideration item on the order.
                 for (uint256 j = 0; j < totalItems; ++j) {
                     // Ensure item type no longer indicates criteria usage.
-                    if (_isItemWithCriteria(orderParameters.consideration[j].itemType)) {
+                    if (
+                        _isItemWithCriteria(
+                            orderParameters.consideration[j].itemType
+                        )
+                    ) {
                         _revertUnresolvedConsiderationCriteria(i, j);
                     }
                 }
@@ -179,7 +194,8 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                 // Iterate over each offer item on the order.
                 for (uint256 j = 0; j < totalItems; ++j) {
                     // Ensure item type no longer indicates criteria usage.
-                    if (_isItemWithCriteria(orderParameters.offer[j].itemType)) {
+                    if (_isItemWithCriteria(orderParameters.offer[j].itemType))
+                    {
                         _revertUnresolvedOfferCriteria(i, j);
                     }
                 }
@@ -215,7 +231,11 @@ contract CriteriaResolution is CriteriaResolutionErrors {
         // If criteria is not 0 (i.e. a collection-wide criteria-based item)...
         if (identifierOrCriteria != uint256(0)) {
             // Verify identifier inclusion in criteria root using proof.
-            _verifyProof(criteriaResolver.identifier, identifierOrCriteria, criteriaResolver.criteriaProof);
+            _verifyProof(
+                criteriaResolver.identifier,
+                identifierOrCriteria,
+                criteriaResolver.criteriaProof
+            );
         } else if (criteriaResolver.criteriaProof.length != 0) {
             // Revert if non-empty proof is supplied for a collection-wide item.
             _revertInvalidProof();
@@ -245,7 +265,11 @@ contract CriteriaResolution is CriteriaResolutionErrors {
      * @return withCriteria A boolean indicating that the item type in question
      *                      represents a criteria-based item.
      */
-    function _isItemWithCriteria(ItemType itemType) internal pure returns (bool withCriteria) {
+    function _isItemWithCriteria(ItemType itemType)
+        internal
+        pure
+        returns (bool withCriteria)
+    {
         // ERC721WithCriteria is ItemType 4. ERC1155WithCriteria is ItemType 5.
         assembly {
             withCriteria := gt(itemType, 3)
@@ -260,7 +284,10 @@ contract CriteriaResolution is CriteriaResolutionErrors {
      * @param root  The merkle root that inclusion will be proved against.
      * @param proof The merkle proof.
      */
-    function _verifyProof(uint256 leaf, uint256 root, bytes32[] memory proof) internal pure {
+    function _verifyProof(uint256 leaf, uint256 root, bytes32[] memory proof)
+        internal
+        pure
+    {
         // Declare a variable that will be used to determine proof validity.
         bool isValid;
 

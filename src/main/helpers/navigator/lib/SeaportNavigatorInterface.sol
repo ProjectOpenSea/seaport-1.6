@@ -2,14 +2,14 @@
 pragma solidity ^0.8.17;
 
 import {
-    NavigatorRequest,
-    NavigatorResponse
+    NavigatorRequest, NavigatorResponse
 } from "./SeaportNavigatorTypes.sol";
 
 interface SeaportNavigatorInterface {
-    function prepare(
-        NavigatorRequest memory request
-    ) external view returns (NavigatorResponse memory);
+    function prepare(NavigatorRequest memory request)
+        external
+        view
+        returns (NavigatorResponse memory);
 
     /**
      * @notice Generate a criteria merkle root from an array of `tokenIds`. Use
@@ -21,9 +21,10 @@ interface SeaportNavigatorInterface {
      * @return The bytes32 merkle root of a criteria tree containing the given
      *         token IDs.
      */
-    function criteriaRoot(
-        uint256[] memory tokenIds
-    ) external pure returns (bytes32);
+    function criteriaRoot(uint256[] memory tokenIds)
+        external
+        pure
+        returns (bytes32);
 
     /**
      * @notice Generate a criteria merkle proof that `id` is a member of
@@ -36,8 +37,8 @@ interface SeaportNavigatorInterface {
      * @return Merkle proof that the given token ID is  amember of the criteria
      *         tree containing the given token IDs.
      */
-    function criteriaProof(
-        uint256[] memory tokenIds,
-        uint256 id
-    ) external pure returns (bytes32[] memory);
+    function criteriaProof(uint256[] memory tokenIds, uint256 id)
+        external
+        pure
+        returns (bytes32[] memory);
 }

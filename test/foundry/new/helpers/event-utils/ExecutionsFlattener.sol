@@ -113,9 +113,9 @@ library ExecutionsFlattener {
         pure
         returns (
             function(MemoryPointer, MemoryPointer)
-                        internal
-                        pure
-                        returns (MemoryPointer) fnOut
+                                                internal
+                                                pure
+                                                returns (MemoryPointer) fnOut
         )
     {
         assembly {
@@ -137,13 +137,14 @@ library ExecutionsFlattener {
         pure
         returns (
             function(
-                        Execution[] memory,
-                        function(Execution memory, FuzzTestContext memory)
-                            internal
-                            pure
-                            returns (Execution memory),
-                        FuzzTestContext memory
-                    ) internal pure returns (Execution[] memory) fnOut
+                                                Execution[] memory,
+                                                function(Execution memory, FuzzTestContext memory)
+                                                    internal
+                                                    pure
+                                                    returns (Execution memory),
+                                                FuzzTestContext memory
+                                            ) internal pure returns (Execution[] memory)
+                fnOut
         )
     {
         assembly {
@@ -161,9 +162,9 @@ library ExecutionsFlattener {
         pure
         returns (
             function(Execution[] memory, Execution[] memory)
-                        internal
-                        pure
-                        returns (Execution[] memory) fnOut
+                                                internal
+                                                pure
+                                                returns (Execution[] memory) fnOut
         )
     {
         assembly {
@@ -181,9 +182,9 @@ library ExecutionsFlattener {
         pure
         returns (
             function(Execution[] memory, Execution[] memory, Execution[] memory)
-                        internal
-                        pure
-                        returns (Execution[] memory) fnOut
+                                                internal
+                                                pure
+                                                returns (Execution[] memory) fnOut
         )
     {
         assembly {

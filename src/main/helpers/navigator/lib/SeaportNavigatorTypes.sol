@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {
-    ConsiderationInterface
-} from "seaport-types/src/interfaces/ConsiderationInterface.sol";
+import { ConsiderationInterface } from
+    "seaport-types/src/interfaces/ConsiderationInterface.sol";
 
 import {
     AdvancedOrder,
@@ -14,19 +13,16 @@ import {
 } from "seaport-types/src/lib/ConsiderationStructs.sol";
 
 import {
-    ItemType,
-    OrderType
+    ItemType, OrderType
 } from "seaport-types/src/lib/ConsiderationEnums.sol";
 
-import {
-    MatchComponent
-} from "seaport-sol/src/lib/types/MatchComponentType.sol";
+import { MatchComponent } from
+    "seaport-sol/src/lib/types/MatchComponentType.sol";
 
 import { OrderDetails } from "seaport-sol/src/fulfillments/lib/Structs.sol";
 
-import {
-    FulfillmentStrategy
-} from "seaport-sol/src/fulfillments/lib/FulfillmentLib.sol";
+import { FulfillmentStrategy } from
+    "seaport-sol/src/fulfillments/lib/FulfillmentLib.sol";
 
 import {
     SeaportValidatorInterface,

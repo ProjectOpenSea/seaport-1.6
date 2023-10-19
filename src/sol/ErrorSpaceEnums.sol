@@ -54,13 +54,9 @@ enum SignatureVerificationErrors {
     BAD_CONTRACT_SIGNATURE
 }
 
-enum ReentrancyErrors {
-    NO_REENTRANT_CALLS
-}
+enum ReentrancyErrors { NO_REENTRANT_CALLS }
 
-enum AmountDerivationErrors {
-    INEXACT_FRACTION
-}
+enum AmountDerivationErrors { INEXACT_FRACTION }
 
 enum TransferHelperErrors {
     INVALID_ITEM_TYPE,

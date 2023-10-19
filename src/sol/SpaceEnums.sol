@@ -86,8 +86,9 @@ enum Amount {
     DESCENDING
 }
 
-enum AmountDegree {
-    // ZERO, ?
+enum AmountDegree
+// ZERO, ?
+{
     SMALL,
     MEDIUM,
     LARGE,
@@ -102,15 +103,16 @@ enum FulfillmentRecipient {
 }
 
 // ConsiderationItem.* / ReceivedItem.* / Method.*ADVANCED <- Recipient
-enum Recipient {
-    // ZERO,?
+enum Recipient
+// ZERO,?
+{
     OFFERER,
     RECIPIENT,
     DILLON,
     EVE,
     FRANK
-    // INVALID
 }
+// INVALID
 
 enum RecipientDirty {
     CLEAN,
@@ -194,8 +196,9 @@ enum ContractOffererFailMaxSpent {
     BOTH
 }
 
-enum Time {
-    // valid granularity important for ascending/descending
+enum Time
+// valid granularity important for ascending/descending
+{
     STARTS_IN_FUTURE,
     EXACT_START, // order is live
     ONGOING,

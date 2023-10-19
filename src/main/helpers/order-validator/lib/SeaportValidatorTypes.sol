@@ -206,7 +206,11 @@ library IssueParser {
         return uint16(err) + 1500;
     }
 
-    function parseInt(ContractOffererIssue err) internal pure returns (uint16) {
+    function parseInt(ContractOffererIssue err)
+        internal
+        pure
+        returns (uint16)
+    {
         return uint16(err) + 1600;
     }
 }
@@ -264,9 +268,11 @@ library IssueStringHelpers {
         return string.concat("ERC1155Issue: ", code);
     }
 
-    function toString(
-        ConsiderationIssue id
-    ) internal pure returns (string memory) {
+    function toString(ConsiderationIssue id)
+        internal
+        pure
+        returns (string memory)
+    {
         string memory code;
         if (id == ConsiderationIssue.AmountZero) {
             code = "AmountZero";
@@ -312,9 +318,11 @@ library IssueStringHelpers {
         return string.concat("OfferIssue: ", code);
     }
 
-    function toString(
-        PrimaryFeeIssue id
-    ) internal pure returns (string memory) {
+    function toString(PrimaryFeeIssue id)
+        internal
+        pure
+        returns (string memory)
+    {
         string memory code;
         if (id == PrimaryFeeIssue.Missing) {
             code = "Missing";
@@ -370,7 +378,11 @@ library IssueStringHelpers {
         return string.concat("ConduitIssue: ", code);
     }
 
-    function toString(SignatureIssue id) internal pure returns (string memory) {
+    function toString(SignatureIssue id)
+        internal
+        pure
+        returns (string memory)
+    {
         string memory code;
         if (id == SignatureIssue.Invalid) {
             code = "Invalid";
@@ -386,9 +398,11 @@ library IssueStringHelpers {
         return string.concat("SignatureIssue: ", code);
     }
 
-    function toString(
-        CreatorFeeIssue id
-    ) internal pure returns (string memory) {
+    function toString(CreatorFeeIssue id)
+        internal
+        pure
+        returns (string memory)
+    {
         string memory code;
         if (id == CreatorFeeIssue.Missing) {
             code = "Missing";
@@ -442,9 +456,11 @@ library IssueStringHelpers {
         return string.concat("MerkleIssue: ", code);
     }
 
-    function toString(
-        ContractOffererIssue id
-    ) internal pure returns (string memory) {
+    function toString(ContractOffererIssue id)
+        internal
+        pure
+        returns (string memory)
+    {
         string memory code;
         if (id == ContractOffererIssue.InvalidContractOfferer) {
             code = "InvalidContractOfferer";
@@ -452,9 +468,11 @@ library IssueStringHelpers {
         return string.concat("ContractOffererIssue: ", code);
     }
 
-    function toIssueString(
-        uint16 issueCode
-    ) internal pure returns (string memory issueString) {
+    function toIssueString(uint16 issueCode)
+        internal
+        pure
+        returns (string memory issueString)
+    {
         uint16 issue = (issueCode / 100) * 100;
         uint8 id = uint8(issueCode % 100);
         if (issue == 100) {
@@ -494,14 +512,14 @@ library IssueStringHelpers {
         }
     }
 
-    function toIssueString(
-        uint16[] memory issueCodes
-    ) internal pure returns (string memory issueString) {
+    function toIssueString(uint16[] memory issueCodes)
+        internal
+        pure
+        returns (string memory issueString)
+    {
         for (uint256 i; i < issueCodes.length; i++) {
             issueString = string.concat(
-                issueString,
-                "\n    ",
-                toIssueString(issueCodes[i])
+                issueString, "\n    ", toIssueString(issueCodes[i])
             );
         }
     }
