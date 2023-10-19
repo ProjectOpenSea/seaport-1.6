@@ -1,5 +1,5 @@
 [profile.default]
-solc = '0.8.17'
+solc = '0.8.21'
 src = 'contracts'
 out = 'out'
 libs = ["node_modules", "lib"]
@@ -12,10 +12,13 @@ remappings = [
     '@openzeppelin/=lib/openzeppelin-contracts/',
     'solarray/=lib/solarray/src/',
     'solady/=lib/solady/',
-    'seaport-sol/=lib/seaport-sol/',
-    'seaport-types/=lib/seaport-types/',
-    'seaport-core/=lib/seaport-core/',
-    'seaport/=contracts/'
+    'seaport-sol/src/=src/sol/',
+    'seaport-sol/=src/sol/',
+    'seaport-types/src/=src/types/',
+    'seaport-types/=src/types/',
+    'seaport-core/src/=src/core/',
+    'seaport-core/=src/core/',
+    'seaport/=src/main/'
 ]
 optimizer_runs = 4_294_967_295
 fs_permissions = [
