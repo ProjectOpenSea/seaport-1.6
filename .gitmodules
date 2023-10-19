@@ -13,3 +13,6 @@
 [submodule "lib/solady"]
 	path = lib/solady
 	url = https://github.com/vectorized/solady
+[submodule "lib/solarray"]
+	path = lib/solarray
+	url = https://github.com//emo-eth/solarray
