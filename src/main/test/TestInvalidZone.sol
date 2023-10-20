@@ -17,7 +17,7 @@ contract TestInvalidZone is ERC165, ZoneInterface {
     {
         return this.authorizeOrder.selector;
     }
-    
+
     // Returns invalid magic value
     function validateOrder(ZoneParameters calldata)
         external

@@ -44,13 +44,15 @@ solc = '0.8.21'
 src = 'reference'
 out = 'reference-out'
 script = 'reference'
-# specify something so it doesn't try to compile the 0.8.17 files in test/foundry
+# specify something so it doesn't try to compile the files in test/foundry
 test = 'reference'
 
 [profile.optimized]
+src = 'src'
 via_ir = true
 out = 'optimized-out'
-script = 'src/main'
+# Necessary to get the optimized profile to compile the TransferHelper
+script = 'script'
 bytecode_hash = 'none'
 # no need to compile tests with via-ir since they load optimized bytecode directly by default
 test ='src/main'

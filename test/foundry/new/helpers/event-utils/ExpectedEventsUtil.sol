@@ -409,10 +409,10 @@ library Casts {
         pure
         returns (
             function(
-                                                                                                                                                Vm.Log[] memory,
-                                                                                                                                                function(Vm.Log memory) internal pure returns (bool),
-                                                                                                                                                uint256
-                                                                                                                                            ) internal pure returns (int256)
+                                                                                                                                                                                                Vm.Log[] memory,
+                                                                                                                                                                                                function(Vm.Log memory) internal pure returns (bool),
+                                                                                                                                                                                                uint256
+                                                                                                                                                                                            ) internal pure returns (int256)
                 fnOut
         )
     {
@@ -435,15 +435,15 @@ library Casts {
         pure
         returns (
             function(
-                                                                                                                                                bytes32[] memory,
-                                                                                                                                                function(
-                                                                                                                                                    uint256,
-                                                                                                                                                    uint256,
-                                                                                                                                                    ReduceInput memory //Vm.Log[] memory)
-                                                                                                                                                ) internal returns (uint256),
-                                                                                                                                                uint256,
-                                                                                                                                                ReduceInput memory //Vm.Log[] memory
-                                                                                                                                            ) internal returns (uint256)
+                                                                                                                                                                                                bytes32[] memory,
+                                                                                                                                                                                                function(
+                                                                                                                                                                                                    uint256,
+                                                                                                                                                                                                    uint256,
+                                                                                                                                                                                                    ReduceInput memory //Vm.Log[] memory)
+                                                                                                                                                                                                ) internal returns (uint256),
+                                                                                                                                                                                                uint256,
+                                                                                                                                                                                                ReduceInput memory //Vm.Log[] memory
+                                                                                                                                                                                            ) internal returns (uint256)
                 fnOut
         )
     {
@@ -466,12 +466,12 @@ library Casts {
         pure
         returns (
             function(
-                                                                                                                                                Execution[] memory,
-                                                                                                                                                function(Execution memory, FuzzTestContext memory)
-                                                                                                                                                    internal
-                                                                                                                                                    returns (bytes32),
-                                                                                                                                                FuzzTestContext memory
-                                                                                                                                            ) internal pure returns (bytes32[] memory)
+                                                                                                                                                                                                Execution[] memory,
+                                                                                                                                                                                                function(Execution memory, FuzzTestContext memory)
+                                                                                                                                                                                                    internal
+                                                                                                                                                                                                    returns (bytes32),
+                                                                                                                                                                                                FuzzTestContext memory
+                                                                                                                                                                                            ) internal pure returns (bytes32[] memory)
                 fnOut
         )
     {
