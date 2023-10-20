@@ -73,6 +73,14 @@ contract TestTransferValidationZoneOfferer is
     bool public called = false;
     uint256 public callCount = 0;
 
+    function authorizeOrder(ZoneParameters calldata)
+        public
+        pure
+        returns (bytes4)
+    {
+        return this.authorizeOrder.selector;
+    }
+
     /**
      * @dev Validates that the parties have received the correct items.
      *

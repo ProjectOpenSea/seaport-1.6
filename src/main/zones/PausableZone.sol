@@ -209,6 +209,14 @@ contract PausableZone is
         );
     }
 
+    function authorizeOrder(ZoneParameters calldata)
+        public
+        pure
+        returns (bytes4)
+    {
+        return this.authorizeOrder.selector;
+    }
+
     /**
      * @notice Check if a given order including extraData is currently valid.
      *

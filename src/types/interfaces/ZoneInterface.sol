@@ -11,7 +11,20 @@ import { IERC165 } from "./IERC165.sol";
  */
 interface ZoneInterface is IERC165 {
     /**
-     * @dev Validates an order.
+     * @dev Authorizes an order before any token fulfillments from any order have been executed by Seaport.
+     *
+     * @param zoneParameters The context about the order fulfillment and any
+     *                       supplied extraData.
+     *
+     * @return authorizedOrderMagicValue The magic value that indicates a valid
+     *                              order.
+     */
+    function authorizeOrder(ZoneParameters calldata zoneParameters)
+        external
+        returns (bytes4 authorizedOrderMagicValue);
+
+    /**
+     * @dev Validates an order after all token fulfillments for all orders have been executed by Seaport.
      *
      * @param zoneParameters The context about the order fulfillment and any
      *                       supplied extraData.

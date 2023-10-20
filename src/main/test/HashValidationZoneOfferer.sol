@@ -224,6 +224,14 @@ contract HashValidationZoneOfferer is
         failureReasons[orderHash] = newFailureReason;
     }
 
+    function authorizeOrder(ZoneParameters calldata)
+        public
+        pure
+        returns (bytes4)
+    {
+        return this.authorizeOrder.selector;
+    }
+
     /**
      * @dev Validates that the parties have received the correct items.
      *

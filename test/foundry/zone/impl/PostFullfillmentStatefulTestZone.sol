@@ -25,6 +25,14 @@ contract PostFulfillmentStatefulTestZone is ERC165, ZoneInterface {
 
     bool public called = false;
 
+    function authorizeOrder(ZoneParameters calldata)
+        public
+        pure
+        returns (bytes4)
+    {
+        return this.authorizeOrder.selector;
+    }
+
     /**
      * @dev Validates the order with the given `zoneParameters`.  Called by
      *      Consideration whenever any extraData is provided by the caller.
