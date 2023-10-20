@@ -176,11 +176,11 @@ library ZoneParametersLib {
             fulfiller: zoneParametersStruct.fulfiller,
             maximumFulfilled: zoneParametersStruct.maximumFulfilled,
             orderDetails: new OrderDetails[](
-                                                                                                                    zoneParametersStruct.advancedOrders.length
-                                                                                                                ),
+                                                                                                                        zoneParametersStruct.advancedOrders.length
+                                                                                                                    ),
             orderHashes: new bytes32[](
-                                                                                                                    zoneParametersStruct.advancedOrders.length
-                                                                                                                )
+                                                                                                                        zoneParametersStruct.advancedOrders.length
+                                                                                                                    )
         });
     }
 
