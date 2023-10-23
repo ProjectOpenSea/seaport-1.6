@@ -566,10 +566,7 @@ library MutationEligibilityLib {
         internal
         pure
         returns (
-            function(FuzzTestContext memory)
-                                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                                        view
-                                                                                                                                                                                                                                                        returns (bool)
+            function(FuzzTestContext memory) internal view returns (bool)
                 ineligibleMutationFilter
         )
     {
@@ -582,10 +579,7 @@ library MutationEligibilityLib {
         internal
         pure
         returns (
-            function(AdvancedOrder memory, uint256, FuzzTestContext memory)
-                                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                                        view
-                                                                                                                                                                                                                                                        returns (bool)
+            function(AdvancedOrder memory, uint256, FuzzTestContext memory) internal view returns (bool)
                 ineligibleMutationFilter
         )
     {
@@ -598,10 +592,7 @@ library MutationEligibilityLib {
         internal
         pure
         returns (
-            function(CriteriaResolver memory, uint256, FuzzTestContext memory)
-                                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                                        view
-                                                                                                                                                                                                                                                        returns (bool)
+            function(CriteriaResolver memory, uint256, FuzzTestContext memory) internal view returns (bool)
                 ineligibleMutationFilter
         )
     {
@@ -771,10 +762,7 @@ library FailureDetailsHelperLib {
         private
         pure
         returns (
-            function(FuzzTestContext memory, MutationState memory, bytes4)
-                                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                                        view
-                                                                                                                                                                                                                                                        returns (bytes memory)
+            function(FuzzTestContext memory, MutationState memory, bytes4) internal view returns (bytes memory)
                 revertReasonGenerator
         )
     {

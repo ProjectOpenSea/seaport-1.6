@@ -280,9 +280,7 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
         MatchAdvancedOrdersInfra memory infra = MatchAdvancedOrdersInfra({
             orders: new Order[](context.matchArgs.orderPairCount),
             fulfillments: new Fulfillment[](context.matchArgs.orderPairCount),
-            advancedOrders: new AdvancedOrder[](
-                                                                                                                                    context.matchArgs.orderPairCount
-                                                                                                                                ),
+            advancedOrders: new AdvancedOrder[](context.matchArgs.orderPairCount),
             criteriaResolvers: new CriteriaResolver[](0),
             callerBalanceBefore: 0,
             callerBalanceAfter: 0,
@@ -518,15 +516,9 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
         // Set up the infrastructure.
         FulfillAvailableAdvancedOrdersInfra memory infra =
         FulfillAvailableAdvancedOrdersInfra({
-            advancedOrders: new AdvancedOrder[](
-                                                                                                                                        context.fulfillArgs.orderCount
-                                                                                                                                    ),
-            offerFulfillmentComponents: new FulfillmentComponent[][](
-                                                                                                                                        context.fulfillArgs.orderCount
-                                                                                                                                    ),
-            considerationFulfillmentComponents: new FulfillmentComponent[][](
-                                                                                                                                        context.fulfillArgs.orderCount
-                                                                                                                                    ),
+            advancedOrders: new AdvancedOrder[]( context.fulfillArgs.orderCount),
+            offerFulfillmentComponents: new FulfillmentComponent[][](context.fulfillArgs.orderCount),
+            considerationFulfillmentComponents: new FulfillmentComponent[][](context.fulfillArgs.orderCount),
             criteriaResolvers: new CriteriaResolver[](0),
             callerBalanceBefore: address(this).balance,
             callerBalanceAfter: address(this).balance,

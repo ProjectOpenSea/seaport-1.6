@@ -112,10 +112,7 @@ library ExecutionsFlattener {
         internal
         pure
         returns (
-            function(MemoryPointer, MemoryPointer)
-                                                                                                                                                                                                                                                                internal
-                                                                                                                                                                                                                                                                pure
-                                                                                                                                                                                                                                                                returns (MemoryPointer)
+            function(MemoryPointer, MemoryPointer) internal pure returns (MemoryPointer)
                 fnOut
         )
     {
@@ -137,14 +134,7 @@ library ExecutionsFlattener {
         internal
         pure
         returns (
-            function(
-                                                                                                                                                                                                                                                                Execution[] memory,
-                                                                                                                                                                                                                                                                function(Execution memory, FuzzTestContext memory)
-                                                                                                                                                                                                                                                                    internal
-                                                                                                                                                                                                                                                                    pure
-                                                                                                                                                                                                                                                                    returns (Execution memory),
-                                                                                                                                                                                                                                                                FuzzTestContext memory
-                                                                                                                                                                                                                                                            ) internal pure returns (Execution[] memory)
+            function( Execution[] memory, function(Execution memory, FuzzTestContext memory) internal pure returns (Execution memory), FuzzTestContext memory) internal pure returns (Execution[] memory)
                 fnOut
         )
     {
@@ -162,10 +152,7 @@ library ExecutionsFlattener {
         internal
         pure
         returns (
-            function(Execution[] memory, Execution[] memory)
-                                                                                                                                                                                                                                                                internal
-                                                                                                                                                                                                                                                                pure
-                                                                                                                                                                                                                                                                returns (Execution[] memory)
+            function(Execution[] memory, Execution[] memory) internal pure returns (Execution[] memory)
                 fnOut
         )
     {
@@ -183,10 +170,7 @@ library ExecutionsFlattener {
         internal
         pure
         returns (
-            function(Execution[] memory, Execution[] memory, Execution[] memory)
-                                                                                                                                                                                                                                                                internal
-                                                                                                                                                                                                                                                                pure
-                                                                                                                                                                                                                                                                returns (Execution[] memory)
+            function(Execution[] memory, Execution[] memory, Execution[] memory)  internal pure returns (Execution[] memory)
                 fnOut
         )
     {

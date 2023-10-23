@@ -1224,10 +1224,7 @@ library FailureDetailsLib {
         internal
         pure
         returns (
-            function(FuzzTestContext memory, MutationState memory, bytes4)
-                                                                                                                                                                                                                                                                internal
-                                                                                                                                                                                                                                                                pure
-                                                                                                                                                                                                                                                                returns (bytes memory)
+            function(FuzzTestContext memory, MutationState memory, bytes4) internal pure returns (bytes memory)
         )
     {
         if (
