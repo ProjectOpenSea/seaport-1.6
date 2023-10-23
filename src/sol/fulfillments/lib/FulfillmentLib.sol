@@ -401,10 +401,7 @@ library FulfillmentGeneratorLib {
         internal
         pure
         returns (
-            function(FulfillmentItems memory, FulfillmentItems memory, uint256)
-                                                                                                                                                                                                        internal
-                                                                                                                                                                                                        pure
-                                                                                                                                                                                                        returns (Fulfillment memory)
+            function(FulfillmentItems memory, FulfillmentItems memory, uint256) internal pure returns (Fulfillment memory)
         )
     {
         if (aggregationStrategy == AggregationStrategy.MAXIMUM) {
@@ -1123,10 +1120,7 @@ library FulfillmentGeneratorLib {
         internal
         pure
         returns (
-            function(FulfillmentItems[] memory, uint256)
-                                                                                                                                                                                                        internal
-                                                                                                                                                                                                        pure
-                                                                                                                                                                                                        returns (FulfillmentComponent[][] memory, ItemCategory[] memory)
+            function(FulfillmentItems[] memory, uint256) internal pure returns (FulfillmentComponent[][] memory, ItemCategory[] memory)
         )
     {
         if (aggregationStrategy == AggregationStrategy.MAXIMUM) {
@@ -1844,9 +1838,7 @@ library HashAllocatorLib {
         for (uint256 i = 0; i < hashCount.length; ++i) {
             group[i] = ItemReferenceGroupLib.ItemReferenceGroup({
                 fullHash: hashCount[i].hash,
-                references: new ItemReferenceLib.ItemReference[](
-                                                                                                                hashCount[i].count
-                                                                                                            ),
+                references: new ItemReferenceLib.ItemReference[](hashCount[i].count),
                 assigned: 0
             });
         }
@@ -1877,9 +1869,7 @@ library HashAllocatorLib {
             group[i] = MatchableItemReferenceGroupLib
                 .MatchableItemReferenceGroup({
                 dataHash: hashCount[i].hash,
-                offerGroups: new ItemReferenceGroupLib.ItemReferenceGroup[](
-                                                                                                                    count
-                                                                                                                ),
+                offerGroups: new ItemReferenceGroupLib.ItemReferenceGroup[](count),
                 considerationGroups: (
                     new ItemReferenceGroupLib.ItemReferenceGroup[](count)
                     ),

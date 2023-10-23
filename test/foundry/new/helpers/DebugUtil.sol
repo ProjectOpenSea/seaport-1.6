@@ -360,9 +360,7 @@ function dumpContext(
 function pureDumpContext()
     pure
     returns (
-        function(FuzzTestContext memory, ContextOutputSelection memory)
-                                                                                                                                                                                                            internal
-                                                                                                                                                                                                            pure
+        function(FuzzTestContext memory, ContextOutputSelection memory) internal pure
             pureFn
     )
 {
@@ -451,14 +449,7 @@ library ExecutionFilterCast {
         internal
         pure
         returns (
-            function(
-                                                                                                                                                                                                                Execution[] memory,
-                                                                                                                                                                                                                function(Execution memory, ItemType)
-                                                                                                                                                                                                                    internal
-                                                                                                                                                                                                                    pure
-                                                                                                                                                                                                                    returns (bool),
-                                                                                                                                                                                                                ItemType
-                                                                                                                                                                                                            ) internal pure returns (Execution[] memory)
+            function(Execution[] memory, function(Execution memory, ItemType) internal pure returns (bool), ItemType ) internal pure returns (Execution[] memory)
                 fnOut
         )
     {

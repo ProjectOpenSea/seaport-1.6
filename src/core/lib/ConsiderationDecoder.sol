@@ -1069,14 +1069,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function()
-                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                        pure
-                                                                                                                                                                                                                                        returns (
-                                                                                                                                                                                                                                            uint256,
-                                                                                                                                                                                                                                            OfferItem[] memory,
-                                                                                                                                                                                                                                            ConsiderationItem[] memory
-                                                                                                                                                                                                                                        )
+            function() internal pure returns ( uint256, OfferItem[] memory, ConsiderationItem[] memory)
                 outFn
         )
     {
@@ -1103,9 +1096,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(OfferItem memory, address, bytes32, bytes memory)
-                                                                                                                                                                                                                                        internal
-                outFn
+            function(OfferItem memory, address, bytes32, bytes memory) internal outFn
         )
     {
         assembly {
@@ -1131,8 +1122,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(ConsiderationItem memory, address, bytes32, bytes memory)
-                                                                                                                                                                                                                                        internal
+            function(ConsiderationItem memory, address, bytes32, bytes memory) internal
                 outFn
         )
     {
@@ -1158,10 +1148,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer)
-                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                        pure
-                                                                                                                                                                                                                                        returns (OrderParameters memory)
+            function(CalldataPointer) internal pure returns (OrderParameters memory)
                 outFn
         )
     {
@@ -1187,10 +1174,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer)
-                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                        pure
-                                                                                                                                                                                                                                        returns (AdvancedOrder memory)
+            function(CalldataPointer) internal  pure returns (AdvancedOrder memory)
                 outFn
         )
     {
@@ -1216,10 +1200,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer)
-                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                        pure
-                                                                                                                                                                                                                                        returns (CriteriaResolver[] memory)
+            function(CalldataPointer) internal pure returns (CriteriaResolver[] memory)
                 outFn
         )
     {
@@ -1245,11 +1226,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer)
-                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                        pure
-                                                                                                                                                                                                                                        returns (Order[] memory)
-                outFn
+            function(CalldataPointer) internal pure returns (Order[] memory) outFn
         )
     {
         assembly {
@@ -1276,10 +1253,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer)
-                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                        pure
-                                                                                                                                                                                                                                        returns (FulfillmentComponent[][] memory)
+            function(CalldataPointer) internal pure returns (FulfillmentComponent[][] memory)
                 outFn
         )
     {
@@ -1305,10 +1279,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer)
-                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                        pure
-                                                                                                                                                                                                                                        returns (AdvancedOrder[] memory)
+            function(CalldataPointer) internal pure returns (AdvancedOrder[] memory)
                 outFn
         )
     {
@@ -1334,11 +1305,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer)
-                                                                                                                                                                                                                                        internal
-                                                                                                                                                                                                                                        pure
-                                                                                                                                                                                                                                        returns (Fulfillment[] memory)
-                outFn
+            function(CalldataPointer) internal pure returns (Fulfillment[] memory) outFn
         )
     {
         assembly {
