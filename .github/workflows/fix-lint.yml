@@ -1,0 +1,55 @@
+name: Autofix Linting
+
+on:
+  issue_comment:
+    types: [created]
+
+# Down scope as necessary via https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+permissions:
+  checks: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  run-linters:
+    name: Run linters
+    if: github.event.issue.pull_request && ${{ github.event.comment.body == '!fix' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: GetBranch
+        id: 'get-branch'
+        run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
+        env:
+          REPO: ${{ github.repository }}
+          PR_NO: ${{ github.event.issue.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.get-branch.outputs.branch }}
+
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      
+      - name: Lint
+        run: |
+          forge fmt
+          pwd
+          if [[ `git diff --exit-code` ]]; then        
+            git config --local user.name 'GitHub Actions Bot'
+            git config --local user.email '<>'
+            git add .
+            git commit -m "Github Actions automatically updated formatting with forge fmt"
+            COMMIT_HASH=$(git rev-parse HEAD)
+            echo "# Github Actions automatically updated formatting with forge fmt\n$COMMIT_HASH" >> .git-blame-ignore-revs
+            git add .git-blame-ignore-revs
+            git commit -m "Updated .git-blame-ignore-revs with commit $COMMIT_HASH"
+            BRANCH_NAME=$(git symbolic-ref --short HEAD)
+            git push origin $BRANCH_NAME
+          fi
+        id: update

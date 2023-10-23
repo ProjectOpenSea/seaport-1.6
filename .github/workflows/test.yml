@@ -1,16 +1,64 @@
-name: test
+name: Seaport Test CI
 
-on: workflow_dispatch
+on:
+  push:
+    branches: [main, 1.*, 2.*]
+    tags: ["*"]
+  pull_request:
+    types: [opened, reopened, synchronize]
 
-env:
-  FOUNDRY_PROFILE: ci
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
 
 jobs:
-  check:
-    strategy:
-      fail-fast: true
+  forge:
+    name: Run Forge Tests (via_ir = true; fuzz_runs = 5000)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          submodules: recursive
 
-    name: Foundry project
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install forge dependencies
+        run: forge install
+
+      - name: Precompile reference using 0.8.13 and via-ir=false
+        run: FOUNDRY_PROFILE=reference forge build
+
+      - name: Precompile optimized using 0.8.17 and via-ir=true
+        run: FOUNDRY_PROFILE=optimized forge build
+
+      - name: Run tests
+        run: FOUNDRY_PROFILE=test forge test -vvv
+
+      - name: Lint
+        run: |
+          forge fmt
+          pwd
+          if [[ `git diff --exit-code` ]]; then
+            git config --local user.name 'GitHub Actions Bot'
+            git config --local user.email '<>'
+            git add .
+            git commit -m "Github Actions automatically updated formatting with forge fmt"
+            COMMIT_HASH=$(git rev-parse HEAD)
+            echo "# Github Actions automatically updated formatting with forge fmt\n$COMMIT_HASH" >> .git-blame-ignore-revs
+            git add .git-blame-ignore-revs
+            git commit -m "Updated .git-blame-ignore-revs with commit $COMMIT_HASH"
+            BRANCH_NAME=$(git symbolic-ref --short HEAD)
+            git push origin $BRANCH_NAME
+          fi
+        id: update
+
+  forge-offerers:
+    name: Run Contract Offerer Forge Tests (via_ir = false; fuzz_runs = 1000)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -22,13 +70,33 @@ jobs:
         with:
           version: nightly
 
-      - name: Run Forge build
-        run: |
-          forge --version
-          forge build --sizes
-        id: build
+      - name: Install forge dependencies
+        run: forge install
 
-      - name: Run Forge tests
-        run: |
-          forge test -vvv
-        id: test
+      - name: Run tests
+        run: FOUNDRY_PROFILE=offerers forge test -vvv
+
+  forge-coverage:
+    name: Run Forge Coverage report on tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install forge dependencies
+        run: forge install
+
+      - name: Run coverage with lcov output
+        run: SEAPORT_COVERAGE=true forge coverage --report lcov
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./lcov.info
+          flags: foundry
+          
