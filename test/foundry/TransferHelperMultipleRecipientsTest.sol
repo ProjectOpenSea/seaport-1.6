@@ -151,8 +151,7 @@ contract TransferHelperMultipleRecipientsTest is BaseOrderTest {
         );
         vm.label(address(validERC721Receiver), "valid ERC721 receiver");
         invalidERC721Receiver = new ERC721ReceiverMock(
-            0xabcd0000,
-            ERC721ReceiverMock.Error.RevertWithMessage
+            0xabcd0000, ERC721ReceiverMock.Error.RevertWithMessage
         );
         vm.label(
             address(invalidERC721Receiver), "invalid (error) ERC721 receiver"
@@ -248,9 +247,7 @@ contract TransferHelperMultipleRecipientsTest is BaseOrderTest {
         address[10] memory recipients
     ) internal view returns (TransferHelperItemsWithRecipient[] memory) {
         TransferHelperItemsWithRecipient[] memory itemsWithRecipient =
-        new TransferHelperItemsWithRecipient[](
-                recipients.length
-            );
+            new TransferHelperItemsWithRecipient[](recipients.length);
         for (uint256 i = 0; i < recipients.length; i++) {
             itemsWithRecipient[i] = TransferHelperItemsWithRecipient(
                 items, _makeSafeRecipient(from, recipients[i]), true
@@ -265,9 +262,7 @@ contract TransferHelperMultipleRecipientsTest is BaseOrderTest {
         address[10] memory recipients
     ) internal pure returns (TransferHelperItemsWithRecipient[] memory) {
         TransferHelperItemsWithRecipient[] memory itemsWithRecipient =
-        new TransferHelperItemsWithRecipient[](
-                recipients.length
-            );
+            new TransferHelperItemsWithRecipient[](recipients.length);
         for (uint256 i = 0; i < recipients.length; i++) {
             itemsWithRecipient[i] =
                 TransferHelperItemsWithRecipient(items, recipients[i], true);
@@ -1044,8 +1039,7 @@ contract TransferHelperMultipleRecipientsTest is BaseOrderTest {
         for (uint256 i = 0; i < 10; i++) {
             invalidReceivers[i] = address(
                 new ERC721ReceiverMock(
-                    0xabcd0000,
-                    ERC721ReceiverMock.Error.RevertWithMessage
+                    0xabcd0000, ERC721ReceiverMock.Error.RevertWithMessage
                 )
             );
         }

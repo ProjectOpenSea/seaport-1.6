@@ -107,9 +107,8 @@ contract ConduitExecuteWithBatch1155Test is BaseConduitTest {
             ConduitBatch1155Transfer memory batchTransfer =
                 context.batchTransfers[i];
 
-            address[] memory toAddresses = new address[](
-                batchTransfer.ids.length
-            );
+            address[] memory toAddresses =
+                new address[](batchTransfer.ids.length);
             for (uint256 j = 0; j < batchTransfer.ids.length; ++j) {
                 toAddresses[j] = batchTransfer.to;
             }

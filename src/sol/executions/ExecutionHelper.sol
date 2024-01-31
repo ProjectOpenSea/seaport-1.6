@@ -253,10 +253,8 @@ library ExecutionHelper {
         //  - transferring consideration items to each recipient (consideration.length)
         //  - returning unspent native tokens (0-1)
         implicitExecutions = new Execution[](
-            2 *
-                orderDetails.offer.length +
-                orderDetails.consideration.length +
-                2
+            2 * orderDetails.offer.length + orderDetails.consideration.length
+                + 2
         );
 
         uint256 executionIndex = 0;
@@ -409,9 +407,8 @@ library ExecutionHelper {
             require(nativeTokensSupplied == 0, "native tokens not allowed");
             require(orderDetails.consideration.length > 0, "no items received");
 
-            implicitExecutions = new Execution[](
-                1 + orderDetails.consideration.length
-            );
+            implicitExecutions =
+                new Execution[](1 + orderDetails.consideration.length);
 
             implicitExecutions[0] = Execution({
                 offerer: fulfiller,
@@ -450,9 +447,8 @@ library ExecutionHelper {
             //  - transfer additional recipient consideration items (consideration.length - 1)
             //  - transfer first consideration item to the fulfiller (1)
             //  - returning unspent native tokens (0-1)
-            implicitExecutions = new Execution[](
-                orderDetails.consideration.length + 3
-            );
+            implicitExecutions =
+                new Execution[](orderDetails.consideration.length + 3);
 
             uint256 executionIndex = 0;
 

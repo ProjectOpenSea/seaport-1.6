@@ -109,9 +109,8 @@ library MatchArrays {
         uint256 maxLength,
         FulfillmentComponent memory a
     ) internal pure returns (FulfillmentComponent[] memory) {
-        FulfillmentComponent[] memory arr = new FulfillmentComponent[](
-            maxLength
-        );
+        FulfillmentComponent[] memory arr =
+            new FulfillmentComponent[](maxLength);
         assembly {
             mstore(arr, 1)
         }
@@ -124,9 +123,8 @@ library MatchArrays {
         FulfillmentComponent memory a,
         FulfillmentComponent memory b
     ) internal pure returns (FulfillmentComponent[] memory) {
-        FulfillmentComponent[] memory arr = new FulfillmentComponent[](
-            maxLength
-        );
+        FulfillmentComponent[] memory arr =
+            new FulfillmentComponent[](maxLength);
         assembly {
             mstore(arr, 2)
         }
@@ -141,9 +139,8 @@ library MatchArrays {
         FulfillmentComponent memory b,
         FulfillmentComponent memory c
     ) internal pure returns (FulfillmentComponent[] memory) {
-        FulfillmentComponent[] memory arr = new FulfillmentComponent[](
-            maxLength
-        );
+        FulfillmentComponent[] memory arr =
+            new FulfillmentComponent[](maxLength);
         assembly {
             mstore(arr, 3)
         }
@@ -160,9 +157,8 @@ library MatchArrays {
         FulfillmentComponent memory c,
         FulfillmentComponent memory d
     ) internal pure returns (FulfillmentComponent[] memory) {
-        FulfillmentComponent[] memory arr = new FulfillmentComponent[](
-            maxLength
-        );
+        FulfillmentComponent[] memory arr =
+            new FulfillmentComponent[](maxLength);
         assembly {
             mstore(arr, 4)
         }
@@ -181,9 +177,8 @@ library MatchArrays {
         FulfillmentComponent memory d,
         FulfillmentComponent memory e
     ) internal pure returns (FulfillmentComponent[] memory) {
-        FulfillmentComponent[] memory arr = new FulfillmentComponent[](
-            maxLength
-        );
+        FulfillmentComponent[] memory arr =
+            new FulfillmentComponent[](maxLength);
         assembly {
             mstore(arr, 5)
         }
@@ -204,9 +199,8 @@ library MatchArrays {
         FulfillmentComponent memory e,
         FulfillmentComponent memory f
     ) internal pure returns (FulfillmentComponent[] memory) {
-        FulfillmentComponent[] memory arr = new FulfillmentComponent[](
-            maxLength
-        );
+        FulfillmentComponent[] memory arr =
+            new FulfillmentComponent[](maxLength);
         assembly {
             mstore(arr, 6)
         }
@@ -229,9 +223,8 @@ library MatchArrays {
         FulfillmentComponent memory f,
         FulfillmentComponent memory g
     ) internal pure returns (FulfillmentComponent[] memory) {
-        FulfillmentComponent[] memory arr = new FulfillmentComponent[](
-            maxLength
-        );
+        FulfillmentComponent[] memory arr =
+            new FulfillmentComponent[](maxLength);
         assembly {
             mstore(arr, 7)
         }
@@ -759,9 +752,8 @@ library MatchArrays {
         uint256 maxLength,
         FulfillmentComponent[] memory a
     ) internal pure returns (FulfillmentComponent[][] memory) {
-        FulfillmentComponent[][] memory arr = new FulfillmentComponent[][](
-            maxLength
-        );
+        FulfillmentComponent[][] memory arr =
+            new FulfillmentComponent[][](maxLength);
         assembly {
             mstore(arr, 1)
         }
@@ -774,9 +766,8 @@ library MatchArrays {
         FulfillmentComponent[] memory a,
         FulfillmentComponent[] memory b
     ) internal pure returns (FulfillmentComponent[][] memory) {
-        FulfillmentComponent[][] memory arr = new FulfillmentComponent[][](
-            maxLength
-        );
+        FulfillmentComponent[][] memory arr =
+            new FulfillmentComponent[][](maxLength);
         assembly {
             mstore(arr, 2)
         }
@@ -791,9 +782,8 @@ library MatchArrays {
         FulfillmentComponent[] memory b,
         FulfillmentComponent[] memory c
     ) internal pure returns (FulfillmentComponent[][] memory) {
-        FulfillmentComponent[][] memory arr = new FulfillmentComponent[][](
-            maxLength
-        );
+        FulfillmentComponent[][] memory arr =
+            new FulfillmentComponent[][](maxLength);
         assembly {
             mstore(arr, 3)
         }
@@ -810,9 +800,8 @@ library MatchArrays {
         FulfillmentComponent[] memory c,
         FulfillmentComponent[] memory d
     ) internal pure returns (FulfillmentComponent[][] memory) {
-        FulfillmentComponent[][] memory arr = new FulfillmentComponent[][](
-            maxLength
-        );
+        FulfillmentComponent[][] memory arr =
+            new FulfillmentComponent[][](maxLength);
         assembly {
             mstore(arr, 4)
         }
@@ -831,9 +820,8 @@ library MatchArrays {
         FulfillmentComponent[] memory d,
         FulfillmentComponent[] memory e
     ) internal pure returns (FulfillmentComponent[][] memory) {
-        FulfillmentComponent[][] memory arr = new FulfillmentComponent[][](
-            maxLength
-        );
+        FulfillmentComponent[][] memory arr =
+            new FulfillmentComponent[][](maxLength);
         assembly {
             mstore(arr, 5)
         }
@@ -854,9 +842,8 @@ library MatchArrays {
         FulfillmentComponent[] memory e,
         FulfillmentComponent[] memory f
     ) internal pure returns (FulfillmentComponent[][] memory) {
-        FulfillmentComponent[][] memory arr = new FulfillmentComponent[][](
-            maxLength
-        );
+        FulfillmentComponent[][] memory arr =
+            new FulfillmentComponent[][](maxLength);
         assembly {
             mstore(arr, 6)
         }
@@ -879,9 +866,8 @@ library MatchArrays {
         FulfillmentComponent[] memory f,
         FulfillmentComponent[] memory g
     ) internal pure returns (FulfillmentComponent[][] memory) {
-        FulfillmentComponent[][] memory arr = new FulfillmentComponent[][](
-            maxLength
-        );
+        FulfillmentComponent[][] memory arr =
+            new FulfillmentComponent[][](maxLength);
         assembly {
             mstore(arr, 7)
         }
@@ -2577,7 +2563,7 @@ library MatchArrays {
     }
 
     function uints(uint256 a) internal pure returns (uint256[] memory) {
-        uint256[] memory arr = new uint[](1);
+        uint256[] memory arr = new uint256[](1);
         arr[0] = a;
         return arr;
     }
@@ -2587,7 +2573,7 @@ library MatchArrays {
         pure
         returns (uint256[] memory)
     {
-        uint256[] memory arr = new uint[](2);
+        uint256[] memory arr = new uint256[](2);
         arr[0] = a;
         arr[1] = b;
         return arr;
@@ -2598,7 +2584,7 @@ library MatchArrays {
         pure
         returns (uint256[] memory)
     {
-        uint256[] memory arr = new uint[](3);
+        uint256[] memory arr = new uint256[](3);
         arr[0] = a;
         arr[1] = b;
         arr[2] = c;
@@ -2610,7 +2596,7 @@ library MatchArrays {
         pure
         returns (uint256[] memory)
     {
-        uint256[] memory arr = new uint[](4);
+        uint256[] memory arr = new uint256[](4);
         arr[0] = a;
         arr[1] = b;
         arr[2] = c;
@@ -2623,7 +2609,7 @@ library MatchArrays {
         pure
         returns (uint256[] memory)
     {
-        uint256[] memory arr = new uint[](5);
+        uint256[] memory arr = new uint256[](5);
         arr[0] = a;
         arr[1] = b;
         arr[2] = c;
@@ -2640,7 +2626,7 @@ library MatchArrays {
         uint256 e,
         uint256 f
     ) internal pure returns (uint256[] memory) {
-        uint256[] memory arr = new uint[](6);
+        uint256[] memory arr = new uint256[](6);
         arr[0] = a;
         arr[1] = b;
         arr[2] = c;
@@ -2659,7 +2645,7 @@ library MatchArrays {
         uint256 f,
         uint256 g
     ) internal pure returns (uint256[] memory) {
-        uint256[] memory arr = new uint[](7);
+        uint256[] memory arr = new uint256[](7);
         arr[0] = a;
         arr[1] = b;
         arr[2] = c;
@@ -2675,7 +2661,7 @@ library MatchArrays {
         pure
         returns (uint256[] memory)
     {
-        uint256[] memory arr = new uint[](maxLength);
+        uint256[] memory arr = new uint256[](maxLength);
         assembly {
             mstore(arr, 1)
         }
@@ -2688,7 +2674,7 @@ library MatchArrays {
         pure
         returns (uint256[] memory)
     {
-        uint256[] memory arr = new uint[](maxLength);
+        uint256[] memory arr = new uint256[](maxLength);
         assembly {
             mstore(arr, 2)
         }
@@ -2703,7 +2689,7 @@ library MatchArrays {
         uint256 b,
         uint256 c
     ) internal pure returns (uint256[] memory) {
-        uint256[] memory arr = new uint[](maxLength);
+        uint256[] memory arr = new uint256[](maxLength);
         assembly {
             mstore(arr, 3)
         }
@@ -2720,7 +2706,7 @@ library MatchArrays {
         uint256 c,
         uint256 d
     ) internal pure returns (uint256[] memory) {
-        uint256[] memory arr = new uint[](maxLength);
+        uint256[] memory arr = new uint256[](maxLength);
         assembly {
             mstore(arr, 4)
         }
@@ -2739,7 +2725,7 @@ library MatchArrays {
         uint256 d,
         uint256 e
     ) internal pure returns (uint256[] memory) {
-        uint256[] memory arr = new uint[](maxLength);
+        uint256[] memory arr = new uint256[](maxLength);
         assembly {
             mstore(arr, 5)
         }
@@ -2760,7 +2746,7 @@ library MatchArrays {
         uint256 e,
         uint256 f
     ) internal pure returns (uint256[] memory) {
-        uint256[] memory arr = new uint[](maxLength);
+        uint256[] memory arr = new uint256[](maxLength);
         assembly {
             mstore(arr, 6)
         }
@@ -2783,7 +2769,7 @@ library MatchArrays {
         uint256 f,
         uint256 g
     ) internal pure returns (uint256[] memory) {
-        uint256[] memory arr = new uint[](maxLength);
+        uint256[] memory arr = new uint256[](maxLength);
         assembly {
             mstore(arr, 7)
         }
@@ -2802,20 +2788,20 @@ library MatchArrays {
         pure
         returns (uint256[] memory arr)
     {
-        arr = new uint[](length);
+        arr = new uint256[](length);
         assembly {
             mstore(arr, 0)
         }
     }
 
     function ints(int256 a) internal pure returns (int256[] memory) {
-        int256[] memory arr = new int[](1);
+        int256[] memory arr = new int256[](1);
         arr[0] = a;
         return arr;
     }
 
     function ints(int256 a, int256 b) internal pure returns (int256[] memory) {
-        int256[] memory arr = new int[](2);
+        int256[] memory arr = new int256[](2);
         arr[0] = a;
         arr[1] = b;
         return arr;
@@ -2826,7 +2812,7 @@ library MatchArrays {
         pure
         returns (int256[] memory)
     {
-        int256[] memory arr = new int[](3);
+        int256[] memory arr = new int256[](3);
         arr[0] = a;
         arr[1] = b;
         arr[2] = c;
@@ -2838,7 +2824,7 @@ library MatchArrays {
         pure
         returns (int256[] memory)
     {
-        int256[] memory arr = new int[](4);
+        int256[] memory arr = new int256[](4);
         arr[0] = a;
         arr[1] = b;
         arr[2] = c;
@@ -2851,7 +2837,7 @@ library MatchArrays {
         pure
         returns (int256[] memory)
     {
-        int256[] memory arr = new int[](5);
+        int256[] memory arr = new int256[](5);
         arr[0] = a;
         arr[1] = b;
         arr[2] = c;
@@ -2865,7 +2851,7 @@ library MatchArrays {
         pure
         returns (int256[] memory)
     {
-        int256[] memory arr = new int[](6);
+        int256[] memory arr = new int256[](6);
         arr[0] = a;
         arr[1] = b;
         arr[2] = c;
@@ -2884,7 +2870,7 @@ library MatchArrays {
         int256 f,
         int256 g
     ) internal pure returns (int256[] memory) {
-        int256[] memory arr = new int[](7);
+        int256[] memory arr = new int256[](7);
         arr[0] = a;
         arr[1] = b;
         arr[2] = c;
@@ -2900,7 +2886,7 @@ library MatchArrays {
         pure
         returns (int256[] memory)
     {
-        int256[] memory arr = new int[](maxLength);
+        int256[] memory arr = new int256[](maxLength);
         assembly {
             mstore(arr, 1)
         }
@@ -2913,7 +2899,7 @@ library MatchArrays {
         pure
         returns (int256[] memory)
     {
-        int256[] memory arr = new int[](maxLength);
+        int256[] memory arr = new int256[](maxLength);
         assembly {
             mstore(arr, 2)
         }
@@ -2927,7 +2913,7 @@ library MatchArrays {
         pure
         returns (int256[] memory)
     {
-        int256[] memory arr = new int[](maxLength);
+        int256[] memory arr = new int256[](maxLength);
         assembly {
             mstore(arr, 3)
         }
@@ -2944,7 +2930,7 @@ library MatchArrays {
         int256 c,
         int256 d
     ) internal pure returns (int256[] memory) {
-        int256[] memory arr = new int[](maxLength);
+        int256[] memory arr = new int256[](maxLength);
         assembly {
             mstore(arr, 4)
         }
@@ -2963,7 +2949,7 @@ library MatchArrays {
         int256 d,
         int256 e
     ) internal pure returns (int256[] memory) {
-        int256[] memory arr = new int[](maxLength);
+        int256[] memory arr = new int256[](maxLength);
         assembly {
             mstore(arr, 5)
         }
@@ -2984,7 +2970,7 @@ library MatchArrays {
         int256 e,
         int256 f
     ) internal pure returns (int256[] memory) {
-        int256[] memory arr = new int[](maxLength);
+        int256[] memory arr = new int256[](maxLength);
         assembly {
             mstore(arr, 6)
         }
@@ -3007,7 +2993,7 @@ library MatchArrays {
         int256 f,
         int256 g
     ) internal pure returns (int256[] memory) {
-        int256[] memory arr = new int[](maxLength);
+        int256[] memory arr = new int256[](maxLength);
         assembly {
             mstore(arr, 7)
         }
@@ -3026,7 +3012,7 @@ library MatchArrays {
         pure
         returns (int256[] memory arr)
     {
-        arr = new int[](length);
+        arr = new int256[](length);
         assembly {
             mstore(arr, 0)
         }

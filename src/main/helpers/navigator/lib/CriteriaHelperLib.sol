@@ -76,9 +76,7 @@ library CriteriaHelperLib {
         returns (uint256[] memory sortedIds)
     {
         // Instantiate a new array of HashAndIntTuple structs.
-        HashAndIntTuple[] memory toSort = new HashAndIntTuple[](
-            tokenIds.length
-        );
+        HashAndIntTuple[] memory toSort = new HashAndIntTuple[](tokenIds.length);
 
         // Populate the array of HashAndIntTuple structs.
         for (uint256 i = 0; i < tokenIds.length; i++) {

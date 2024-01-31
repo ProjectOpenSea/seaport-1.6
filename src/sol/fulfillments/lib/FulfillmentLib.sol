@@ -32,6 +32,7 @@ enum AggregationStrategy {
     MAXIMUM, // Aggregate as many items as possible
     RANDOM // Randomize aggregation quantity
         // NOTE: for match cases, there may be more sophisticated optimal strategies
+
 }
 
 enum FulfillAvailableStrategy {
@@ -42,6 +43,7 @@ enum FulfillAvailableStrategy {
     DROP_SINGLE_KEEP_FILTERED, // Exclude single unless it would be filtered
     DROP_ALL_KEEP_FILTERED, // Exclude all unfilterable offer aggregations
     DROP_RANDOM_KEEP_FILTERED // Exclude random, unfilterable offer aggregations
+
 }
 
 enum MatchStrategy {
@@ -54,6 +56,7 @@ enum MatchStrategy {
     MIN_EXECUTIONS, // use as few fulfillments as possible given aggregations
     MIN_EXECUTIONS_MAX_FILTERS // minimize fulfillments and prioritize filters
         // NOTE: more sophisticated match strategies require modifying aggregations
+
 }
 
 enum ItemCategory {
@@ -851,12 +854,10 @@ library FulfillmentGeneratorLib {
         FulfillmentComponent[] memory considerationComponents =
             (new FulfillmentComponent[](considerationItems.items.length));
 
-        uint256[] memory consumableOfferIndices = new uint256[](
-            offerItems.items.length
-        );
-        uint256[] memory consumableConsiderationIndices = new uint256[](
-            considerationItems.items.length
-        );
+        uint256[] memory consumableOfferIndices =
+            new uint256[](offerItems.items.length);
+        uint256[] memory consumableConsiderationIndices =
+            new uint256[](considerationItems.items.length);
 
         {
             uint256 assignmentIndex = 0;
@@ -1172,9 +1173,8 @@ library FulfillmentGeneratorLib {
         FulfillmentComponent[][] memory fulfillments =
             (new FulfillmentComponent[][](fulfillmentItems.length));
 
-        ItemCategory[] memory categories = new ItemCategory[](
-            fulfillmentItems.length
-        );
+        ItemCategory[] memory categories =
+            new ItemCategory[](fulfillmentItems.length);
 
         for (uint256 i = 0; i < fulfillmentItems.length; ++i) {
             fulfillments[i] =
@@ -1279,9 +1279,8 @@ library FulfillmentGeneratorLib {
             mstore(consumableItemIndices, assignmentIndex)
         }
 
-        FulfillmentComponent[] memory fulfillment = new FulfillmentComponent[](
-            consumableItemIndices.length
-        );
+        FulfillmentComponent[] memory fulfillment =
+            new FulfillmentComponent[](consumableItemIndices.length);
 
         for (uint256 i = 0; i < consumableItemIndices.length; ++i) {
             FulfillmentItem memory item = items[consumableItemIndices[i]];
@@ -1335,9 +1334,8 @@ library FulfillmentGeneratorLib {
         pure
         returns (FulfillmentComponent[] memory)
     {
-        FulfillmentComponent[] memory fulfillment = new FulfillmentComponent[](
-            items.length
-        );
+        FulfillmentComponent[] memory fulfillment =
+            new FulfillmentComponent[](items.length);
 
         for (uint256 i = 0; i < items.length; ++i) {
             fulfillment[i] = getFulfillmentComponent(items[i]);
@@ -1637,9 +1635,8 @@ library MatchableItemReferenceGroupLib {
         MatchableItemReferenceGroup[] memory matchableGroups,
         address recipient
     ) internal pure returns (MatchDetails memory) {
-        DualFulfillmentItems[] memory items = new DualFulfillmentItems[](
-            matchableGroups.length
-        );
+        DualFulfillmentItems[] memory items =
+            new DualFulfillmentItems[](matchableGroups.length);
 
         uint256 totalItems = 0;
         uint256 itemsInGroup = 0;
@@ -1831,9 +1828,7 @@ library HashAllocatorLib {
         returns (ItemReferenceGroupLib.ItemReferenceGroup[] memory)
     {
         ItemReferenceGroupLib.ItemReferenceGroup[] memory group =
-        new ItemReferenceGroupLib.ItemReferenceGroup[](
-                hashCount.length
-            );
+            new ItemReferenceGroupLib.ItemReferenceGroup[](hashCount.length);
 
         for (uint256 i = 0; i < hashCount.length; ++i) {
             group[i] = ItemReferenceGroupLib.ItemReferenceGroup({
@@ -1972,9 +1967,8 @@ library ItemReferenceLib {
         pure
         returns (ItemReference[] memory)
     {
-        ItemReference[] memory itemReferences = new ItemReference[](
-            getTotalItems(orderDetails)
-        );
+        ItemReference[] memory itemReferences =
+            new ItemReference[](getTotalItems(orderDetails));
 
         uint256 itemReferenceIndex = 0;
 
@@ -2020,9 +2014,8 @@ library ItemReferenceLib {
         pure
         returns (ItemReference[] memory)
     {
-        ItemReference[] memory shuffledItemReferences = new ItemReference[](
-            itemReferences.length
-        );
+        ItemReference[] memory shuffledItemReferences =
+            new ItemReference[](itemReferences.length);
 
         uint256[] memory indices = new uint256[](itemReferences.length);
         for (uint256 i = 0; i < indices.length; ++i) {

@@ -149,9 +149,7 @@ library MatchComponentType {
         returns (FulfillmentComponent[] memory)
     {
         FulfillmentComponent[] memory fulfillmentComponents =
-        new FulfillmentComponent[](
-                components.length
-            );
+            new FulfillmentComponent[](components.length);
         for (uint256 i = 0; i < components.length; i++) {
             fulfillmentComponents[i] = components[i].toFulfillmentComponent();
         }
@@ -176,9 +174,8 @@ library MatchComponentType {
         pure
         returns (MatchComponent[] memory)
     {
-        MatchComponent[] memory structs = new MatchComponent[](
-            components.length
-        );
+        MatchComponent[] memory structs =
+            new MatchComponent[](components.length);
         for (uint256 i = 0; i < components.length; i++) {
             structs[i] = components[i].toStruct();
         }

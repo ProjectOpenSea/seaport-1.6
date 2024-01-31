@@ -136,9 +136,8 @@ contract StatefulOffererTest is BaseOrderTest {
 
         configureOrderComponents(0);
 
-        OrderComponents[] memory myBaseOrderComponents = new OrderComponents[](
-            1
-        );
+        OrderComponents[] memory myBaseOrderComponents =
+            new OrderComponents[](1);
         myBaseOrderComponents[0] = baseOrderComponents;
 
         vm.prank(address(offerer));

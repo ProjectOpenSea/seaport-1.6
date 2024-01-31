@@ -58,9 +58,8 @@ library OrderAvailabilityLib {
         uint256 maximumFulfilled,
         ConsiderationInterface seaport
     ) internal view returns (UnavailableReason[] memory) {
-        UnavailableReason[] memory reasons = new UnavailableReason[](
-            orders.length
-        );
+        UnavailableReason[] memory reasons =
+            new UnavailableReason[](orders.length);
         uint256 totalAvailable;
         UnavailableReason reason;
         for (uint256 i = 0; i < orders.length; i++) {

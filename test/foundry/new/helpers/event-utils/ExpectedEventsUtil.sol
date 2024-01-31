@@ -60,7 +60,6 @@ library ExpectedEventsUtil {
     /**
      * @dev Set up the Vm.
      */
-
     Vm private constant vm =
         Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
@@ -148,9 +147,8 @@ library ExpectedEventsUtil {
             }
         }
 
-        context.expectations.expectedSeaportEventHashes = new bytes32[](
-            totalExpectedEventHashes
-        );
+        context.expectations.expectedSeaportEventHashes =
+            new bytes32[](totalExpectedEventHashes);
 
         totalExpectedEventHashes = 0;
         for (uint256 i = 0; i < context.executionState.orders.length; ++i) {
@@ -409,7 +407,7 @@ library Casts {
         pure
         returns (
             function( Vm.Log[] memory, function(Vm.Log memory) internal pure returns (bool), uint256) internal pure returns (int256)
-                fnOut
+            fnOut
         )
     {
         assembly {
@@ -431,7 +429,7 @@ library Casts {
         pure
         returns (
             function(bytes32[] memory, function( uint256, uint256, ReduceInput memory) internal returns (uint256), uint256, ReduceInput memory) internal returns (uint256)
-                fnOut
+            fnOut
         )
     {
         assembly {
@@ -453,7 +451,7 @@ library Casts {
         pure
         returns (
             function(Execution[] memory, function(Execution memory, FuzzTestContext memory) internal returns (bytes32), FuzzTestContext memory) internal pure returns (bytes32[] memory)
-                fnOut
+            fnOut
         )
     {
         assembly {

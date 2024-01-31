@@ -255,7 +255,7 @@ library TransferEventsLibCasts {
         pure
         returns (
             function(Execution[] memory, function(Execution memory, FuzzTestContext memory) internal view returns (bytes32), FuzzTestContext memory) internal pure returns (bytes32[] memory)
-                fnOut
+            fnOut
         )
     {
         assembly {

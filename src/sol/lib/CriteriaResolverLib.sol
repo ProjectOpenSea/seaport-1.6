@@ -194,9 +194,8 @@ library CriteriaResolverLib {
         pure
         returns (CriteriaResolver[] memory)
     {
-        CriteriaResolver[] memory copiedItems = new CriteriaResolver[](
-            resolvers.length
-        );
+        CriteriaResolver[] memory copiedItems =
+            new CriteriaResolver[](resolvers.length);
         for (uint256 i = 0; i < resolvers.length; i++) {
             copiedItems[i] = copy(resolvers[i]);
         }

@@ -2214,9 +2214,8 @@ contract FuzzMutations is Test, FuzzExecutor {
         CriteriaResolver[] memory oldResolvers =
             context.executionState.criteriaResolvers;
         // Make a new array with one more slot.
-        CriteriaResolver[] memory newResolvers = new CriteriaResolver[](
-            oldResolvers.length + 1
-        );
+        CriteriaResolver[] memory newResolvers =
+            new CriteriaResolver[](oldResolvers.length + 1);
         // Copy the old resolvers into the new array.
         for (uint256 i = 0; i < oldResolvers.length; ++i) {
             newResolvers[i] = oldResolvers[i];
@@ -2860,9 +2859,8 @@ contract FuzzMutations is Test, FuzzExecutor {
 
         CriteriaResolver[] memory oldResolvers =
             context.executionState.criteriaResolvers;
-        CriteriaResolver[] memory newResolvers = new CriteriaResolver[](
-            oldResolvers.length + 1
-        );
+        CriteriaResolver[] memory newResolvers =
+            new CriteriaResolver[](oldResolvers.length + 1);
         for (uint256 i = 0; i < oldResolvers.length; ++i) {
             newResolvers[i] = oldResolvers[i];
         }
@@ -2938,9 +2936,8 @@ contract FuzzMutations is Test, FuzzExecutor {
 
         CriteriaResolver[] memory oldResolvers =
             context.executionState.criteriaResolvers;
-        CriteriaResolver[] memory newResolvers = new CriteriaResolver[](
-            oldResolvers.length - 1
-        );
+        CriteriaResolver[] memory newResolvers =
+            new CriteriaResolver[](oldResolvers.length - 1);
 
         // Iterate from 0 to the selected criteria resolver index and copy
         // resolvers.
@@ -3299,9 +3296,8 @@ contract FuzzMutations is Test, FuzzExecutor {
         // mutation), adding a new consideration item will cause the order to
         // fail.
 
-        ConsiderationItem[] memory newConsideration = new ConsiderationItem[](
-            order.parameters.consideration.length + 1
-        );
+        ConsiderationItem[] memory newConsideration =
+            new ConsiderationItem[](order.parameters.consideration.length + 1);
         for (uint256 i; i < order.parameters.consideration.length; i++) {
             newConsideration[i] = order.parameters.consideration[i];
         }
@@ -3411,9 +3407,8 @@ contract FuzzMutations is Test, FuzzExecutor {
 
             _signOrValidateMutatedOrder(context, i);
         }
-        context.executionState.offerFulfillments = new FulfillmentComponent[][](
-            0
-        );
+        context.executionState.offerFulfillments =
+            new FulfillmentComponent[][](0);
         context.executionState.considerationFulfillments =
             new FulfillmentComponent[][](0);
 

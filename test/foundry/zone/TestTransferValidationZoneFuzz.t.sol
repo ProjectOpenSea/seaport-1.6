@@ -516,9 +516,13 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
         // Set up the infrastructure.
         FulfillAvailableAdvancedOrdersInfra memory infra =
         FulfillAvailableAdvancedOrdersInfra({
-            advancedOrders: new AdvancedOrder[]( context.fulfillArgs.orderCount),
-            offerFulfillmentComponents: new FulfillmentComponent[][](context.fulfillArgs.orderCount),
-            considerationFulfillmentComponents: new FulfillmentComponent[][](context.fulfillArgs.orderCount),
+            advancedOrders: new AdvancedOrder[](context.fulfillArgs.orderCount),
+            offerFulfillmentComponents: new FulfillmentComponent[][](
+                context.fulfillArgs.orderCount
+                ),
+            considerationFulfillmentComponents: new FulfillmentComponent[][](
+                context.fulfillArgs.orderCount
+                ),
             criteriaResolvers: new CriteriaResolver[](0),
             callerBalanceBefore: address(this).balance,
             callerBalanceAfter: address(this).balance,
@@ -798,9 +802,8 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
         orderComponents = _buildOrderComponentsArrayFromFuzzArgs(context);
 
         // Set up the AdvancedOrder array.
-        AdvancedOrder[] memory _advancedOrders = new AdvancedOrder[](
-            context.fulfillArgs.orderCount
-        );
+        AdvancedOrder[] memory _advancedOrders =
+            new AdvancedOrder[](context.fulfillArgs.orderCount);
 
         // Iterate over the OrderComponents array and build an AdvancedOrder
         // for each OrderComponents.
@@ -1032,10 +1035,9 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
         returns (ConsiderationItem[] memory _considerationItemArray)
     {
         // Set up the ConsiderationItem array.
-        ConsiderationItem[] memory considerationItemArray =
-        new ConsiderationItem[](
-                context.matchArgs.considerationItemsPerPrimeOrderCount
-            );
+        ConsiderationItem[] memory considerationItemArray = new ConsiderationItem[](
+            context.matchArgs.considerationItemsPerPrimeOrderCount
+        );
 
         // Create the consideration items.
         (
@@ -1150,10 +1152,9 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
         returns (ConsiderationItem[] memory _considerationItemArray)
     {
         // Set up the ConsiderationItem array.
-        ConsiderationItem[] memory considerationItemArray =
-        new ConsiderationItem[](
-                context.matchArgs.considerationItemsPerPrimeOrderCount
-            );
+        ConsiderationItem[] memory considerationItemArray = new ConsiderationItem[](
+            context.matchArgs.considerationItemsPerPrimeOrderCount
+        );
 
         // Note that the consideration array here will always be just one NFT
         // so because the second NFT on the offer side is meant to be excess.
@@ -1267,13 +1268,11 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
             );
         }
 
-        bytes32[] memory orderHashes = new bytes32[](
-            context.matchArgs.orderPairCount * 2
-        );
+        bytes32[] memory orderHashes =
+            new bytes32[](context.matchArgs.orderPairCount * 2);
 
-        UnavailableReason[] memory unavailableReasons = new UnavailableReason[](
-            context.matchArgs.orderPairCount * 2
-        );
+        UnavailableReason[] memory unavailableReasons =
+            new UnavailableReason[](context.matchArgs.orderPairCount * 2);
 
         // Build fulfillments.
         (infra.fulfillments,,) = matchFulfillmentHelper.getMatchedFulfillments(

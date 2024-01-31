@@ -122,9 +122,8 @@ function dumpContext(
         );
     }
     if (outputSelection.orderHashes) {
-        bytes32[] memory orderHashes = new bytes32[](
-            context.executionState.orderDetails.length
-        );
+        bytes32[] memory orderHashes =
+            new bytes32[](context.executionState.orderDetails.length);
 
         for (uint256 i = 0; i < context.executionState.orderDetails.length; i++)
         {
@@ -277,9 +276,8 @@ function dumpContext(
         );
     }
     if (outputSelection.expectedAvailableOrders) {
-        bool[] memory expectedAvailableOrders = new bool[](
-            context.executionState.orderDetails.length
-        );
+        bool[] memory expectedAvailableOrders =
+            new bool[](context.executionState.orderDetails.length);
 
         for (uint256 i = 0; i < context.executionState.orderDetails.length; i++)
         {
@@ -361,7 +359,7 @@ function pureDumpContext()
     pure
     returns (
         function(FuzzTestContext memory, ContextOutputSelection memory) internal pure
-            pureFn
+        pureFn
     )
 {
     function(FuzzTestContext memory, ContextOutputSelection memory)
@@ -450,7 +448,7 @@ library ExecutionFilterCast {
         pure
         returns (
             function(Execution[] memory, function(Execution memory, ItemType) internal pure returns (bool), ItemType ) internal pure returns (Execution[] memory)
-                fnOut
+            fnOut
         )
     {
         assembly {

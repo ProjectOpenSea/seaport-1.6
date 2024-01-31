@@ -45,12 +45,7 @@ contract TestPoolFactoryImpl {
     ) external returns (address newPool) {
         newPool = address(
             new TestPoolImpl(
-                seaport,
-                erc721,
-                tokenIds,
-                erc20,
-                amount,
-                msg.sender
+                seaport, erc721, tokenIds, erc20, amount, msg.sender
             )
         );
         IERC20(erc20).transferFrom(msg.sender, newPool, amount);

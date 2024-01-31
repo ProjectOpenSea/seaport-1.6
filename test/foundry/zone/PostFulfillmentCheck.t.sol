@@ -311,9 +311,7 @@ contract PostFulfillmentCheckTest is BaseOrderTest {
             BasicOrderType.ERC721_TO_ERC20_FULL_RESTRICTED,
             signature
         );
-        basicOrderParameters.additionalRecipients = new AdditionalRecipient[](
-            2
-        );
+        basicOrderParameters.additionalRecipients = new AdditionalRecipient[](2);
         basicOrderParameters.additionalRecipients[0] =
             AdditionalRecipient({ recipient: bob, amount: 1 });
         basicOrderParameters.additionalRecipients[1] =
@@ -378,9 +376,7 @@ contract PostFulfillmentCheckTest is BaseOrderTest {
             BasicOrderType.ERC721_TO_ERC20_FULL_RESTRICTED,
             signature
         );
-        basicOrderParameters.additionalRecipients = new AdditionalRecipient[](
-            2
-        );
+        basicOrderParameters.additionalRecipients = new AdditionalRecipient[](2);
         basicOrderParameters.additionalRecipients[0] =
             AdditionalRecipient({ recipient: bob, amount: 1 });
         basicOrderParameters.additionalRecipients[1] =
@@ -611,9 +607,7 @@ contract PostFulfillmentCheckTest is BaseOrderTest {
         stateless
     {
         TestTransferValidationZoneOfferer transferValidationZone =
-        new TestTransferValidationZoneOfferer(
-                address(0)
-            );
+            new TestTransferValidationZoneOfferer(address(0));
 
         addErc20OfferItem(50);
         addErc721ConsiderationItem(alice, 42);

@@ -117,6 +117,7 @@ enum Failure {
     Panic_PartialFillOverflow, // numerator / denominator overflow current fill fraction
     NoSpecifiedOrdersAvailable, // all fulfillAvailable executions are filtered
     length // NOT A FAILURE; used to get the number of failures in the enum
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -181,9 +181,7 @@ contract TransferHelperSingleRecipientTest is BaseOrderTest {
         address to
     ) internal pure returns (TransferHelperItemsWithRecipient[] memory) {
         TransferHelperItemsWithRecipient[] memory itemsWithRecipient =
-        new TransferHelperItemsWithRecipient[](
-                1
-            );
+            new TransferHelperItemsWithRecipient[](1);
         itemsWithRecipient[0] =
             TransferHelperItemsWithRecipient(items, to, true);
         return itemsWithRecipient;
@@ -211,9 +209,8 @@ contract TransferHelperSingleRecipientTest is BaseOrderTest {
         vm.startPrank(from);
 
         // Get balances before transfer
-        FromToBalance[] memory beforeTransferBalances = new FromToBalance[](
-            items.length
-        );
+        FromToBalance[] memory beforeTransferBalances =
+            new FromToBalance[](items.length);
         for (uint256 i = 0; i < items.length; i++) {
             beforeTransferBalances[i] =
                 _balanceOfTransferItemForFromTo(items[i], from, to);
@@ -234,9 +231,8 @@ contract TransferHelperSingleRecipientTest is BaseOrderTest {
         transferHelper.bulkTransfer(itemsWithRecipient, conduitKeyOne);
 
         // Get balances after transfer
-        FromToBalance[] memory afterTransferBalances = new FromToBalance[](
-            items.length
-        );
+        FromToBalance[] memory afterTransferBalances =
+            new FromToBalance[](items.length);
         for (uint256 i = 0; i < items.length; i++) {
             afterTransferBalances[i] =
                 _balanceOfTransferItemForFromTo(items[i], from, to);
@@ -737,8 +733,7 @@ contract TransferHelperSingleRecipientTest is BaseOrderTest {
     {
         // Deploy invalid mock ERC721 receiver
         ERC721ReceiverMock mockReceiver = new ERC721ReceiverMock(
-            0xabcd0000,
-            ERC721ReceiverMock.Error.RevertWithMessage
+            0xabcd0000, ERC721ReceiverMock.Error.RevertWithMessage
         );
 
         TransferHelperItem memory item = _getFuzzedTransferItem(
@@ -834,9 +829,8 @@ contract TransferHelperSingleRecipientTest is BaseOrderTest {
                 )
             );
         } else {
-            mockTransferHelper = new TransferHelper(
-                address(mockConduitController)
-            );
+            mockTransferHelper =
+                new TransferHelper(address(mockConduitController));
         }
         vm.label(address(mockTransferHelper), "mock transfer helper");
 

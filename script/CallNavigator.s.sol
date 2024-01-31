@@ -42,9 +42,7 @@ contract CallNavigator is Script {
         );
 
         // Set up orders, using navigator order structs.
-        NavigatorAdvancedOrder[] memory orders = new NavigatorAdvancedOrder[](
-            1
-        );
+        NavigatorAdvancedOrder[] memory orders = new NavigatorAdvancedOrder[](1);
         orders[0] = NavigatorAdvancedOrder({
             parameters: NavigatorOrderParameters({
                 offerer: 0xcc476d5Adc341B31405891E78694186454775926,

@@ -266,9 +266,8 @@ library FuzzHelpers {
             (getTotalFractionalizableAmounts(order));
 
         if (totalFractionalizableAmounts != 0) {
-            uint256[] memory numbers = new uint256[](
-                totalFractionalizableAmounts
-            );
+            uint256[] memory numbers =
+                new uint256[](totalFractionalizableAmounts);
 
             uint256 numberIndex = 0;
 

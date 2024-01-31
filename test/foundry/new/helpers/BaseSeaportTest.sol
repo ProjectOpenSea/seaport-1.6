@@ -154,9 +154,8 @@ contract BaseSeaportTest is DifferentialTest {
         } else {
             referenceConduitController = new ReferenceConduitController();
             // for debugging
-            referenceSeaport = new ReferenceConsideration(
-                address(referenceConduitController)
-            );
+            referenceSeaport =
+                new ReferenceConsideration(address(referenceConduitController));
         }
 
         //create conduit, update channel

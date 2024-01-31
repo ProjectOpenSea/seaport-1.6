@@ -242,9 +242,8 @@ contract FulfillBasicOrderTest is
         ) = prepareBasicOrder(1);
 
         // Add additional recipients
-        _basicOrderParameters.additionalRecipients = new AdditionalRecipient[](
-            totalRecipients
-        );
+        _basicOrderParameters.additionalRecipients =
+            new AdditionalRecipient[](totalRecipients);
         for (
             uint256 i = 0;
             i < _basicOrderParameters.additionalRecipients.length;
@@ -294,9 +293,8 @@ contract FulfillBasicOrderTest is
             prepareBasicOrder(1);
 
         // Add additional recipients
-        _basicOrderParameters.additionalRecipients = new AdditionalRecipient[](
-            4
-        );
+        _basicOrderParameters.additionalRecipients =
+            new AdditionalRecipient[](4);
         for (uint256 i = 0; i < 4; i++) {
             _basicOrderParameters.additionalRecipients[i] =
                 AdditionalRecipient({ recipient: alice, amount: 1 });
@@ -683,9 +681,8 @@ contract FulfillBasicOrderTest is
         bytes memory signature =
             signOrder(context.consideration, alicePk, orderHash);
         basicOrderParameters.signature = signature;
-        OrderComponents[] memory myBaseOrderComponents = new OrderComponents[](
-            1
-        );
+        OrderComponents[] memory myBaseOrderComponents =
+            new OrderComponents[](1);
         myBaseOrderComponents[0] = baseOrderComponents;
 
         vm.prank(alice);

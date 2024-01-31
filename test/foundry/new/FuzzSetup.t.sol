@@ -384,9 +384,8 @@ contract FuzzSetupTest is BaseOrderTest, FuzzSetup {
         assertEq(erc20s[0].balanceOf(charlie.addr), 0);
         assertEq(erc20s[0].allowance(charlie.addr, address(getSeaport())), 0);
 
-        ConsiderationItem[] memory considerationItems = new ConsiderationItem[](
-            2
-        );
+        ConsiderationItem[] memory considerationItems =
+            new ConsiderationItem[](2);
         considerationItems[0] = ConsiderationItemLib.empty().withItemType(
             ItemType.ERC20
         ).withToken(address(erc20s[0])).withAmount(100);
@@ -438,9 +437,8 @@ contract FuzzSetupTest is BaseOrderTest, FuzzSetup {
             false
         );
 
-        ConsiderationItem[] memory considerationItems = new ConsiderationItem[](
-            2
-        );
+        ConsiderationItem[] memory considerationItems =
+            new ConsiderationItem[](2);
         considerationItems[0] = ConsiderationItemLib.empty().withItemType(
             ItemType.ERC721
         ).withToken(address(erc721s[0])).withIdentifierOrCriteria(1).withAmount(
@@ -498,9 +496,8 @@ contract FuzzSetupTest is BaseOrderTest, FuzzSetup {
             erc1155s[0].isApprovedForAll(charlie.addr, address(getSeaport()))
         );
 
-        ConsiderationItem[] memory considerationItems = new ConsiderationItem[](
-            2
-        );
+        ConsiderationItem[] memory considerationItems =
+            new ConsiderationItem[](2);
         considerationItems[0] = ConsiderationItemLib.empty().withItemType(
             ItemType.ERC1155
         ).withToken(address(erc1155s[0])).withIdentifierOrCriteria(1).withAmount(

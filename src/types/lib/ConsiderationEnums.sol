@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-enum OrderType
-// 0: no partial fills, anyone can execute
-{
+enum OrderType {
+    // 0: no partial fills, anyone can execute
     FULL_OPEN,
     // 1: partial fills supported, anyone can execute
     PARTIAL_OPEN,
@@ -15,9 +14,8 @@ enum OrderType
     CONTRACT
 }
 
-enum BasicOrderType
-// 0: no partial fills, anyone can execute
-{
+enum BasicOrderType {
+    // 0: no partial fills, anyone can execute
     ETH_TO_ERC721_FULL_OPEN,
     // 1: partial fills supported, anyone can execute
     ETH_TO_ERC721_PARTIAL_OPEN,
@@ -67,9 +65,8 @@ enum BasicOrderType
     ERC1155_TO_ERC20_PARTIAL_RESTRICTED
 }
 
-enum BasicOrderRouteType
-// 0: provide Ether (or other native token) to receive offered ERC721 item.
-{
+enum BasicOrderRouteType {
+    // 0: provide Ether (or other native token) to receive offered ERC721 item.
     ETH_TO_ERC721,
     // 1: provide Ether (or other native token) to receive offered ERC1155 item.
     ETH_TO_ERC1155,
@@ -83,9 +80,8 @@ enum BasicOrderRouteType
     ERC1155_TO_ERC20
 }
 
-enum ItemType
-// 0: ETH on mainnet, MATIC on polygon, etc.
-{
+enum ItemType {
+    // 0: ETH on mainnet, MATIC on polygon, etc.
     NATIVE,
     // 1: ERC20 items (ERC777 and ERC20 analogues could also technically work)
     ERC20,
@@ -99,9 +95,8 @@ enum ItemType
     ERC1155_WITH_CRITERIA
 }
 
-enum Side
-// 0: Items that can be spent
-{
+enum Side {
+    // 0: Items that can be spent
     OFFER,
     // 1: Items that must be received
     CONSIDERATION

@@ -515,12 +515,10 @@ library FuzzTestContextLib {
 
         // Bootstrap with all available to ease direct testing.
         if (context.executionState.orderDetails.length == 0) {
-            context.executionState.orderDetails = new OrderDetails[](
-                orders.length
-            );
-            context.executionState.validationErrors = new ErrorsAndWarnings[](
-                orders.length
-            );
+            context.executionState.orderDetails =
+                new OrderDetails[](orders.length);
+            context.executionState.validationErrors =
+                new ErrorsAndWarnings[](orders.length);
             for (uint256 i = 0; i < orders.length; ++i) {
                 context.executionState.orderDetails[i].unavailableReason =
                     UnavailableReason.AVAILABLE;
@@ -566,9 +564,8 @@ library FuzzTestContextLib {
         pure
         returns (FuzzTestContext memory)
     {
-        context.expectations.ineligibleOrders = new bool[](
-            context.executionState.orders.length
-        );
+        context.expectations.ineligibleOrders =
+            new bool[](context.executionState.orders.length);
         return context;
     }
 
@@ -891,9 +888,8 @@ library FuzzTestContextLib {
     ) internal pure returns (FuzzTestContext memory) {
         LibPRNG.PRNG memory prng = LibPRNG.PRNG(context.fuzzParams.seed);
 
-        context.executionState.preExecOrderStatuses = new OrderStatusEnum[](
-            context.executionState.orders.length
-        );
+        context.executionState.preExecOrderStatuses =
+            new OrderStatusEnum[](context.executionState.orders.length);
 
         for (uint256 i = 0; i < context.executionState.orders.length; i++) {
             if (space.orders[i].orderType == BroadOrderType.CONTRACT) {
@@ -1004,14 +1000,10 @@ library FuzzTestContextLib {
         FulfillmentComponent[][] memory fulfillmentComponents
     ) private pure returns (FulfillmentComponent[][] memory) {
         FulfillmentComponent[][] memory outerCopy =
-        new FulfillmentComponent[][](
-                fulfillmentComponents.length
-            );
+            new FulfillmentComponent[][](fulfillmentComponents.length);
         for (uint256 i = 0; i < fulfillmentComponents.length; i++) {
             FulfillmentComponent[] memory innerCopy =
-            new FulfillmentComponent[](
-                    fulfillmentComponents[i].length
-                );
+                new FulfillmentComponent[](fulfillmentComponents[i].length);
             for (uint256 j = 0; j < fulfillmentComponents[i].length; j++) {
                 innerCopy[j] = fulfillmentComponents[i][j];
             }
@@ -1025,9 +1017,8 @@ library FuzzTestContextLib {
         pure
         returns (CriteriaResolver[] memory)
     {
-        CriteriaResolver[] memory copy = new CriteriaResolver[](
-            criteriaResolvers.length
-        );
+        CriteriaResolver[] memory copy =
+            new CriteriaResolver[](criteriaResolvers.length);
         for (uint256 i = 0; i < criteriaResolvers.length; i++) {
             copy[i] = criteriaResolvers[i];
         }

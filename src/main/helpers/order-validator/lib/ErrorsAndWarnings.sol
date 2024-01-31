@@ -282,9 +282,8 @@ library ErrorsAndWarningsLib {
             return array1;
         }
 
-        uint16[] memory returnValue = new uint16[](
-            array1.length + array2.length
-        );
+        uint16[] memory returnValue =
+            new uint16[](array1.length + array2.length);
 
         for (uint256 i = 0; i < array1.length; i++) {
             returnValue[i] = array1[i];

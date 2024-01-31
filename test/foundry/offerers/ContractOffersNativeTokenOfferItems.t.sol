@@ -94,9 +94,7 @@ contract ContractOffersNativeTokenOfferItems is
 
     function ethForErc721(Context memory context) public stateless {
         TestContractOffererNativeToken contractOfferer =
-        new TestContractOffererNativeToken(
-                address(context.seaport)
-            );
+            new TestContractOffererNativeToken(address(context.seaport));
         vm.deal(address(contractOfferer), UINT256_MAX);
 
         test721_1.setApprovalForAll(address(contractOfferer), true);

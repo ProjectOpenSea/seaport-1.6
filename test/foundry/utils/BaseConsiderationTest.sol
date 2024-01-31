@@ -144,9 +144,8 @@ contract BaseConsiderationTest is DifferentialTest, StructCopier {
         } else {
             referenceConduitController = new ReferenceConduitController();
             // for debugging
-            referenceConsideration = new ReferenceConsideration(
-                address(referenceConduitController)
-            );
+            referenceConsideration =
+                new ReferenceConsideration(address(referenceConduitController));
         }
 
         //create conduit, update channel

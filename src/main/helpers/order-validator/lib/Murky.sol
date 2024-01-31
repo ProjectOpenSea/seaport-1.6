@@ -60,7 +60,6 @@ contract Murky {
      * PROOF GENERATION *
      *
      */
-
     function _getRoot(uint256[] memory data)
         internal
         pure

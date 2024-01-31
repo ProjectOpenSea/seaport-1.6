@@ -118,9 +118,8 @@ library FuzzDerivers {
         view
         returns (FuzzTestContext memory)
     {
-        UnavailableReason[] memory unavailableReasons = new UnavailableReason[](
-            context.advancedOrdersSpace.orders.length
-        );
+        UnavailableReason[] memory unavailableReasons =
+            new UnavailableReason[](context.advancedOrdersSpace.orders.length);
 
         for (uint256 i; i < context.advancedOrdersSpace.orders.length; ++i) {
             unavailableReasons[i] =

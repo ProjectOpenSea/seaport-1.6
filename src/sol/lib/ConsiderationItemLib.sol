@@ -211,9 +211,8 @@ library ConsiderationItemLib {
         pure
         returns (ConsiderationItem[] memory)
     {
-        ConsiderationItem[] memory copies = new ConsiderationItem[](
-            items.length
-        );
+        ConsiderationItem[] memory copies =
+            new ConsiderationItem[](items.length);
         for (uint256 i = 0; i < items.length; i++) {
             copies[i] = ConsiderationItem({
                 itemType: items[i].itemType,

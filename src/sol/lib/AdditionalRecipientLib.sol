@@ -169,9 +169,8 @@ library AdditionalRecipientLib {
         pure
         returns (AdditionalRecipient[] memory)
     {
-        AdditionalRecipient[] memory copiedItems = new AdditionalRecipient[](
-            items.length
-        );
+        AdditionalRecipient[] memory copiedItems =
+            new AdditionalRecipient[](items.length);
         for (uint256 i = 0; i < items.length; i++) {
             copiedItems[i] = copy(items[i]);
         }

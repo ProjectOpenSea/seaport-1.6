@@ -413,9 +413,8 @@ library StructCopier {
         OfferItem[] memory _offerItems,
         address payable receiver
     ) internal pure returns (ConsiderationItem[] memory) {
-        ConsiderationItem[] memory considerationItems = new ConsiderationItem[](
-            _offerItems.length
-        );
+        ConsiderationItem[] memory considerationItems =
+            new ConsiderationItem[](_offerItems.length);
         for (uint256 i = 0; i < _offerItems.length; ++i) {
             considerationItems[i] = ConsiderationItem(
                 _offerItems[i].itemType,
@@ -434,9 +433,8 @@ library StructCopier {
         pure
         returns (OfferItem[] memory)
     {
-        OfferItem[] memory _offerItems = new OfferItem[](
-            _considerationItems.length
-        );
+        OfferItem[] memory _offerItems =
+            new OfferItem[](_considerationItems.length);
         for (uint256 i = 0; i < _offerItems.length; i++) {
             _offerItems[i] = OfferItem(
                 _considerationItems[i].itemType,

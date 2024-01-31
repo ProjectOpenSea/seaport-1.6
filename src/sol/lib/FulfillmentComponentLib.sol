@@ -167,9 +167,8 @@ library FulfillmentComponentLib {
         pure
         returns (FulfillmentComponent[] memory)
     {
-        FulfillmentComponent[] memory copiedItems = new FulfillmentComponent[](
-            components.length
-        );
+        FulfillmentComponent[] memory copiedItems =
+            new FulfillmentComponent[](components.length);
         for (uint256 i = 0; i < components.length; i++) {
             copiedItems[i] = copy(components[i]);
         }

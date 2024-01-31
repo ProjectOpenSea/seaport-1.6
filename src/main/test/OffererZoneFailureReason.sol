@@ -13,4 +13,5 @@ enum OffererZoneFailureReason {
     ContractOfferer_InvalidMagicValue, // Offerer did not return correct magic value
     Zone_reverts, // Zone validateOrder call reverts
     Zone_InvalidMagicValue // Zone validateOrder call returns invalid magic value
+
 }

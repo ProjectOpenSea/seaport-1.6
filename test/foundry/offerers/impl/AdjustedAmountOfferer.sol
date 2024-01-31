@@ -93,9 +93,8 @@ contract AdjustedAmountOfferer is ContractOffererInterface, ERC165 {
         view
         returns (ReceivedItem[] memory)
     {
-        ReceivedItem[] memory receivedItems = new ReceivedItem[](
-            spentItems.length
-        );
+        ReceivedItem[] memory receivedItems =
+            new ReceivedItem[](spentItems.length);
         for (uint256 i = 0; i < spentItems.length; ++i) {
             receivedItems[i] = _convertSpentToReceived(spentItems[i]);
         }

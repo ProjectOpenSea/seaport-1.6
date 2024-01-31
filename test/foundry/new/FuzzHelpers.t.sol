@@ -88,9 +88,8 @@ contract FuzzHelpersTest is BaseOrderTest {
 
         offerItems[0] = offerItem;
 
-        ConsiderationItem[] memory considerationItems = new ConsiderationItem[](
-            1
-        );
+        ConsiderationItem[] memory considerationItems =
+            new ConsiderationItem[](1);
         ConsiderationItem memory considerationItem = ConsiderationItemLib.empty(
         ).withItemType(ItemType.ERC20).withToken(address(erc20s[0])).withAmount(
             1
@@ -485,9 +484,8 @@ contract FuzzHelpersTest is BaseOrderTest {
 
         offerItems[0] = offerItem;
 
-        ConsiderationItem[] memory considerationItems = new ConsiderationItem[](
-            1
-        );
+        ConsiderationItem[] memory considerationItems =
+            new ConsiderationItem[](1);
         ConsiderationItem memory considerationItem = ConsiderationItemLib.empty(
         ).withItemType(considerationItemType).withIdentifierOrCriteria(
             nftOffered ? 0 : 1

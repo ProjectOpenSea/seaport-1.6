@@ -211,9 +211,8 @@ abstract contract FuzzExecutor is Test {
         } else if (_action == context.seaport.cancel.selector) {
             logCall("cancel", logCalls);
             AdvancedOrder[] memory orders = context.executionState.orders;
-            OrderComponents[] memory orderComponents = new OrderComponents[](
-                orders.length
-            );
+            OrderComponents[] memory orderComponents =
+                new OrderComponents[](orders.length);
 
             for (uint256 i; i < orders.length; ++i) {
                 AdvancedOrder memory order = orders[i];

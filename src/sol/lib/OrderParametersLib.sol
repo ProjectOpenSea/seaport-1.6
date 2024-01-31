@@ -627,9 +627,8 @@ library OrderParametersLib {
         uint256 numerator,
         uint256 denominator
     ) internal view returns (ReceivedItem[] memory) {
-        ReceivedItem[] memory receivedItems = new ReceivedItem[](
-            considerationItems.length
-        );
+        ReceivedItem[] memory receivedItems =
+            new ReceivedItem[](considerationItems.length);
         for (uint256 i = 0; i < considerationItems.length; i++) {
             receivedItems[i] = getReceivedItem(
                 considerationItems[i],

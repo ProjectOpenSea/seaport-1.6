@@ -1070,7 +1070,7 @@ contract ConsiderationDecoder {
         pure
         returns (
             function() internal pure returns ( uint256, OfferItem[] memory, ConsiderationItem[] memory)
-                outFn
+            outFn
         )
     {
         assembly {
@@ -1123,7 +1123,7 @@ contract ConsiderationDecoder {
         pure
         returns (
             function(ConsiderationItem memory, address, bytes32, bytes memory) internal
-                outFn
+            outFn
         )
     {
         assembly {
@@ -1149,7 +1149,7 @@ contract ConsiderationDecoder {
         pure
         returns (
             function(CalldataPointer) internal pure returns (OrderParameters memory)
-                outFn
+            outFn
         )
     {
         assembly {
@@ -1175,7 +1175,7 @@ contract ConsiderationDecoder {
         pure
         returns (
             function(CalldataPointer) internal  pure returns (AdvancedOrder memory)
-                outFn
+            outFn
         )
     {
         assembly {
@@ -1201,7 +1201,7 @@ contract ConsiderationDecoder {
         pure
         returns (
             function(CalldataPointer) internal pure returns (CriteriaResolver[] memory)
-                outFn
+            outFn
         )
     {
         assembly {
@@ -1254,7 +1254,7 @@ contract ConsiderationDecoder {
         pure
         returns (
             function(CalldataPointer) internal pure returns (FulfillmentComponent[][] memory)
-                outFn
+            outFn
         )
     {
         assembly {
@@ -1280,7 +1280,7 @@ contract ConsiderationDecoder {
         pure
         returns (
             function(CalldataPointer) internal pure returns (AdvancedOrder[] memory)
-                outFn
+            outFn
         )
     {
         assembly {

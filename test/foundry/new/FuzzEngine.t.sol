@@ -322,7 +322,6 @@ contract FuzzEngineTest is FuzzEngine {
          * expectedActions[4] = SeaportInterface.cancel.selector;
          *     expectedActions[5] = SeaportInterface.validate.selector;
          */
-
         FuzzTestContext memory context = FuzzTestContextLib.from({
             orders: orders,
             seaport: getSeaport(),
@@ -546,9 +545,8 @@ contract FuzzEngineTest is FuzzEngine {
 
         offerItems[0] = offerItem;
 
-        ConsiderationItem[] memory considerationItems = new ConsiderationItem[](
-            1
-        );
+        ConsiderationItem[] memory considerationItems =
+            new ConsiderationItem[](1);
         ConsiderationItem memory considerationItem = ConsiderationItemLib.empty(
         ).withItemType(ItemType.ERC20).withToken(address(erc20s[0])).withAmount(
             1
@@ -1373,9 +1371,8 @@ contract FuzzEngineTest is FuzzEngine {
 
         // New scope for setup
         {
-            HashValidationZoneOfferer zone = new HashValidationZoneOfferer(
-                address(this)
-            );
+            HashValidationZoneOfferer zone =
+                new HashValidationZoneOfferer(address(this));
             // Offer ERC20
             OfferItem[] memory offerItems = new OfferItem[](1);
             OfferItem memory offerItem = OfferItemLib.empty().withItemType(
@@ -1483,12 +1480,10 @@ contract FuzzEngineTest is FuzzEngine {
             TestCalldataHashContractOfferer contractOfferer2
         )
     {
-        contractOfferer1 = new TestCalldataHashContractOfferer(
-            address(getSeaport())
-        );
-        contractOfferer2 = new TestCalldataHashContractOfferer(
-            address(getSeaport())
-        );
+        contractOfferer1 =
+            new TestCalldataHashContractOfferer(address(getSeaport()));
+        contractOfferer2 =
+            new TestCalldataHashContractOfferer(address(getSeaport()));
         contractOfferer1.setExpectedOfferRecipient(address(this));
         contractOfferer2.setExpectedOfferRecipient(address(this));
 

@@ -142,9 +142,8 @@ contract BaseConduitTest is
         ConduitTransfer[] memory original,
         ConduitTransfer[] memory extension
     ) internal pure returns (ConduitTransfer[] memory) {
-        ConduitTransfer[] memory transfers = new ConduitTransfer[](
-            original.length + extension.length
-        );
+        ConduitTransfer[] memory transfers =
+            new ConduitTransfer[](original.length + extension.length);
         for (uint256 i = 0; i < original.length; ++i) {
             transfers[i] = original[i];
         }
@@ -159,9 +158,7 @@ contract BaseConduitTest is
         ConduitBatch1155Transfer[] memory extension
     ) internal pure returns (ConduitBatch1155Transfer[] memory) {
         ConduitBatch1155Transfer[] memory transfers =
-        new ConduitBatch1155Transfer[](
-                original.length + extension.length
-            );
+            new ConduitBatch1155Transfer[](original.length + extension.length);
         for (uint256 i = 0; i < original.length; ++i) {
             transfers[i] = original[i];
         }
@@ -200,12 +197,9 @@ contract BaseConduitTest is
         ConduitBatch1155Transfer[] memory batchTransfers;
 
         TestERC1155 erc1155 = new TestERC1155();
-        uint256[] memory ids = new uint256[](
-            batchIntermediate.idAmounts.length
-        );
-        uint256[] memory amounts = new uint256[](
-            batchIntermediate.idAmounts.length
-        );
+        uint256[] memory ids = new uint256[](batchIntermediate.idAmounts.length);
+        uint256[] memory amounts =
+            new uint256[](batchIntermediate.idAmounts.length);
         for (uint256 n = 0; n < batchIntermediate.idAmounts.length; ++n) {
             ids[n] = batchIntermediate.idAmounts[n].id;
             amounts[n] = uint256(batchIntermediate.idAmounts[n].amount) + 1;
@@ -312,9 +306,8 @@ contract BaseConduitTest is
     function getExpectedBatchTokenBalances(
         ConduitBatch1155Transfer memory batchTransfer
     ) internal view returns (uint256[] memory) {
-        uint256[] memory batchTokenBalances = new uint256[](
-            batchTransfer.ids.length
-        );
+        uint256[] memory batchTokenBalances =
+            new uint256[](batchTransfer.ids.length);
         for (uint256 i = 0; i < batchTransfer.ids.length; ++i) {
             batchTokenBalances[i] = userToExpectedTokenIdentifierBalance[batchTransfer
                 .to][batchTransfer.token][batchTransfer.ids[i]];

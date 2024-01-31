@@ -162,13 +162,10 @@ library FuzzGeneratorContextLib {
         conduits[0] = _createConduit(conduitController, seaport, uint96(1));
         conduits[1] = _createConduit(conduitController, seaport, uint96(2));
 
-        HashValidationZoneOfferer validatorZone = new HashValidationZoneOfferer(
-            address(0)
-        );
+        HashValidationZoneOfferer validatorZone =
+            new HashValidationZoneOfferer(address(0));
         HashCalldataContractOfferer contractOfferer =
-        new HashCalldataContractOfferer(
-                address(seaport)
-            );
+            new HashCalldataContractOfferer(address(seaport));
         EIP1271Offerer eip1271Offerer = new EIP1271Offerer();
 
         setLabel(address(validatorZone), "validatorZone");

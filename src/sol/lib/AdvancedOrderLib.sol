@@ -439,10 +439,9 @@ library AdvancedOrderLib {
         basicOrderParameters.totalOriginalAdditionalRecipients =
             advancedOrder.parameters.totalOriginalConsiderationItems - 1;
 
-        AdditionalRecipient[] memory additionalRecipients =
-        new AdditionalRecipient[](
-                advancedOrder.parameters.consideration.length - 1
-            );
+        AdditionalRecipient[] memory additionalRecipients = new AdditionalRecipient[](
+            advancedOrder.parameters.consideration.length - 1
+        );
         for (
             uint256 i = 1;
             i < advancedOrder.parameters.consideration.length;
@@ -604,9 +603,8 @@ library AdvancedOrderLib {
         bytes32[] memory orderHashes = new bytes32[](orders.length);
 
         // Array of (contract offerer, currentNonce)
-        ContractNonceDetails[] memory detailsArray = new ContractNonceDetails[](
-            orders.length
-        );
+        ContractNonceDetails[] memory detailsArray =
+            new ContractNonceDetails[](orders.length);
 
         for (uint256 i = 0; i < orders.length; ++i) {
             OrderParameters memory order = orders[i].parameters;
@@ -728,9 +726,8 @@ library AdvancedOrderLib {
         bytes32[] memory orderHashes,
         UnavailableReason[] memory unavailableReasons
     ) internal view returns (OrderDetails[] memory) {
-        OrderDetails[] memory orderDetails = new OrderDetails[](
-            advancedOrders.length
-        );
+        OrderDetails[] memory orderDetails =
+            new OrderDetails[](advancedOrders.length);
 
         for (uint256 i = 0; i < advancedOrders.length; i++) {
             orderDetails[i] = toOrderDetails(

@@ -159,9 +159,8 @@ contract FuzzHelpersTest is BaseOrderTest {
 
         offerItems[0] = offerItem;
 
-        ConsiderationItem[] memory considerationItems = new ConsiderationItem[](
-            1
-        );
+        ConsiderationItem[] memory considerationItems =
+            new ConsiderationItem[](1);
         ConsiderationItem memory considerationItem = ConsiderationItemLib.empty(
         ).withItemType(ItemType.NATIVE).withAmount(10e34);
 
@@ -173,9 +172,7 @@ contract FuzzHelpersTest is BaseOrderTest {
             .withOffer(offerItems).withConsideration(considerationItems);
 
         // Set this up to use later for canceling.
-        OrderComponents[] memory orderComponentsArray = new OrderComponents[](
-            1
-        );
+        OrderComponents[] memory orderComponentsArray = new OrderComponents[](1);
 
         orderComponentsArray[0] = orderComponents;
 

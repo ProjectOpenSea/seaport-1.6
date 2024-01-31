@@ -86,9 +86,8 @@ contract OrderBuilder is OfferConsiderationItemAdder {
         pure
         returns (SpentItem[] memory)
     {
-        SpentItem[] memory spentItems = new SpentItem[](
-            _considerationItems.length
-        );
+        SpentItem[] memory spentItems =
+            new SpentItem[](_considerationItems.length);
         for (uint256 i; i < _considerationItems.length; ++i) {
             spentItems[i] = toSpentItem(_considerationItems[i]);
         }
@@ -315,9 +314,8 @@ contract OrderBuilder is OfferConsiderationItemAdder {
         OfferItem[] memory _offers,
         address payable recipient
     ) internal pure returns (ConsiderationItem[] memory) {
-        ConsiderationItem[] memory newConsideration = new ConsiderationItem[](
-            _offers.length
-        );
+        ConsiderationItem[] memory newConsideration =
+            new ConsiderationItem[](_offers.length);
         for (uint256 i = 0; i < _offers.length; i++) {
             newConsideration[i] = mirrorOfferItem(_offers[i], recipient);
         }
@@ -458,10 +456,9 @@ contract OrderBuilder is OfferConsiderationItemAdder {
         Order memory _order,
         BasicOrderType basicOrderType
     ) internal pure returns (BasicOrderParameters memory) {
-        AdditionalRecipient[] memory additionalRecipients =
-        new AdditionalRecipient[](
-                _order.parameters.consideration.length - 1
-            );
+        AdditionalRecipient[] memory additionalRecipients = new AdditionalRecipient[](
+            _order.parameters.consideration.length - 1
+        );
         for (uint256 i = 1; i < _order.parameters.consideration.length; i++) {
             additionalRecipients[i - 1] = AdditionalRecipient({
                 recipient: _order.parameters.consideration[i].recipient,

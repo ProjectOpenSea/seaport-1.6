@@ -184,9 +184,8 @@ abstract contract FuzzSetup is Test, AmountDeriverHelper {
      * @param context The test context.
      */
     function setUpZoneParameters(FuzzTestContext memory context) public view {
-        UnavailableReason[] memory unavailableReasons = new UnavailableReason[](
-            context.advancedOrdersSpace.orders.length
-        );
+        UnavailableReason[] memory unavailableReasons =
+            new UnavailableReason[](context.advancedOrdersSpace.orders.length);
 
         for (uint256 i; i < context.executionState.orderDetails.length; ++i) {
             unavailableReasons[i] =
@@ -206,9 +205,8 @@ abstract contract FuzzSetup is Test, AmountDeriverHelper {
         );
 
         // Provision the expected zone calldata hash array.
-        bytes32[] memory expectedZoneCalldataHash = new bytes32[](
-            context.executionState.orders.length
-        );
+        bytes32[] memory expectedZoneCalldataHash =
+            new bytes32[](context.executionState.orders.length);
 
         bool registerChecks;
 
@@ -248,9 +246,7 @@ abstract contract FuzzSetup is Test, AmountDeriverHelper {
             context.getExpectedContractOffererCalldataHashes();
 
         bytes32[2][] memory expectedContractOrderCalldataHashes =
-        new bytes32[2][](
-                context.executionState.orders.length
-            );
+            new bytes32[2][](context.executionState.orders.length);
 
         bool registerChecks;
 

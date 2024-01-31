@@ -312,9 +312,8 @@ library OrderLib {
         uint120 denominator,
         bytes memory extraData
     ) internal pure returns (AdvancedOrder[] memory _advancedOrders) {
-        AdvancedOrder[] memory advancedOrders = new AdvancedOrder[](
-            orders.length
-        );
+        AdvancedOrder[] memory advancedOrders =
+            new AdvancedOrder[](orders.length);
         for (uint256 i = 0; i < orders.length; i++) {
             advancedOrders[i] =
                 toAdvancedOrder(orders[i], numerator, denominator, extraData);
@@ -361,9 +360,7 @@ library OrderLib {
             order.parameters.totalOriginalConsiderationItems - 1;
 
         AdditionalRecipient[] memory additionalRecipients =
-        new AdditionalRecipient[](
-                order.parameters.consideration.length - 1
-            );
+            new AdditionalRecipient[](order.parameters.consideration.length - 1);
         for (uint256 i = 1; i < order.parameters.consideration.length; i++) {
             additionalRecipients[i - 1] = AdditionalRecipient({
                 recipient: order.parameters.consideration[i].recipient,

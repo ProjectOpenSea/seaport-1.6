@@ -146,9 +146,8 @@ library TestStateGenerator {
             maxConsiderationItemsPerOrder = 1 - maxOfferItemsPerOrder;
         }
 
-        OrderComponentsSpace[] memory components = new OrderComponentsSpace[](
-            totalOrders
-        );
+        OrderComponentsSpace[] memory components =
+            new OrderComponentsSpace[](totalOrders);
 
         bool someAvailable = false;
 
@@ -762,9 +761,8 @@ library AdvancedOrdersSpaceGenerator {
             orders[i] = order.withCoercedAmountsForPartialFulfillment();
         }
 
-        UnavailableReason[] memory unavailableReasons = new UnavailableReason[](
-            space.orders.length
-        );
+        UnavailableReason[] memory unavailableReasons =
+            new UnavailableReason[](space.orders.length);
 
         for (uint256 i; i < space.orders.length; ++i) {
             unavailableReasons[i] = space.orders[i].unavailableReason;
@@ -1005,9 +1003,8 @@ library AdvancedOrdersSpaceGenerator {
             OrderParameters memory orderParams =
                 orders[orderInsertionIndex].parameters;
 
-            ConsiderationItem[] memory consideration = new ConsiderationItem[](
-                1
-            );
+            ConsiderationItem[] memory consideration =
+                new ConsiderationItem[](1);
             consideration[0] = TestStateGenerator.generateConsideration(
                 1, context, true
             )[0].generate(context, orderParams.offerer, orderInsertionIndex, 0);
@@ -1041,9 +1038,8 @@ library AdvancedOrdersSpaceGenerator {
             OrderParameters memory orderParams =
                 orders[orderInsertionIndex].parameters;
 
-            ConsiderationItem[] memory consideration = new ConsiderationItem[](
-                1
-            );
+            ConsiderationItem[] memory consideration =
+                new ConsiderationItem[](1);
             consideration[0] = TestStateGenerator.generateConsideration(
                 1, context, true
             )[0].generate(context, orderParams.offerer, orderInsertionIndex, 0);
@@ -1216,9 +1212,8 @@ library AdvancedOrdersSpaceGenerator {
 
             // Provision a new consideration item array with a single
             // element.
-            ConsiderationItem[] memory consideration = new ConsiderationItem[](
-                1
-            );
+            ConsiderationItem[] memory consideration =
+                new ConsiderationItem[](1);
 
             // Generate a consideration item and add it to the consideration
             // item array.  The `true` argument indicates that the
@@ -1590,9 +1585,8 @@ library ConsiderationItemSpaceGenerator {
     ) internal returns (ConsiderationItem[] memory) {
         uint256 len = bound(space.length, 0, 10);
 
-        ConsiderationItem[] memory considerationItems = new ConsiderationItem[](
-            len
-        );
+        ConsiderationItem[] memory considerationItems =
+            new ConsiderationItem[](len);
 
         for (uint256 i; i < len; ++i) {
             considerationItems[i] =

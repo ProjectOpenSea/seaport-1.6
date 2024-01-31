@@ -44,23 +44,19 @@ contract ConduitControllerMock is ConduitControllerInterface {
             creationCodeHash =
                 keccak256(type(ConduitMockRevertNoReason).creationCode);
             ConduitMockRevertNoReason zeroConduit =
-            new ConduitMockRevertNoReason{
-                    salt: bytes32(0)
-                }();
+                new ConduitMockRevertNoReason{ salt: bytes32(0) }();
             runtimeCodeHash = address(zeroConduit).codehash;
         } else if (conduitNum == 2) {
             creationCodeHash =
                 keccak256(type(ConduitMockInvalidMagic).creationCode);
-            ConduitMockInvalidMagic zeroConduit = new ConduitMockInvalidMagic{
-                salt: bytes32(0)
-            }();
+            ConduitMockInvalidMagic zeroConduit =
+                new ConduitMockInvalidMagic{ salt: bytes32(0) }();
             runtimeCodeHash = address(zeroConduit).codehash;
         } else if (conduitNum == 3) {
             creationCodeHash =
                 keccak256(type(ConduitMockRevertBytes).creationCode);
-            ConduitMockRevertBytes zeroConduit = new ConduitMockRevertBytes{
-                salt: bytes32(0)
-            }();
+            ConduitMockRevertBytes zeroConduit =
+                new ConduitMockRevertBytes{ salt: bytes32(0) }();
             runtimeCodeHash = address(zeroConduit).codehash;
         }
         _CONDUIT_CREATION_CODE_HASH = creationCodeHash;

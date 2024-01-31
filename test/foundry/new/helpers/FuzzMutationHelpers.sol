@@ -31,6 +31,7 @@ enum MutationContextDerivation {
     GENERIC, // No specific selection
     ORDER, // Selecting an order
     CRITERIA_RESOLVER // Selecting a criteria resolver
+
 }
 
 struct IneligibilityFilter {
@@ -471,9 +472,8 @@ library MutationEligibilityLib {
     ) internal pure returns (uint256) {
         LibPRNG.PRNG memory prng = LibPRNG.PRNG(context.fuzzParams.seed ^ 0xff);
 
-        uint256[] memory eligibleIndexes = new uint256[](
-            eligibleElements.length
-        );
+        uint256[] memory eligibleIndexes =
+            new uint256[](eligibleElements.length);
 
         uint256 totalEligible = 0;
         for (uint256 i = 0; i < eligibleElements.length; ++i) {
@@ -567,7 +567,7 @@ library MutationEligibilityLib {
         pure
         returns (
             function(FuzzTestContext memory) internal view returns (bool)
-                ineligibleMutationFilter
+            ineligibleMutationFilter
         )
     {
         assembly {
@@ -580,7 +580,7 @@ library MutationEligibilityLib {
         pure
         returns (
             function(AdvancedOrder memory, uint256, FuzzTestContext memory) internal view returns (bool)
-                ineligibleMutationFilter
+            ineligibleMutationFilter
         )
     {
         assembly {
@@ -593,7 +593,7 @@ library MutationEligibilityLib {
         pure
         returns (
             function(CriteriaResolver memory, uint256, FuzzTestContext memory) internal view returns (bool)
-                ineligibleMutationFilter
+            ineligibleMutationFilter
         )
     {
         assembly {
@@ -763,7 +763,7 @@ library FailureDetailsHelperLib {
         pure
         returns (
             function(FuzzTestContext memory, MutationState memory, bytes4) internal view returns (bytes memory)
-                revertReasonGenerator
+            revertReasonGenerator
         )
     {
         assembly {

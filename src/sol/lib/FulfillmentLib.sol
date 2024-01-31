@@ -144,9 +144,8 @@ library FulfillmentLib {
         pure
         returns (Fulfillment[] memory)
     {
-        Fulfillment[] memory copiedItems = new Fulfillment[](
-            _fulfillments.length
-        );
+        Fulfillment[] memory copiedItems =
+            new Fulfillment[](_fulfillments.length);
         for (uint256 i = 0; i < _fulfillments.length; i++) {
             copiedItems[i] = copy(_fulfillments[i]);
         }

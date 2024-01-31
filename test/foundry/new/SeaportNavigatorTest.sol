@@ -39,12 +39,12 @@ contract SeaportNavigatorTest {
 
     // Initialize the navigator with all its constituent helpers.
     SeaportNavigator internal navigator = new SeaportNavigator(
-            address(requestValidator),
-            address(criteriaHelper),
-            address(validatorHelper),
-            address(orderDetailsHelper),
-            address(fulfillmentsHelper),
-            address(suggestedActionHelper),
-            address(executionsHelper)
-        );
+        address(requestValidator),
+        address(criteriaHelper),
+        address(validatorHelper),
+        address(orderDetailsHelper),
+        address(fulfillmentsHelper),
+        address(suggestedActionHelper),
+        address(executionsHelper)
+    );
 }

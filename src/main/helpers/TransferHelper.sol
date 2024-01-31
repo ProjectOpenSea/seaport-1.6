@@ -132,9 +132,8 @@ contract TransferHelper is TransferHelperInterface, TransferHelperErrors {
 
         // Declare a new array in memory with length totalItems to populate with
         // each conduit transfer.
-        ConduitTransfer[] memory conduitTransfers = new ConduitTransfer[](
-            sumOfItemsAcrossAllTransfers
-        );
+        ConduitTransfer[] memory conduitTransfers =
+            new ConduitTransfer[](sumOfItemsAcrossAllTransfers);
 
         // Declare an index for storing ConduitTransfers in conduitTransfers.
         uint256 itemIndex;

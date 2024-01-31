@@ -175,8 +175,10 @@ library ZoneParametersLib {
             advancedOrders: zoneParametersStruct.advancedOrders,
             fulfiller: zoneParametersStruct.fulfiller,
             maximumFulfilled: zoneParametersStruct.maximumFulfilled,
-            orderDetails: new OrderDetails[]( zoneParametersStruct.advancedOrders.length),
-            orderHashes: new bytes32[]( zoneParametersStruct.advancedOrders.length)
+            orderDetails: new OrderDetails[](
+                zoneParametersStruct.advancedOrders.length
+                ),
+            orderHashes: new bytes32[](zoneParametersStruct.advancedOrders.length)
         });
     }
 
@@ -254,9 +256,7 @@ library ZoneParametersLib {
         pure
         returns (ZoneParameters[] memory zoneParameters)
     {
-        zoneParameters = new ZoneParameters[](
-            zoneDetails.advancedOrders.length
-        );
+        zoneParameters = new ZoneParameters[](zoneDetails.advancedOrders.length);
 
         // Iterate through advanced orders to create zoneParameters
         uint256 totalFulfilled = 0;

@@ -26,6 +26,7 @@ struct ConsiderationItemConfiguration {
 
 enum GenericIssue {
     InvalidOrderFormat // 100
+
 }
 
 enum ERC20Issue {
@@ -33,6 +34,7 @@ enum ERC20Issue {
     InvalidToken, // 201
     InsufficientAllowance, // 202
     InsufficientBalance // 203
+
 }
 
 enum ERC721Issue {
@@ -42,12 +44,14 @@ enum ERC721Issue {
     NotOwner, // 303
     NotApproved, // 304
     CriteriaNotPartialFill // 305
+
 }
 
 enum ERC1155Issue {
     InvalidToken, // 400
     NotApproved, // 401
     InsufficientBalance // 402
+
 }
 
 enum ConsiderationIssue {
@@ -61,6 +65,7 @@ enum ConsiderationIssue {
     PrivateSale, // 507
     AmountVelocityHigh, // 508
     AmountStepLarge // 509
+
 }
 
 enum OfferIssue {
@@ -71,6 +76,7 @@ enum OfferIssue {
     DuplicateItem, // 604
     AmountVelocityHigh, // 605
     AmountStepLarge // 606
+
 }
 
 enum PrimaryFeeIssue {
@@ -80,12 +86,14 @@ enum PrimaryFeeIssue {
     StartAmount, // 703
     EndAmount, // 704
     Recipient // 705
+
 }
 
 enum StatusIssue {
     Cancelled, // 800
     FullyFilled, // 801
     ContractOrder // 802
+
 }
 
 enum TimeIssue {
@@ -94,11 +102,13 @@ enum TimeIssue {
     DistantExpiration, // 902
     NotActive, // 903
     ShortOrder // 904
+
 }
 
 enum ConduitIssue {
     KeyInvalid, // 1000
     MissingSeaportChannel // 1001
+
 }
 
 enum SignatureIssue {
@@ -107,6 +117,7 @@ enum SignatureIssue {
     LowCounter, // 1102
     HighCounter, // 1103
     OriginalConsiderationItems // 1104
+
 }
 
 enum CreatorFeeIssue {
@@ -116,12 +127,14 @@ enum CreatorFeeIssue {
     StartAmount, // 1203
     EndAmount, // 1204
     Recipient // 1205
+
 }
 
 enum NativeIssue {
     TokenAddress, // 1300
     IdentifierNonZero, // 1301
     InsufficientBalance // 1302
+
 }
 
 enum ZoneIssue {
@@ -129,15 +142,18 @@ enum ZoneIssue {
     RejectedOrder, // 1401
     NotSet, // 1402
     EOAZone // 1403
+
 }
 
 enum MerkleIssue {
     SingleLeaf, // 1500
     Unsorted // 1501
+
 }
 
 enum ContractOffererIssue {
     InvalidContractOfferer // 1600
+
 }
 
 /**

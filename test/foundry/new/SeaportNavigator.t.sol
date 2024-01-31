@@ -124,9 +124,7 @@ contract SeaportNavigatorTestSuite is
     }
 
     function test_basicOrder() public {
-        NavigatorAdvancedOrder[] memory orders = new NavigatorAdvancedOrder[](
-            1
-        );
+        NavigatorAdvancedOrder[] memory orders = new NavigatorAdvancedOrder[](1);
         AdvancedOrder memory advancedOrder = OrderLib.fromDefault(
             SINGLE_ERC721_SINGLE_ERC20
         ).toAdvancedOrder(1, 1, "");
@@ -233,9 +231,7 @@ contract SeaportNavigatorTestSuite is
     }
 
     function test_simpleOrder() public {
-        NavigatorAdvancedOrder[] memory orders = new NavigatorAdvancedOrder[](
-            1
-        );
+        NavigatorAdvancedOrder[] memory orders = new NavigatorAdvancedOrder[](1);
         AdvancedOrder memory advancedOrder =
             OrderLib.fromDefault(SINGLE_ERC721).toAdvancedOrder(1, 1, "");
         orders[0] = NavigatorAdvancedOrderLib.fromAdvancedOrder(advancedOrder);
@@ -337,9 +333,7 @@ contract SeaportNavigatorTestSuite is
     }
 
     function test_simpleOrderWithNativeReturned() public {
-        NavigatorAdvancedOrder[] memory orders = new NavigatorAdvancedOrder[](
-            1
-        );
+        NavigatorAdvancedOrder[] memory orders = new NavigatorAdvancedOrder[](1);
 
         Order memory order = OrderLib.fromDefault(SINGLE_ERC721).copy();
         AdvancedOrder memory advancedOrder =
@@ -478,9 +472,7 @@ contract SeaportNavigatorTestSuite is
     }
 
     function test_inferredCriteria() public {
-        NavigatorAdvancedOrder[] memory orders = new NavigatorAdvancedOrder[](
-            1
-        );
+        NavigatorAdvancedOrder[] memory orders = new NavigatorAdvancedOrder[](1);
         AdvancedOrder memory advancedOrder = OrderLib.fromDefault(
             SINGLE_ERC721_WITH_CRITERIA_SINGLE_ERC721_WITH_CRITERIA
         ).toAdvancedOrder(1, 1, "");

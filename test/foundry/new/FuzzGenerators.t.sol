@@ -149,9 +149,7 @@ contract FuzzGeneratorsTest is BaseOrderTest {
             rebate: ContractOrderRebate.NONE
         });
 
-        OrderComponentsSpace[] memory components = new OrderComponentsSpace[](
-            1
-        );
+        OrderComponentsSpace[] memory components = new OrderComponentsSpace[](1);
         components[0] = component;
 
         AdvancedOrdersSpace memory space = AdvancedOrdersSpace({
@@ -202,9 +200,7 @@ contract FuzzGeneratorsTest is BaseOrderTest {
             rebate: ContractOrderRebate.NONE
         });
 
-        OrderComponentsSpace[] memory components = new OrderComponentsSpace[](
-            1
-        );
+        OrderComponentsSpace[] memory components = new OrderComponentsSpace[](1);
         components[0] = component;
 
         AdvancedOrdersSpace memory space = AdvancedOrdersSpace({
@@ -266,9 +262,7 @@ contract FuzzGeneratorsTest is BaseOrderTest {
             rebate: ContractOrderRebate.NONE
         });
 
-        OrderComponentsSpace[] memory components = new OrderComponentsSpace[](
-            1
-        );
+        OrderComponentsSpace[] memory components = new OrderComponentsSpace[](1);
         components[0] = component;
 
         AdvancedOrdersSpace memory space = AdvancedOrdersSpace({

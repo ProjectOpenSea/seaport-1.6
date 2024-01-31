@@ -33,9 +33,8 @@ contract FulfillAvailableHelper {
             FulfillmentComponent[][] memory consideration
         )
     {
-        OrderParameters[] memory orderParameters = new OrderParameters[](
-            orders.length
-        );
+        OrderParameters[] memory orderParameters =
+            new OrderParameters[](orders.length);
         for (uint256 i = 0; i < orders.length; i++) {
             orderParameters[i] = orders[i].parameters;
         }
@@ -58,9 +57,8 @@ contract FulfillAvailableHelper {
             FulfillmentComponent[][] memory consideration
         )
     {
-        OrderParameters[] memory orderParameters = new OrderParameters[](
-            orders.length
-        );
+        OrderParameters[] memory orderParameters =
+            new OrderParameters[](orders.length);
         for (uint256 i = 0; i < orders.length; i++) {
             orderParameters[i] = orders[i].parameters;
         }
@@ -194,9 +192,8 @@ contract FulfillAvailableHelper {
             FulfillmentComponent[][] memory consideration
         )
     {
-        OrderParameters[] memory orderParameters = new OrderParameters[](
-            orders.length
-        );
+        OrderParameters[] memory orderParameters =
+            new OrderParameters[](orders.length);
         for (uint256 i = 0; i < orders.length; i++) {
             orderParameters[i] = orders[i].parameters;
         }
@@ -218,9 +215,8 @@ contract FulfillAvailableHelper {
             FulfillmentComponent[][] memory consideration
         )
     {
-        OrderParameters[] memory orderParameters = new OrderParameters[](
-            orders.length
-        );
+        OrderParameters[] memory orderParameters =
+            new OrderParameters[](orders.length);
         for (uint256 i = 0; i < orders.length; i++) {
             orderParameters[i] = orders[i].parameters;
         }
@@ -270,9 +266,8 @@ contract FulfillAvailableHelper {
                 .offerer][token.conduitKey];
         }
         // do the same for considerations
-        consideration = new FulfillmentComponent[][](
-            layout.considerationEnumeration.length
-        );
+        consideration =
+            new FulfillmentComponent[][](layout.considerationEnumeration.length);
         for (uint256 i; i < layout.considerationEnumeration.length; ++i) {
             AggregatableConsideration memory token =
                 layout.considerationEnumeration[i];
