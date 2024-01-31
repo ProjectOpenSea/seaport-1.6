@@ -167,7 +167,7 @@ contract ReferenceOrderFulfiller is
      * @param numerator           A value indicating the portion of the order
      *                            that should be filled.
      * @param denominator         A value indicating the total order size.
-     * @return orderToExecute     Returns the order of items that are being
+     * @return orderToExecute     Returns the order with items that are being
      *                            transferred. This will be used for the
      *                            OrderFulfilled Event.
      */
