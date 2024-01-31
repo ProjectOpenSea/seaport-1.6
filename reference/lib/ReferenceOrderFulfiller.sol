@@ -97,29 +97,54 @@ contract ReferenceOrderFulfiller is
         OrderParameters memory orderParameters = advancedOrder.parameters;
 
         // Perform each item transfer with the appropriate fractional amount.
-        orderToExecute = _applyFractionsAndTransferEach(
+        orderToExecute = _applyFractions(
             orderParameters,
             fillNumerator,
-            fillDenominator,
+            fillDenominator
+        );
+
+        {
+            // Declare empty bytes32 array.
+            bytes32[] memory priorOrderHashes = new bytes32[](0);    
+
+            // Ensure restricted orders have a valid submitter or pass a zone check.
+            _assertRestrictedAdvancedOrderAuthorization(
+                advancedOrder,
+                orderToExecute,
+                priorOrderHashes,
+                orderHash,
+                orderParameters.zoneHash,
+                orderParameters.orderType,
+                orderParameters.offerer,
+                orderParameters.zone
+            );
+        }
+ 
+        // Transfer each item contained in the order.
+        _transferEach(
+            orderParameters,
+            orderToExecute,
             fulfillerConduitKey,
             recipient
         );
 
-        // Declare bytes32 array with this order's hash
-        bytes32[] memory priorOrderHashes = new bytes32[](1);
-        priorOrderHashes[0] = orderHash;
+        {
+            // Declare bytes32 array with this order's hash
+            bytes32[] memory priorOrderHashes = new bytes32[](1);
+            priorOrderHashes[0] = orderHash;
 
-        // Ensure restricted orders have a valid submitter or pass a zone check.
-        _assertRestrictedAdvancedOrderValidity(
-            advancedOrder,
-            orderToExecute,
-            priorOrderHashes,
-            orderHash,
-            orderParameters.zoneHash,
-            orderParameters.orderType,
-            orderParameters.offerer,
-            orderParameters.zone
-        );
+            // Ensure restricted orders have a valid submitter or pass a zone check.
+            _assertRestrictedAdvancedOrderValidity(
+                advancedOrder,
+                orderToExecute,
+                priorOrderHashes,
+                orderHash,
+                orderParameters.zoneHash,
+                orderParameters.orderType,
+                orderParameters.offerer,
+                orderParameters.zone
+            );
+        }
 
         // Emit an event signifying that the order has been fulfilled.
         emit OrderFulfilled(
@@ -135,49 +160,31 @@ contract ReferenceOrderFulfiller is
     }
 
     /**
-     * @dev Internal function to transfer each item contained in a given single
-     *      order fulfillment after applying a respective fraction to the amount
-     *      being transferred.
+     * @dev Internal view function to apply a respective fraction to the
+     *      amount being transferred on each item of an order.
      *
      * @param orderParameters     The parameters for the fulfilled order.
      * @param numerator           A value indicating the portion of the order
      *                            that should be filled.
      * @param denominator         A value indicating the total order size.
-     * @param fulfillerConduitKey A bytes32 value indicating what conduit, if
-     *                            any, to source the fulfiller's token approvals
-     *                            from. The zero hash signifies that no conduit
-     *                            should be used (and direct approvals set on
-     *                            Consideration).
-     * @param recipient           The intended recipient for all received items.
      * @return orderToExecute     Returns the order of items that are being
      *                            transferred. This will be used for the
      *                            OrderFulfilled Event.
      */
-    function _applyFractionsAndTransferEach(
+    function _applyFractions(
         OrderParameters memory orderParameters,
         uint256 numerator,
-        uint256 denominator,
-        bytes32 fulfillerConduitKey,
-        address recipient
-    ) internal returns (OrderToExecute memory orderToExecute) {
+        uint256 denominator
+    ) internal view returns (OrderToExecute memory orderToExecute) {
         // Derive order duration, time elapsed, and time remaining.
         // Store in memory to avoid stack too deep issues.
         FractionData memory fractionData = FractionData(
             numerator,
             denominator,
-            fulfillerConduitKey,
+            0, // fulfillerConduitKey is not used here.
             orderParameters.startTime,
             orderParameters.endTime
         );
-
-        // Create the accumulator struct.
-        AccumulatorStruct memory accumulatorStruct;
-
-        // Get the offerer of the order.
-        address offerer = orderParameters.offerer;
-
-        // Get the conduitKey of the order
-        bytes32 conduitKey = orderParameters.conduitKey;
 
         // Create the array to store the spent items for event.
         orderToExecute.spentItems = new SpentItem[](
@@ -208,25 +215,13 @@ contract ReferenceOrderFulfiller is
                     false
                 );
 
-                // Create Received Item from Offer Item for transfer.
-                ReceivedItem memory receivedItem = ReceivedItem(
+                // Create Spent Item for the OrderFulfilled event.
+                orderToExecute.spentItems[i] = SpentItem(
                     offerItem.itemType,
                     offerItem.token,
                     offerItem.identifierOrCriteria,
-                    amount,
-                    payable(recipient)
-                );
-
-                // Create Spent Item for the OrderFulfilled event.
-                orderToExecute.spentItems[i] = SpentItem(
-                    receivedItem.itemType,
-                    receivedItem.token,
-                    receivedItem.identifier,
                     amount
                 );
-
-                // Transfer the item from the offerer to the recipient.
-                _transfer(receivedItem, offerer, conduitKey, accumulatorStruct);
             }
         }
 
@@ -252,20 +247,80 @@ contract ReferenceOrderFulfiller is
                     true
                 );
 
-                // Create Received Item from Offer item.
-                ReceivedItem memory receivedItem = ReceivedItem(
+                // Create Received Item from Offer item & add to structs array.
+                orderToExecute.receivedItems[i] = ReceivedItem(
                     considerationItem.itemType,
                     considerationItem.token,
                     considerationItem.identifierOrCriteria,
                     amount,
                     considerationItem.recipient
                 );
-                // Add ReceivedItem to structs array.
-                orderToExecute.receivedItems[i] = receivedItem;
+            }
+        }
+
+        // Return the order to execute.
+        return orderToExecute;
+    }
+
+    /**
+     * @dev Internal function to transfer each item contained in a given single
+     *      order fulfillment.
+     *
+     * @param orderParameters     The parameters for the fulfilled order.
+     * @param orderToExecute      The items that are being transferred.
+     * @param fulfillerConduitKey A bytes32 value indicating what conduit, if
+     *                            any, to source the fulfiller's token approvals
+     *                            from. The zero hash signifies that no conduit
+     *                            should be used (and direct approvals set on
+     *                            Consideration).
+     * @param recipient           The intended recipient for all received items.
+     */
+    function _transferEach(
+        OrderParameters memory orderParameters,
+        OrderToExecute memory orderToExecute,
+        bytes32 fulfillerConduitKey,
+        address recipient
+    ) internal {
+        // Create the accumulator struct.
+        AccumulatorStruct memory accumulatorStruct;
+
+        // Get the offerer of the order.
+        address offerer = orderParameters.offerer;
+
+        // Get the conduitKey of the order
+        bytes32 conduitKey = orderParameters.conduitKey;
+
+        // Declare a nested scope to minimize stack depth.
+        {
+            // Iterate over each spent item on the order.
+            for (uint256 i = 0; i < orderToExecute.spentItems.length; ++i) {
+                // Retrieve the spent item.
+                SpentItem memory spentItem = orderToExecute.spentItems[i];
+
+                // Create Received Item from Spent Item for transfer.
+                ReceivedItem memory receivedItem = ReceivedItem(
+                    spentItem.itemType,
+                    spentItem.token,
+                    spentItem.identifier,
+                    spentItem.amount,
+                    payable(recipient)
+                );
+
+                // Transfer the item from the offerer to the recipient.
+                _transfer(receivedItem, offerer, conduitKey, accumulatorStruct);
+            }
+        }
+
+        // Declare a nested scope to minimize stack depth.
+        {
+            // Iterate over each received item on the order.
+            for (uint256 i = 0; i < orderToExecute.receivedItems.length; ++i) {
+                // Retrieve the received item.
+                ReceivedItem memory receivedItem = orderToExecute.receivedItems[i];
 
                 if (receivedItem.itemType == ItemType.NATIVE) {
                     // Ensure that sufficient native tokens are still available.
-                    if (amount > address(this).balance) {
+                    if (receivedItem.amount > address(this).balance) {
                         revert InsufficientNativeTokensSupplied();
                     }
                 }
@@ -274,7 +329,7 @@ contract ReferenceOrderFulfiller is
                 _transfer(
                     receivedItem,
                     msg.sender,
-                    fractionData.fulfillerConduitKey,
+                    fulfillerConduitKey,
                     accumulatorStruct
                 );
             }
@@ -283,13 +338,11 @@ contract ReferenceOrderFulfiller is
         // Trigger any remaining accumulated transfers via call to the conduit.
         _triggerIfArmed(accumulatorStruct);
 
-        // If any native token remains after fulfillments...
+        // If any native tokens remain after applying fulfillments...
         if (address(this).balance != 0) {
-            // return it to the caller.
+            // return them to the caller.
             _transferNativeTokens(payable(msg.sender), address(this).balance);
         }
-        // Return the order to execute.
-        return orderToExecute;
     }
 
     /**

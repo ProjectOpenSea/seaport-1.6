@@ -92,6 +92,43 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
         }
     }
 
+    function _assertRestrictedAdvancedOrderAuthorization(
+        AdvancedOrder memory advancedOrder,
+        OrderToExecute memory orderToExecute,
+        bytes32[] memory orderHashes,
+        bytes32 orderHash,
+        bytes32 zoneHash,
+        OrderType orderType,
+        address offerer,
+        address zone
+    ) internal {
+        // Order type 2-3 require zone or offerer be caller or zone to approve.
+        if (
+            (orderType == OrderType.FULL_RESTRICTED ||
+                orderType == OrderType.PARTIAL_RESTRICTED) && msg.sender != zone
+        ) {
+            // Authorize the order.
+            if (
+                ZoneInterface(zone).authorizeOrder(
+                    ZoneParameters({
+                        orderHash: orderHash,
+                        fulfiller: msg.sender,
+                        offerer: offerer,
+                        offer: orderToExecute.spentItems,
+                        consideration: orderToExecute.receivedItems,
+                        extraData: advancedOrder.extraData,
+                        orderHashes: orderHashes,
+                        startTime: advancedOrder.parameters.startTime,
+                        endTime: advancedOrder.parameters.endTime,
+                        zoneHash: zoneHash
+                    })
+                ) != ZoneInterface.authorizeOrder.selector
+            ) {
+                revert InvalidRestrictedOrder(orderHash);
+            }
+        }
+    }
+
     /**
      * @dev Internal view function to determine if a proxy should be utilized
      *      for a given order and to ensure that the submitter is allowed by the
