@@ -122,6 +122,59 @@ contract ReferenceOrderValidator is
             OrderToExecute memory orderToExecute
         )
     {
+        uint120 storedNumerator;
+
+        (
+            orderHash,
+            storedNumerator,
+            newNumerator,
+            newDenominator,
+            orderToExecute
+        ) = _validateOrder(advancedOrder, revertOnInvalid);
+
+        _updateStatus(orderHash, storedNumerator, uint120(newDenominator));
+
+        // Return order hash, new numerator and denominator.
+        return (
+            orderHash,
+            newNumerator,
+            newDenominator,
+            orderToExecute
+        );
+    }
+
+    /**
+     * @dev Internal function to validate an order, determine what portion to
+     *      fill, and update its status. The desired fill amount is supplied as
+     *      a fraction, as is the returned amount to fill.
+     *
+     * @param advancedOrder   The order to fulfill as well as the fraction to
+     *                        fill. Note that all offer and consideration
+     *                        amounts must divide with no remainder in order for
+     *                        a partial fill to be valid.
+     * @param revertOnInvalid A boolean indicating whether to revert if the
+     *                        order is invalid due to the time or order status.
+     *
+     * @return orderHash      The order hash.
+     * @return storedNumerator A value indicating numerator to set in storage.      
+     * @return newNumerator   A value indicating the portion of the order that
+     *                        will be filled.
+     * @return newDenominator A value indicating the total size of the order.
+     * @return orderToExecute The order to execute.
+     */
+    function _validateOrder(
+        AdvancedOrder memory advancedOrder,
+        bool revertOnInvalid
+    )
+        internal
+        returns (
+            bytes32 orderHash,
+            uint120 storedNumerator,
+            uint256 newNumerator,
+            uint256 newDenominator,
+            OrderToExecute memory orderToExecute
+        )
+    {
         // Retrieve the parameters for the order.
         OrderParameters memory orderParameters = advancedOrder.parameters;
 
@@ -136,6 +189,7 @@ contract ReferenceOrderValidator is
             // Assuming an invalid time and no revert, return zeroed out values.
             return (
                 bytes32(0),
+                0,
                 0,
                 0,
                 _convertAdvancedToOrder(orderParameters, 0)
@@ -153,12 +207,24 @@ contract ReferenceOrderValidator is
                 revert BadFraction();
             }
 
-            return
-                _getGeneratedOrder(
-                    orderParameters,
-                    advancedOrder.extraData,
-                    revertOnInvalid
-                );
+            (
+                orderHash,
+                newNumerator,
+                newDenominator,
+                orderToExecute
+            ) = _getGeneratedOrder(
+                orderParameters,
+                advancedOrder.extraData,
+                revertOnInvalid
+            );
+
+            return (
+                orderHash,
+                0,
+                newNumerator,
+                newDenominator,
+                orderToExecute
+            );
         }
 
         // Ensure that the supplied numerator and denominator are valid.  The
@@ -194,6 +260,7 @@ contract ReferenceOrderValidator is
             // Assuming an invalid order status and no revert, return zero fill.
             return (
                 orderHash,
+                0,
                 0,
                 0,
                 _convertAdvancedToOrder(orderParameters, 0)
@@ -260,27 +327,43 @@ contract ReferenceOrderValidator is
                 uint256 maxOverhead = type(uint256).max - type(uint120).max;
                 ((filledNumerator + maxOverhead) & (denominator + maxOverhead));
             }
-
-            // Update order status and fill amount, packing struct values.
-            orderStatus.isValidated = true;
-            orderStatus.isCancelled = false;
-            orderStatus.numerator = uint120(filledNumerator);
-            orderStatus.denominator = uint120(denominator);
         } else {
-            // Update order status and fill amount, packing struct values.
-            orderStatus.isValidated = true;
-            orderStatus.isCancelled = false;
-            orderStatus.numerator = uint120(numerator);
-            orderStatus.denominator = uint120(denominator);
+            filledNumerator = numerator;
         }
 
         // Return order hash, new numerator and denominator.
         return (
             orderHash,
+            uint120(filledNumerator),
             uint120(numerator),
             uint120(denominator),
             _convertAdvancedToOrder(orderParameters, uint120(numerator))
         );
+    }
+
+    /**
+     * @dev Internal function to update an order's status.
+     */
+    function _updateStatus(
+        bytes32 orderHash,
+        uint120 filledNumerator,
+        uint120 denominator
+    )
+        internal
+    {
+        if (filledNumerator == 0) {
+            return;
+        }
+
+        // Retrieve the order status using the derived order hash.
+        OrderStatus storage orderStatus = _orderStatus[orderHash];
+
+        // Update order status and fill amount, packing struct values.
+        orderStatus.isValidated = true;
+        orderStatus.isCancelled = false;
+        orderStatus.numerator = filledNumerator;
+        orderStatus.denominator = denominator;
+
     }
 
     function _callGenerateOrder(
