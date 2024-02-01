@@ -27,7 +27,7 @@ import {
     ReferenceGenerateOrderReturndataDecoder
 } from "./ReferenceGenerateOrderReturndataDecoder.sol";
 
-import { OrderToExecute } from "./ReferenceConsiderationStructs.sol";
+import { OrderToExecute, OrderValidation } from "./ReferenceConsiderationStructs.sol";
 
 /**
  * @title OrderValidator
@@ -122,24 +122,16 @@ contract ReferenceOrderValidator is
             OrderToExecute memory orderToExecute
         )
     {
-        uint120 storedNumerator;
+        OrderValidation memory orderValidation = _validateOrder(advancedOrder, revertOnInvalid);
 
-        (
-            orderHash,
-            storedNumerator,
-            newNumerator,
-            newDenominator,
-            orderToExecute
-        ) = _validateOrder(advancedOrder, revertOnInvalid);
-
-        _updateStatus(orderHash, storedNumerator, uint120(newDenominator));
+        _updateStatus(orderValidation.orderHash, orderValidation.storedNumerator, uint120(orderValidation.newDenominator));
 
         // Return order hash, new numerator and denominator.
         return (
-            orderHash,
-            newNumerator,
-            newDenominator,
-            orderToExecute
+            orderValidation.orderHash,
+            orderValidation.newNumerator,
+            orderValidation.newDenominator,
+            orderValidation.orderToExecute
         );
     }
 
@@ -155,12 +147,7 @@ contract ReferenceOrderValidator is
      * @param revertOnInvalid A boolean indicating whether to revert if the
      *                        order is invalid due to the time or order status.
      *
-     * @return orderHash      The order hash.
-     * @return storedNumerator A value indicating numerator to set in storage.      
-     * @return newNumerator   A value indicating the portion of the order that
-     *                        will be filled.
-     * @return newDenominator A value indicating the total size of the order.
-     * @return orderToExecute The order to execute.
+     * @return orderValidation The order validation details.
      */
     function _validateOrder(
         AdvancedOrder memory advancedOrder,
@@ -168,11 +155,7 @@ contract ReferenceOrderValidator is
     )
         internal
         returns (
-            bytes32 orderHash,
-            uint120 storedNumerator,
-            uint256 newNumerator,
-            uint256 newDenominator,
-            OrderToExecute memory orderToExecute
+            OrderValidation memory orderValidation
         )
     {
         // Retrieve the parameters for the order.
@@ -187,7 +170,7 @@ contract ReferenceOrderValidator is
             )
         ) {
             // Assuming an invalid time and no revert, return zeroed out values.
-            return (
+            return OrderValidation(
                 bytes32(0),
                 0,
                 0,
@@ -208,17 +191,17 @@ contract ReferenceOrderValidator is
             }
 
             (
-                orderHash,
-                newNumerator,
-                newDenominator,
-                orderToExecute
+                bytes32 orderHash,
+                uint256 newNumerator,
+                uint256 newDenominator,
+                OrderToExecute memory orderToExecute
             ) = _getGeneratedOrder(
                 orderParameters,
                 advancedOrder.extraData,
                 revertOnInvalid
             );
 
-            return (
+            return OrderValidation(
                 orderHash,
                 0,
                 newNumerator,
@@ -243,23 +226,23 @@ contract ReferenceOrderValidator is
         }
 
         // Retrieve current counter and use it w/ parameters to get order hash.
-        orderHash = _assertConsiderationLengthAndGetOrderHash(orderParameters);
+        orderValidation.orderHash = _assertConsiderationLengthAndGetOrderHash(orderParameters);
 
         // Retrieve the order status using the derived order hash.
-        OrderStatus storage orderStatus = _orderStatus[orderHash];
+        OrderStatus storage orderStatus = _orderStatus[orderValidation.orderHash];
 
         // Ensure order is fillable and is not cancelled.
         if (
             !_verifyOrderStatus(
-                orderHash,
+                orderValidation.orderHash,
                 orderStatus,
                 false, // Allow partially used orders to be filled.
                 revertOnInvalid
             )
         ) {
             // Assuming an invalid order status and no revert, return zero fill.
-            return (
-                orderHash,
+            return OrderValidation(
+                orderValidation.orderHash,
                 0,
                 0,
                 0,
@@ -271,7 +254,7 @@ contract ReferenceOrderValidator is
         if (!orderStatus.isValidated) {
             _verifySignature(
                 orderParameters.offerer,
-                orderHash,
+                orderValidation.orderHash,
                 advancedOrder.signature
             );
         }
@@ -332,8 +315,8 @@ contract ReferenceOrderValidator is
         }
 
         // Return order hash, new numerator and denominator.
-        return (
-            orderHash,
+        return OrderValidation(
+            orderValidation.orderHash,
             uint120(filledNumerator),
             uint120(numerator),
             uint120(denominator),

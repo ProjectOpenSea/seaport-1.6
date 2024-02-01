@@ -92,6 +92,48 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
         }
     }
 
+    function _checkRestrictedAdvancedOrderAuthorization(
+        AdvancedOrder memory advancedOrder,
+        OrderToExecute memory orderToExecute,
+        bytes32[] memory orderHashes,
+        bytes32 orderHash,
+        bool revertOnInvalid
+    ) internal returns (bool valid) {
+        // Order type 2-3 require zone or offerer be caller or zone to approve.
+        if (
+            (advancedOrder.parameters.orderType == OrderType.FULL_RESTRICTED ||
+                advancedOrder.parameters.orderType == OrderType.PARTIAL_RESTRICTED) && msg.sender != advancedOrder.parameters.zone
+        ) {
+            // Authorize the order.
+            try ZoneInterface(advancedOrder.parameters.zone).authorizeOrder(
+                ZoneParameters({
+                    orderHash: orderHash,
+                    fulfiller: msg.sender,
+                    offerer: advancedOrder.parameters.offerer,
+                    offer: orderToExecute.spentItems,
+                    consideration: orderToExecute.receivedItems,
+                    extraData: advancedOrder.extraData,
+                    orderHashes: orderHashes,
+                    startTime: advancedOrder.parameters.startTime,
+                    endTime: advancedOrder.parameters.endTime,
+                    zoneHash: advancedOrder.parameters.zoneHash
+                })
+            ) returns (bytes4 selector) {
+                if (selector != ZoneInterface.authorizeOrder.selector) {
+                    revert InvalidRestrictedOrder(orderHash);
+                }
+            } catch {
+                if (revertOnInvalid) {
+                    revert InvalidRestrictedOrder(orderHash);
+                }
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     function _assertRestrictedAdvancedOrderAuthorization(
         AdvancedOrder memory advancedOrder,
         OrderToExecute memory orderToExecute,
