@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {
-    ConduitInterface
-} from "seaport-types/src/interfaces/ConduitInterface.sol";
+import { ConduitInterface } from
+    "seaport-types/src/interfaces/ConduitInterface.sol";
 
 import { ConduitItemType } from "seaport-types/src/conduit/lib/ConduitEnums.sol";
 
-import {
-    ReferenceTokenTransferrer
-} from "../lib/ReferenceTokenTransferrer.sol";
+import { ReferenceTokenTransferrer } from "../lib/ReferenceTokenTransferrer.sol";
 
 import {
     ConduitBatch1155Transfer,
@@ -47,9 +44,11 @@ contract ReferenceConduit is ConduitInterface, ReferenceTokenTransferrer {
      * @return magicValue A magic value indicating that the transfers were
      *                    performed successfully.
      */
-    function execute(
-        ConduitTransfer[] calldata transfers
-    ) external override returns (bytes4 magicValue) {
+    function execute(ConduitTransfer[] calldata transfers)
+        external
+        override
+        returns (bytes4 magicValue)
+    {
         // Ensure that the caller is an open channel.
         if (!_channels[msg.sender]) {
             revert ChannelClosed(msg.sender);
@@ -206,19 +205,12 @@ contract ReferenceConduit is ConduitInterface, ReferenceTokenTransferrer {
 
             // Transfer ERC721 token.
             _performERC721Transfer(
-                item.token,
-                item.from,
-                item.to,
-                item.identifier
+                item.token, item.from, item.to, item.identifier
             );
         } else if (item.itemType == ConduitItemType.ERC1155) {
             // Transfer ERC1155 token.
             _performERC1155Transfer(
-                item.token,
-                item.from,
-                item.to,
-                item.identifier,
-                item.amount
+                item.token, item.from, item.to, item.identifier, item.amount
             );
         } else {
             // Throw with an error.

@@ -3,11 +3,11 @@ pragma solidity ^0.8.13;
 
 import { ConduitItemType } from "seaport-types/src/conduit/lib/ConduitEnums.sol";
 
-import {
-    ConduitInterface
-} from "seaport-types/src/interfaces/ConduitInterface.sol";
+import { ConduitInterface } from
+    "seaport-types/src/interfaces/ConduitInterface.sol";
 
-import { ConduitTransfer } from "seaport-types/src/conduit/lib/ConduitStructs.sol";
+import { ConduitTransfer } from
+    "seaport-types/src/conduit/lib/ConduitStructs.sol";
 
 import { ItemType } from "seaport-types/src/lib/ConsiderationEnums.sol";
 
@@ -34,9 +34,9 @@ contract ReferenceExecutor is ReferenceVerifiers, ReferenceTokenTransferrer {
      *                          that may optionally be used to transfer approved
      *                          ERC20/721/1155 tokens.
      */
-    constructor(
-        address conduitController
-    ) ReferenceVerifiers(conduitController) {}
+    constructor(address conduitController)
+        ReferenceVerifiers(conduitController)
+    { }
 
     /**
      * @dev Internal function to transfer a given item.
@@ -117,15 +117,14 @@ contract ReferenceExecutor is ReferenceVerifiers, ReferenceTokenTransferrer {
      * @param to     The recipient of the transfer.
      * @param amount The amount to transfer.
      */
-    function _transferNativeTokens(
-        address payable to,
-        uint256 amount
-    ) internal {
+    function _transferNativeTokens(address payable to, uint256 amount)
+        internal
+    {
         // Ensure that the supplied amount is non-zero.
         _assertNonZeroAmount(amount);
 
         // Declare a variable indicating whether the call was successful or not.
-        (bool success, ) = to.call{ value: amount }("");
+        (bool success,) = to.call{ value: amount }("");
 
         // If the call fails...
         if (!success) {
@@ -323,9 +322,9 @@ contract ReferenceExecutor is ReferenceVerifiers, ReferenceTokenTransferrer {
      * @param accumulatorStruct A struct containing conduit transfer data
      *                          and its corresponding conduitKey.
      */
-    function _triggerIfArmed(
-        AccumulatorStruct memory accumulatorStruct
-    ) internal {
+    function _triggerIfArmed(AccumulatorStruct memory accumulatorStruct)
+        internal
+    {
         // Exit if the accumulator is not "armed".
         if (accumulatorStruct.transfers.length == 0) {
             return;
@@ -391,9 +390,8 @@ contract ReferenceExecutor is ReferenceVerifiers, ReferenceTokenTransferrer {
         uint256 currentTransferLength = accumulatorStruct.transfers.length;
 
         // Create a new array to "insert" the new transfer.
-        ConduitTransfer[] memory newTransfers = (
-            new ConduitTransfer[](currentTransferLength + 1)
-        );
+        ConduitTransfer[] memory newTransfers =
+            (new ConduitTransfer[](currentTransferLength + 1));
 
         // Fill new array with old transfers.
         for (uint256 i = 0; i < currentTransferLength; ++i) {
@@ -412,14 +410,8 @@ contract ReferenceExecutor is ReferenceVerifiers, ReferenceTokenTransferrer {
         }
 
         // Insert new transfer into array.
-        newTransfers[currentTransferLength] = ConduitTransfer(
-            itemType,
-            token,
-            from,
-            to,
-            identifier,
-            amount
-        );
+        newTransfers[currentTransferLength] =
+            ConduitTransfer(itemType, token, from, to, identifier, amount);
 
         // Set accumulator struct transfers to new transfers.
         accumulatorStruct.transfers = newTransfers;
@@ -440,9 +432,11 @@ contract ReferenceExecutor is ReferenceVerifiers, ReferenceTokenTransferrer {
      * @return conduit   The address of the conduit associated with the given
      *                   conduit key.
      */
-    function _getConduit(
-        bytes32 conduitKey
-    ) internal view returns (address conduit) {
+    function _getConduit(bytes32 conduitKey)
+        internal
+        view
+        returns (address conduit)
+    {
         // Derive the address of the conduit using the conduit key.
         conduit = _deriveConduit(conduitKey);
 

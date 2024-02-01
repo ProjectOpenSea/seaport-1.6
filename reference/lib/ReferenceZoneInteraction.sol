@@ -3,11 +3,12 @@ pragma solidity ^0.8.13;
 
 import { ZoneInterface } from "seaport-types/src/interfaces/ZoneInterface.sol";
 
-import {
-    ContractOffererInterface
-} from "seaport-types/src/interfaces/ContractOffererInterface.sol";
+import { ContractOffererInterface } from
+    "seaport-types/src/interfaces/ContractOffererInterface.sol";
 
-import { ItemType, OrderType } from "seaport-types/src/lib/ConsiderationEnums.sol";
+import {
+    ItemType, OrderType
+} from "seaport-types/src/lib/ConsiderationEnums.sol";
 
 import {
     AdditionalRecipient,
@@ -20,9 +21,8 @@ import {
 
 import { OrderToExecute } from "./ReferenceConsiderationStructs.sol";
 
-import {
-    ZoneInteractionErrors
-} from "seaport-types/src/interfaces/ZoneInteractionErrors.sol";
+import { ZoneInteractionErrors } from
+    "seaport-types/src/interfaces/ZoneInteractionErrors.sol";
 
 /**
  * @title ZoneInteraction
@@ -53,22 +53,19 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
         orderHashes[0] = orderHash;
 
         // Convert the order params and types to spent and received items.
-        (
-            SpentItem[] memory offer,
-            ReceivedItem[] memory consideration
-        ) = _convertToSpentAndReceivedItems(
-                basicOrderParameters,
-                offeredItemType,
-                receivedItemType
-            );
+        (SpentItem[] memory offer, ReceivedItem[] memory consideration) =
+        _convertToSpentAndReceivedItems(
+            basicOrderParameters, offeredItemType, receivedItemType
+        );
 
         // Order type 2-3 require zone or offerer be caller or zone to approve.
         // Note that in cases where fulfiller == zone, the restricted order
         // validation will be skipped.
         if (
-            (orderType == OrderType.FULL_RESTRICTED ||
-                orderType == OrderType.PARTIAL_RESTRICTED) &&
-            msg.sender != basicOrderParameters.zone
+            (
+                orderType == OrderType.FULL_RESTRICTED
+                    || orderType == OrderType.PARTIAL_RESTRICTED
+            ) && msg.sender != basicOrderParameters.zone
         ) {
             // Validate the order with the zone.
             if (
@@ -101,8 +98,11 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
     ) internal returns (bool valid) {
         // Order type 2-3 require zone or offerer be caller or zone to approve.
         if (
-            (advancedOrder.parameters.orderType == OrderType.FULL_RESTRICTED ||
-                advancedOrder.parameters.orderType == OrderType.PARTIAL_RESTRICTED) && msg.sender != advancedOrder.parameters.zone
+            (
+                advancedOrder.parameters.orderType == OrderType.FULL_RESTRICTED
+                    || advancedOrder.parameters.orderType
+                        == OrderType.PARTIAL_RESTRICTED
+            ) && msg.sender != advancedOrder.parameters.zone
         ) {
             // Authorize the order.
             try ZoneInterface(advancedOrder.parameters.zone).authorizeOrder(
@@ -146,8 +146,10 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
     ) internal {
         // Order type 2-3 require zone or offerer be caller or zone to approve.
         if (
-            (orderType == OrderType.FULL_RESTRICTED ||
-                orderType == OrderType.PARTIAL_RESTRICTED) && msg.sender != zone
+            (
+                orderType == OrderType.FULL_RESTRICTED
+                    || orderType == OrderType.PARTIAL_RESTRICTED
+            ) && msg.sender != zone
         ) {
             // Authorize the order.
             if (
@@ -198,8 +200,10 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
     ) internal {
         // Order type 2-3 require zone or offerer be caller or zone to approve.
         if (
-            (orderType == OrderType.FULL_RESTRICTED ||
-                orderType == OrderType.PARTIAL_RESTRICTED) && msg.sender != zone
+            (
+                orderType == OrderType.FULL_RESTRICTED
+                    || orderType == OrderType.PARTIAL_RESTRICTED
+            ) && msg.sender != zone
         ) {
             // Validate the order.
             if (
@@ -267,9 +271,8 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
         });
 
         // Create the received item.
-        ReceivedItem[] memory receivedItems = new ReceivedItem[](
-            1 + parameters.additionalRecipients.length
-        );
+        ReceivedItem[] memory receivedItems =
+            new ReceivedItem[](1 + parameters.additionalRecipients.length);
         address token = parameters.considerationToken;
         uint256 amount = parameters.considerationAmount;
         uint256 identifier = parameters.considerationIdentifier;
@@ -284,8 +287,8 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
         // Iterate through the additional recipients and create the received
         // items.
         for (uint256 i = 0; i < parameters.additionalRecipients.length; i++) {
-            AdditionalRecipient calldata additionalRecipient = parameters
-                .additionalRecipients[i];
+            AdditionalRecipient calldata additionalRecipient =
+                parameters.additionalRecipients[i];
             amount = additionalRecipient.amount;
             receivedItems[i + 1] = ReceivedItem({
                 itemType: offerItemType == ItemType.ERC20

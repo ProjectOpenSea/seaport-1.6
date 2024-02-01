@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {
-    EIP1271Interface
-} from "seaport-types/src/interfaces/EIP1271Interface.sol";
+import { EIP1271Interface } from
+    "seaport-types/src/interfaces/EIP1271Interface.sol";
 
-import {
-    SignatureVerificationErrors
-} from "seaport-types/src/interfaces/SignatureVerificationErrors.sol";
+import { SignatureVerificationErrors } from
+    "seaport-types/src/interfaces/SignatureVerificationErrors.sol";
 
-import {
-    EIP2098_allButHighestBitMask
-} from "seaport-types/src/lib/ConsiderationConstants.sol";
+import { EIP2098_allButHighestBitMask } from
+    "seaport-types/src/lib/ConsiderationConstants.sol";
 
 /**
  * @title SignatureVerification
@@ -49,9 +46,7 @@ contract ReferenceSignatureVerification is SignatureVerificationErrors {
         if (signer.code.length > 0) {
             // If signer is a contract, try verification via EIP-1271.
             _assertValidEIP1271Signature(
-                signer,
-                originalDigest,
-                originalSignature
+                signer, originalDigest, originalSignature
             );
 
             // Return early if the ERC-1271 signature check succeeded.
@@ -106,8 +101,8 @@ contract ReferenceSignatureVerification is SignatureVerificationErrors {
         bytes memory signature
     ) internal view {
         if (
-            EIP1271Interface(signer).isValidSignature(digest, signature) !=
-            EIP1271Interface.isValidSignature.selector
+            EIP1271Interface(signer).isValidSignature(digest, signature)
+                != EIP1271Interface.isValidSignature.selector
         ) {
             revert BadContractSignature();
         }

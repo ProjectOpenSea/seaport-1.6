@@ -5,9 +5,8 @@ import { OrderParameters } from "seaport-types/src/lib/ConsiderationStructs.sol"
 
 import { ReferenceGettersAndDerivers } from "./ReferenceGettersAndDerivers.sol";
 
-import {
-    TokenTransferrerErrors
-} from "seaport-types/src/interfaces/TokenTransferrerErrors.sol";
+import { TokenTransferrerErrors } from
+    "seaport-types/src/interfaces/TokenTransferrerErrors.sol";
 
 import { ReferenceCounterManager } from "./ReferenceCounterManager.sol";
 
@@ -30,9 +29,9 @@ contract ReferenceAssertions is
      *                          that may optionally be used to transfer approved
      *                          ERC20/721/1155 tokens.
      */
-    constructor(
-        address conduitController
-    ) ReferenceGettersAndDerivers(conduitController) {}
+    constructor(address conduitController)
+        ReferenceGettersAndDerivers(conduitController)
+    { }
 
     /**
      * @dev Internal view function to to ensure that the supplied consideration
@@ -56,8 +55,7 @@ contract ReferenceAssertions is
 
         // Derive and return order hash using current counter for the offerer.
         orderHash = _deriveOrderHash(
-            orderParameters,
-            _getCounter(orderParameters.offerer)
+            orderParameters, _getCounter(orderParameters.offerer)
         );
     }
 
@@ -111,11 +109,12 @@ contract ReferenceAssertions is
          * 4. BasicOrderType between 0 and 23 (i.e. < 24)
          */
         // Declare a boolean designating basic order parameter offset validity.
-        bool validOffsets = (abi.decode(msg.data[4:36], (uint256)) == 32 &&
-            abi.decode(msg.data[548:580], (uint256)) == 576 &&
-            abi.decode(msg.data[580:612], (uint256)) ==
-            608 + 64 * abi.decode(msg.data[612:644], (uint256))) &&
-            abi.decode(msg.data[292:324], (uint256)) < 24;
+        bool validOffsets = (
+            abi.decode(msg.data[4:36], (uint256)) == 32
+                && abi.decode(msg.data[548:580], (uint256)) == 576
+                && abi.decode(msg.data[580:612], (uint256))
+                    == 608 + 64 * abi.decode(msg.data[612:644], (uint256))
+        ) && abi.decode(msg.data[292:324], (uint256)) < 24;
 
         // Revert with an error if basic order parameter offsets are invalid.
         if (!validOffsets) {

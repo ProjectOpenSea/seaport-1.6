@@ -15,13 +15,11 @@ import {
     OrderToExecute
 } from "./ReferenceConsiderationStructs.sol";
 
-import {
-    FulfillmentApplicationErrors
-} from "seaport-types/src/interfaces/FulfillmentApplicationErrors.sol";
+import { FulfillmentApplicationErrors } from
+    "seaport-types/src/interfaces/FulfillmentApplicationErrors.sol";
 
-import {
-    TokenTransferrerErrors
-} from "seaport-types/src/interfaces/TokenTransferrerErrors.sol";
+import { TokenTransferrerErrors } from
+    "seaport-types/src/interfaces/TokenTransferrerErrors.sol";
 
 /**
  * @title FulfillmentApplier
@@ -60,9 +58,8 @@ contract ReferenceFulfillmentApplier is
         uint256 fulfillmentIndex
     ) internal pure returns (Execution memory execution) {
         // Ensure 1+ of both offer and consideration components are supplied.
-        if (
-            offerComponents.length == 0 || considerationComponents.length == 0
-        ) {
+        if (offerComponents.length == 0 || considerationComponents.length == 0)
+        {
             revert OfferAndConsiderationRequiredOnFulfillment();
         }
 
@@ -72,8 +69,7 @@ contract ReferenceFulfillmentApplier is
         // ReceivedItem.
         ReceivedItem memory considerationItem = (
             _aggregateValidFulfillmentConsiderationItems(
-                ordersToExecute,
-                considerationComponents
+                ordersToExecute, considerationComponents
             )
         );
 
@@ -89,17 +85,16 @@ contract ReferenceFulfillmentApplier is
         }
 
         // Validate & aggregate offer items and store result as an Execution.
-        (
-            execution
-            /**
-             * ItemType itemType,
-             * address token,
-             * uint256 identifier,
-             * address offerer,
-             * bytes32 conduitKey,
-             * uint256 offerAmount
-             */
-        ) = _aggregateValidFulfillmentOfferItems(
+        (execution) =
+        /**
+         * ItemType itemType,
+         * address token,
+         * uint256 identifier,
+         * address offerer,
+         * bytes32 conduitKey,
+         * uint256 offerAmount
+         */
+        _aggregateValidFulfillmentOfferItems(
             ordersToExecute,
             offerComponents,
             address(0) // unused
@@ -107,9 +102,9 @@ contract ReferenceFulfillmentApplier is
 
         // Ensure offer and consideration share types, tokens and identifiers.
         if (
-            execution.item.itemType != considerationItem.itemType ||
-            execution.item.token != considerationItem.token ||
-            execution.item.identifier != considerationItem.identifier
+            execution.item.itemType != considerationItem.itemType
+                || execution.item.token != considerationItem.token
+                || execution.item.identifier != considerationItem.identifier
         ) {
             revert MismatchedFulfillmentOfferAndConsiderationComponents(
                 fulfillmentIndex
@@ -119,14 +114,13 @@ contract ReferenceFulfillmentApplier is
         // If total consideration amount exceeds the offer amount...
         if (considerationItem.amount > execution.item.amount) {
             // Retrieve the first consideration component from the fulfillment.
-            FulfillmentComponent memory targetComponent = (
-                considerationComponents[0]
-            );
+            FulfillmentComponent memory targetComponent =
+                (considerationComponents[0]);
 
             // Add excess consideration item amount to original array of orders.
-            ordersToExecute[targetComponent.orderIndex]
-                .receivedItems[targetComponent.itemIndex]
-                .amount = considerationItem.amount - execution.item.amount;
+            ordersToExecute[targetComponent.orderIndex].receivedItems[targetComponent
+                .itemIndex].amount =
+                considerationItem.amount - execution.item.amount;
 
             // Reduce total consideration amount to equal the offer amount.
             considerationItem.amount = execution.item.amount;
@@ -135,9 +129,9 @@ contract ReferenceFulfillmentApplier is
             FulfillmentComponent memory targetComponent = (offerComponents[0]);
 
             // Add excess offer item amount to the original array of orders.
-            ordersToExecute[targetComponent.orderIndex]
-                .spentItems[targetComponent.itemIndex]
-                .amount = execution.item.amount - considerationItem.amount;
+            ordersToExecute[targetComponent.orderIndex].spentItems[targetComponent
+                .itemIndex].amount =
+                execution.item.amount - considerationItem.amount;
         }
 
         // Reuse execution struct with consideration amount and recipient.
@@ -189,34 +183,25 @@ contract ReferenceFulfillmentApplier is
         if (side == Side.OFFER) {
             // Return execution for aggregated items provided by offerer.
             execution = _aggregateValidFulfillmentOfferItems(
-                ordersToExecute,
-                fulfillmentComponents,
-                recipient
+                ordersToExecute, fulfillmentComponents, recipient
             );
         } else {
             // Otherwise, fulfillment components are consideration
             // components. Return execution for aggregated items provided by
             // the fulfiller.
             execution = _aggregateConsiderationItems(
-                ordersToExecute,
-                fulfillmentComponents,
-                fulfillerConduitKey
+                ordersToExecute, fulfillmentComponents, fulfillerConduitKey
             );
         }
 
         if (execution.item.amount == 0) {
-            return
-                Execution(
-                    ReceivedItem(
-                        ItemType.ERC20,
-                        address(0),
-                        0,
-                        0,
-                        payable(address(0))
-                    ),
-                    address(0),
-                    bytes32(0)
-                );
+            return Execution(
+                ReceivedItem(
+                    ItemType.ERC20, address(0), 0, 0, payable(address(0))
+                ),
+                address(0),
+                bytes32(0)
+            );
         }
 
         return execution;
@@ -238,12 +223,11 @@ contract ReferenceFulfillmentApplier is
         SpentItem memory offer,
         Execution memory execution
     ) internal pure returns (bool invalidFulfillment) {
-        return
-            execution.item.identifier != offer.identifier ||
-            execution.offerer != orderToExecute.offerer ||
-            execution.conduitKey != orderToExecute.conduitKey ||
-            execution.item.itemType != offer.itemType ||
-            execution.item.token != offer.token;
+        return execution.item.identifier != offer.identifier
+            || execution.offerer != orderToExecute.offerer
+            || execution.conduitKey != orderToExecute.conduitKey
+            || execution.item.itemType != offer.itemType
+            || execution.item.token != offer.token;
     }
 
     /**
@@ -295,8 +279,8 @@ contract ReferenceFulfillmentApplier is
             // Get the order based on offer components order index.
             orderToExecute = ordersToExecute[orderIndex];
             if (
-                orderToExecute.numerator != 0 &&
-                itemIndex < orderToExecute.spentItems.length
+                orderToExecute.numerator != 0
+                    && itemIndex < orderToExecute.spentItems.length
             ) {
                 // Get the spent item based on the offer components item index.
                 SpentItem memory offer = orderToExecute.spentItems[itemIndex];
@@ -321,23 +305,18 @@ contract ReferenceFulfillmentApplier is
                     // pointer to first component so that any remainder after
                     // fulfillment can be added back to the first item.
                     if (i != 0) {
-                        FulfillmentComponent
-                            memory firstComponent = offerComponents[0];
+                        FulfillmentComponent memory firstComponent =
+                            offerComponents[0];
                         offerComponents[0] = offerComponents[i];
                         offerComponents[i] = firstComponent;
                     }
                 } else {
                     // Update the Received Item amount.
-                    execution.item.amount =
-                        execution.item.amount +
-                        offer.amount;
+                    execution.item.amount = execution.item.amount + offer.amount;
 
                     // Ensure indicated offer item matches original item.
-                    invalidFulfillment = _checkMatchingOffer(
-                        orderToExecute,
-                        offer,
-                        execution
-                    );
+                    invalidFulfillment =
+                        _checkMatchingOffer(orderToExecute, offer, execution);
                 }
 
                 // Ensure the item has a nonzero amount.
@@ -390,17 +369,13 @@ contract ReferenceFulfillmentApplier is
         // store result as a ReceivedItem.
         ReceivedItem memory receiveConsiderationItem = (
             _aggregateValidFulfillmentConsiderationItems(
-                ordersToExecute,
-                considerationComponents
+                ordersToExecute, considerationComponents
             )
         );
 
         // Return execution for aggregated items provided by the fulfiller.
-        execution = Execution(
-            receiveConsiderationItem,
-            msg.sender,
-            fulfillerConduitKey
-        );
+        execution =
+            Execution(receiveConsiderationItem, msg.sender, fulfillerConduitKey);
     }
 
     /**
@@ -417,11 +392,10 @@ contract ReferenceFulfillmentApplier is
         ReceivedItem memory consideration,
         ReceivedItem memory receivedItem
     ) internal pure returns (bool invalidFulfillment) {
-        return
-            receivedItem.recipient != consideration.recipient ||
-            receivedItem.itemType != consideration.itemType ||
-            receivedItem.token != consideration.token ||
-            receivedItem.identifier != consideration.identifier;
+        return receivedItem.recipient != consideration.recipient
+            || receivedItem.itemType != consideration.itemType
+            || receivedItem.token != consideration.token
+            || receivedItem.identifier != consideration.identifier;
     }
 
     /**
@@ -456,8 +430,8 @@ contract ReferenceFulfillmentApplier is
         for (uint256 i = 0; i < considerationComponents.length; ++i) {
             // Get the order index and item index of the consideration
             // component.
-            potentialCandidate.orderIndex = considerationComponents[i]
-                .orderIndex;
+            potentialCandidate.orderIndex =
+                considerationComponents[i].orderIndex;
             potentialCandidate.itemIndex = considerationComponents[i].itemIndex;
 
             /// Ensure that the order index is not out of range.
@@ -474,14 +448,13 @@ contract ReferenceFulfillmentApplier is
 
             // Confirm that the order is being fulfilled.
             if (
-                orderToExecute.numerator != 0 &&
-                potentialCandidate.itemIndex <
-                orderToExecute.receivedItems.length
+                orderToExecute.numerator != 0
+                    && potentialCandidate.itemIndex
+                        < orderToExecute.receivedItems.length
             ) {
                 // Retrieve relevant item using item index.
-                consideration = orderToExecute.receivedItems[
-                    potentialCandidate.itemIndex
-                ];
+                consideration =
+                    orderToExecute.receivedItems[potentialCandidate.itemIndex];
 
                 if (!foundItem) {
                     foundItem = true;
@@ -499,32 +472,26 @@ contract ReferenceFulfillmentApplier is
                     // pointer to first component so that any remainder after
                     // fulfillment can be added back to the first item.
                     if (i != 0) {
-                        FulfillmentComponent
-                            memory firstComponent = considerationComponents[0];
+                        FulfillmentComponent memory firstComponent =
+                            considerationComponents[0];
                         considerationComponents[0] = considerationComponents[i];
                         considerationComponents[i] = firstComponent;
                     }
                 } else {
                     // Update Received Item amount.
                     receivedItem.amount =
-                        receivedItem.amount +
-                        consideration.amount;
+                        receivedItem.amount + consideration.amount;
 
                     // Ensure the indicated consideration item matches
                     // original item.
-                    potentialCandidate
-                        .invalidFulfillment = _checkMatchingConsideration(
-                        consideration,
-                        receivedItem
-                    );
+                    potentialCandidate.invalidFulfillment =
+                        _checkMatchingConsideration(consideration, receivedItem);
                 }
 
                 // Ensure the item has a nonzero amount.
-                potentialCandidate.missingItemAmount =
-                    consideration.amount == 0;
-                potentialCandidate.invalidFulfillment =
-                    potentialCandidate.invalidFulfillment ||
-                    potentialCandidate.missingItemAmount;
+                potentialCandidate.missingItemAmount = consideration.amount == 0;
+                potentialCandidate.invalidFulfillment = potentialCandidate
+                    .invalidFulfillment || potentialCandidate.missingItemAmount;
 
                 // Zero out amount on original consideration item to
                 // indicate it is spent.

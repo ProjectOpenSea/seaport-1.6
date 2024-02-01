@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {
-    ConsiderationEventsAndErrors
-} from "seaport-types/src/interfaces/ConsiderationEventsAndErrors.sol";
+import { ConsiderationEventsAndErrors } from
+    "seaport-types/src/interfaces/ConsiderationEventsAndErrors.sol";
 
 import { ReferenceReentrancyGuard } from "./ReferenceReentrancyGuard.sol";
 
@@ -56,9 +55,11 @@ contract ReferenceCounterManager is
      *
      * @return currentCounter The current counter.
      */
-    function _getCounter(
-        address offerer
-    ) internal view returns (uint256 currentCounter) {
+    function _getCounter(address offerer)
+        internal
+        view
+        returns (uint256 currentCounter)
+    {
         // Return the counter for the supplied offerer.
         currentCounter = _counters[offerer];
     }

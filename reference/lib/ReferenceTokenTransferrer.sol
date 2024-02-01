@@ -7,9 +7,8 @@ import {
     ERC1155Interface
 } from "seaport-types/src/interfaces/AbridgedTokenInterfaces.sol";
 
-import {
-    TokenTransferrerErrors
-} from "seaport-types/src/interfaces/TokenTransferrerErrors.sol";
+import { TokenTransferrerErrors } from
+    "seaport-types/src/interfaces/TokenTransferrerErrors.sol";
 
 contract ReferenceTokenTransferrer is TokenTransferrerErrors {
     /**
@@ -36,10 +35,7 @@ contract ReferenceTokenTransferrer is TokenTransferrerErrors {
         // Attempt to transfer the tokens.
         (bool ok, bytes memory data) = token.call(
             abi.encodeWithSelector(
-                ERC20Interface.transferFrom.selector,
-                from,
-                to,
-                amount
+                ERC20Interface.transferFrom.selector, from, to, amount
             )
         );
 
@@ -52,10 +48,7 @@ contract ReferenceTokenTransferrer is TokenTransferrerErrors {
         if (data.length != 0 && data.length >= 32) {
             if (!abi.decode(data, (bool))) {
                 revert BadReturnValueFromERC20OnTransfer(
-                    token,
-                    from,
-                    to,
-                    amount
+                    token, from, to, amount
                 );
             }
         }
@@ -111,11 +104,7 @@ contract ReferenceTokenTransferrer is TokenTransferrerErrors {
         }
 
         ERC1155Interface(token).safeTransferFrom(
-            from,
-            to,
-            identifier,
-            amount,
-            ""
+            from, to, identifier, amount, ""
         );
     }
 
@@ -145,11 +134,7 @@ contract ReferenceTokenTransferrer is TokenTransferrerErrors {
         }
 
         ERC1155Interface(token).safeBatchTransferFrom(
-            from,
-            to,
-            identifiers,
-            amounts,
-            ""
+            from, to, identifiers, amounts, ""
         );
     }
 }

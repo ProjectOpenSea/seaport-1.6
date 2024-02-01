@@ -15,9 +15,8 @@ import {
 
 import { OrderToExecute } from "./ReferenceConsiderationStructs.sol";
 
-import {
-    CriteriaResolutionErrors
-} from "seaport-types/src/interfaces/CriteriaResolutionErrors.sol";
+import { CriteriaResolutionErrors } from
+    "seaport-types/src/interfaces/CriteriaResolutionErrors.sol";
 
 /**
  * @title CriteriaResolution
@@ -74,8 +73,8 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
 
             // If the criteria resolver refers to an offer item...
             if (criteriaResolver.side == Side.OFFER) {
-                SpentItem[] memory spentItems = ordersToExecute[orderIndex]
-                    .spentItems;
+                SpentItem[] memory spentItems =
+                    ordersToExecute[orderIndex].spentItems;
                 // Ensure that the component index is in range.
                 if (componentIndex >= spentItems.length) {
                     revert OfferCriteriaResolverOutOfRange();
@@ -101,9 +100,8 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
                 // Otherwise, the resolver refers to a consideration item.
 
                 // Retrieve relevant item using order index.
-                ReceivedItem[] memory receivedItems = ordersToExecute[
-                    orderIndex
-                ].receivedItems;
+                ReceivedItem[] memory receivedItems =
+                    ordersToExecute[orderIndex].receivedItems;
 
                 // Ensure that the component index is in range.
                 if (componentIndex >= receivedItems.length) {
@@ -111,9 +109,8 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
                 }
 
                 // Retrieve relevant item using component index.
-                ReceivedItem memory consideration = (
-                    receivedItems[componentIndex]
-                );
+                ReceivedItem memory consideration =
+                    (receivedItems[componentIndex]);
 
                 // Read item type and criteria from memory & place on stack.
                 itemType = consideration.itemType;
@@ -168,9 +165,8 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
             // Iterate over each offer item on the order.
             for (uint256 j = 0; j < totalItems; ++j) {
                 // Ensure item type no longer indicates criteria usage.
-                if (
-                    _isItemWithCriteria(orderToExecute.spentItems[j].itemType)
-                ) {
+                if (_isItemWithCriteria(orderToExecute.spentItems[j].itemType))
+                {
                     revert UnresolvedOfferCriteria(i, j);
                 }
             }
@@ -243,9 +239,7 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
                 }
 
                 // Retrieve relevant item using order and component index.
-                OfferItem memory offer = (
-                    orderParameters.offer[componentIndex]
-                );
+                OfferItem memory offer = (orderParameters.offer[componentIndex]);
 
                 // Read item type and criteria from memory & place on stack.
                 itemType = offer.itemType;
@@ -268,9 +262,8 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
                 }
 
                 // Retrieve relevant item using order and component index.
-                ConsiderationItem memory consideration = (
-                    orderParameters.consideration[componentIndex]
-                );
+                ConsiderationItem memory consideration =
+                    (orderParameters.consideration[componentIndex]);
 
                 // Read item type and criteria from memory & place on stack.
                 itemType = consideration.itemType;
@@ -284,9 +277,8 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
                 }
 
                 // Optimistically update identifier w/ supplied identifier.
-                consideration.identifierOrCriteria = (
-                    criteriaResolver.identifier
-                );
+                consideration.identifierOrCriteria =
+                    (criteriaResolver.identifier);
             }
 
             // Ensure the specified item type indicates criteria usage.
@@ -331,9 +323,8 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
         // Iterate over each offer item on the order.
         for (uint256 i = 0; i < totalItems; ++i) {
             // Ensure item type no longer indicates criteria usage.
-            if (
-                _isItemWithCriteria(advancedOrder.parameters.offer[i].itemType)
-            ) {
+            if (_isItemWithCriteria(advancedOrder.parameters.offer[i].itemType))
+            {
                 revert UnresolvedOfferCriteria(0, i);
             }
         }
@@ -350,9 +341,11 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
      * @return withCriteria A boolean indicating that the item type in question
      *                      represents a criteria-based item.
      */
-    function _isItemWithCriteria(
-        ItemType itemType
-    ) internal pure returns (bool withCriteria) {
+    function _isItemWithCriteria(ItemType itemType)
+        internal
+        pure
+        returns (bool withCriteria)
+    {
         // ERC721WithCriteria is item type 4. ERC1155WithCriteria is item type
         // 5.
         withCriteria = uint256(itemType) > 3;
@@ -366,11 +359,10 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
      * @param root  The merkle root that inclusion will be proved against.
      * @param proof The merkle proof.
      */
-    function _verifyProof(
-        uint256 leaf,
-        uint256 root,
-        bytes32[] memory proof
-    ) internal pure {
+    function _verifyProof(uint256 leaf, uint256 root, bytes32[] memory proof)
+        internal
+        pure
+    {
         // Hash the supplied leaf to use as the initial proof element.
         bytes32 computedHash = keccak256(abi.encodePacked(leaf));
 
@@ -382,14 +374,12 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
             // Sort and hash proof elements and update the computed hash.
             if (computedHash <= proofElement) {
                 // Hash(current computed hash + current element of proof)
-                computedHash = keccak256(
-                    abi.encodePacked(computedHash, proofElement)
-                );
+                computedHash =
+                    keccak256(abi.encodePacked(computedHash, proofElement));
             } else {
                 // Hash(current element of proof + current computed hash)
-                computedHash = keccak256(
-                    abi.encodePacked(proofElement, computedHash)
-                );
+                computedHash =
+                    keccak256(abi.encodePacked(proofElement, computedHash));
             }
         }
 

@@ -45,9 +45,9 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
      *                          that may optionally be used to transfer approved
      *                          ERC20/721/1155 tokens.
      */
-    constructor(
-        address conduitController
-    ) ReferenceOrderValidator(conduitController) {
+    constructor(address conduitController)
+        ReferenceOrderValidator(conduitController)
+    {
         createMappings();
     }
 
@@ -61,170 +61,122 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
         // BasicOrderType to BasicOrderRouteType
 
         // ETH TO ERC 721
-        _OrderToRouteType[
-            BasicOrderType.ETH_TO_ERC721_FULL_OPEN
-        ] = BasicOrderRouteType.ETH_TO_ERC721;
-        _OrderToRouteType[
-            BasicOrderType.ETH_TO_ERC721_PARTIAL_OPEN
-        ] = BasicOrderRouteType.ETH_TO_ERC721;
-        _OrderToRouteType[
-            BasicOrderType.ETH_TO_ERC721_FULL_RESTRICTED
-        ] = BasicOrderRouteType.ETH_TO_ERC721;
-        _OrderToRouteType[
-            BasicOrderType.ETH_TO_ERC721_PARTIAL_RESTRICTED
-        ] = BasicOrderRouteType.ETH_TO_ERC721;
+        _OrderToRouteType[BasicOrderType.ETH_TO_ERC721_FULL_OPEN] =
+            BasicOrderRouteType.ETH_TO_ERC721;
+        _OrderToRouteType[BasicOrderType.ETH_TO_ERC721_PARTIAL_OPEN] =
+            BasicOrderRouteType.ETH_TO_ERC721;
+        _OrderToRouteType[BasicOrderType.ETH_TO_ERC721_FULL_RESTRICTED] =
+            BasicOrderRouteType.ETH_TO_ERC721;
+        _OrderToRouteType[BasicOrderType.ETH_TO_ERC721_PARTIAL_RESTRICTED] =
+            BasicOrderRouteType.ETH_TO_ERC721;
 
         // ETH TO ERC 1155
-        _OrderToRouteType[
-            BasicOrderType.ETH_TO_ERC1155_FULL_OPEN
-        ] = BasicOrderRouteType.ETH_TO_ERC1155;
-        _OrderToRouteType[
-            BasicOrderType.ETH_TO_ERC1155_PARTIAL_OPEN
-        ] = BasicOrderRouteType.ETH_TO_ERC1155;
-        _OrderToRouteType[
-            BasicOrderType.ETH_TO_ERC1155_FULL_RESTRICTED
-        ] = BasicOrderRouteType.ETH_TO_ERC1155;
-        _OrderToRouteType[
-            BasicOrderType.ETH_TO_ERC1155_PARTIAL_RESTRICTED
-        ] = BasicOrderRouteType.ETH_TO_ERC1155;
+        _OrderToRouteType[BasicOrderType.ETH_TO_ERC1155_FULL_OPEN] =
+            BasicOrderRouteType.ETH_TO_ERC1155;
+        _OrderToRouteType[BasicOrderType.ETH_TO_ERC1155_PARTIAL_OPEN] =
+            BasicOrderRouteType.ETH_TO_ERC1155;
+        _OrderToRouteType[BasicOrderType.ETH_TO_ERC1155_FULL_RESTRICTED] =
+            BasicOrderRouteType.ETH_TO_ERC1155;
+        _OrderToRouteType[BasicOrderType.ETH_TO_ERC1155_PARTIAL_RESTRICTED] =
+            BasicOrderRouteType.ETH_TO_ERC1155;
 
         // ERC 20 TO ERC 721
-        _OrderToRouteType[
-            BasicOrderType.ERC20_TO_ERC721_FULL_OPEN
-        ] = BasicOrderRouteType.ERC20_TO_ERC721;
-        _OrderToRouteType[
-            BasicOrderType.ERC20_TO_ERC721_PARTIAL_OPEN
-        ] = BasicOrderRouteType.ERC20_TO_ERC721;
-        _OrderToRouteType[
-            BasicOrderType.ERC20_TO_ERC721_FULL_RESTRICTED
-        ] = BasicOrderRouteType.ERC20_TO_ERC721;
-        _OrderToRouteType[
-            BasicOrderType.ERC20_TO_ERC721_PARTIAL_RESTRICTED
-        ] = BasicOrderRouteType.ERC20_TO_ERC721;
+        _OrderToRouteType[BasicOrderType.ERC20_TO_ERC721_FULL_OPEN] =
+            BasicOrderRouteType.ERC20_TO_ERC721;
+        _OrderToRouteType[BasicOrderType.ERC20_TO_ERC721_PARTIAL_OPEN] =
+            BasicOrderRouteType.ERC20_TO_ERC721;
+        _OrderToRouteType[BasicOrderType.ERC20_TO_ERC721_FULL_RESTRICTED] =
+            BasicOrderRouteType.ERC20_TO_ERC721;
+        _OrderToRouteType[BasicOrderType.ERC20_TO_ERC721_PARTIAL_RESTRICTED] =
+            BasicOrderRouteType.ERC20_TO_ERC721;
 
         // ERC 20 TO ERC 1155
-        _OrderToRouteType[
-            BasicOrderType.ERC20_TO_ERC1155_FULL_OPEN
-        ] = BasicOrderRouteType.ERC20_TO_ERC1155;
-        _OrderToRouteType[
-            BasicOrderType.ERC20_TO_ERC1155_PARTIAL_OPEN
-        ] = BasicOrderRouteType.ERC20_TO_ERC1155;
-        _OrderToRouteType[
-            BasicOrderType.ERC20_TO_ERC1155_FULL_RESTRICTED
-        ] = BasicOrderRouteType.ERC20_TO_ERC1155;
-        _OrderToRouteType[
-            BasicOrderType.ERC20_TO_ERC1155_PARTIAL_RESTRICTED
-        ] = BasicOrderRouteType.ERC20_TO_ERC1155;
+        _OrderToRouteType[BasicOrderType.ERC20_TO_ERC1155_FULL_OPEN] =
+            BasicOrderRouteType.ERC20_TO_ERC1155;
+        _OrderToRouteType[BasicOrderType.ERC20_TO_ERC1155_PARTIAL_OPEN] =
+            BasicOrderRouteType.ERC20_TO_ERC1155;
+        _OrderToRouteType[BasicOrderType.ERC20_TO_ERC1155_FULL_RESTRICTED] =
+            BasicOrderRouteType.ERC20_TO_ERC1155;
+        _OrderToRouteType[BasicOrderType.ERC20_TO_ERC1155_PARTIAL_RESTRICTED] =
+            BasicOrderRouteType.ERC20_TO_ERC1155;
 
         // ERC 721 TO ERC 20
-        _OrderToRouteType[
-            BasicOrderType.ERC721_TO_ERC20_FULL_OPEN
-        ] = BasicOrderRouteType.ERC721_TO_ERC20;
-        _OrderToRouteType[
-            BasicOrderType.ERC721_TO_ERC20_PARTIAL_OPEN
-        ] = BasicOrderRouteType.ERC721_TO_ERC20;
-        _OrderToRouteType[
-            BasicOrderType.ERC721_TO_ERC20_FULL_RESTRICTED
-        ] = BasicOrderRouteType.ERC721_TO_ERC20;
-        _OrderToRouteType[
-            BasicOrderType.ERC721_TO_ERC20_PARTIAL_RESTRICTED
-        ] = BasicOrderRouteType.ERC721_TO_ERC20;
+        _OrderToRouteType[BasicOrderType.ERC721_TO_ERC20_FULL_OPEN] =
+            BasicOrderRouteType.ERC721_TO_ERC20;
+        _OrderToRouteType[BasicOrderType.ERC721_TO_ERC20_PARTIAL_OPEN] =
+            BasicOrderRouteType.ERC721_TO_ERC20;
+        _OrderToRouteType[BasicOrderType.ERC721_TO_ERC20_FULL_RESTRICTED] =
+            BasicOrderRouteType.ERC721_TO_ERC20;
+        _OrderToRouteType[BasicOrderType.ERC721_TO_ERC20_PARTIAL_RESTRICTED] =
+            BasicOrderRouteType.ERC721_TO_ERC20;
 
         // ERC 1155 TO ERC 20
-        _OrderToRouteType[
-            BasicOrderType.ERC1155_TO_ERC20_FULL_OPEN
-        ] = BasicOrderRouteType.ERC1155_TO_ERC20;
-        _OrderToRouteType[
-            BasicOrderType.ERC1155_TO_ERC20_PARTIAL_OPEN
-        ] = BasicOrderRouteType.ERC1155_TO_ERC20;
-        _OrderToRouteType[
-            BasicOrderType.ERC1155_TO_ERC20_FULL_RESTRICTED
-        ] = BasicOrderRouteType.ERC1155_TO_ERC20;
-        _OrderToRouteType[
-            BasicOrderType.ERC1155_TO_ERC20_PARTIAL_RESTRICTED
-        ] = BasicOrderRouteType.ERC1155_TO_ERC20;
+        _OrderToRouteType[BasicOrderType.ERC1155_TO_ERC20_FULL_OPEN] =
+            BasicOrderRouteType.ERC1155_TO_ERC20;
+        _OrderToRouteType[BasicOrderType.ERC1155_TO_ERC20_PARTIAL_OPEN] =
+            BasicOrderRouteType.ERC1155_TO_ERC20;
+        _OrderToRouteType[BasicOrderType.ERC1155_TO_ERC20_FULL_RESTRICTED] =
+            BasicOrderRouteType.ERC1155_TO_ERC20;
+        _OrderToRouteType[BasicOrderType.ERC1155_TO_ERC20_PARTIAL_RESTRICTED] =
+            BasicOrderRouteType.ERC1155_TO_ERC20;
 
         // Basic OrderType to OrderType
 
         // FULL OPEN
-        _BasicOrderToOrderType[
-            BasicOrderType.ETH_TO_ERC721_FULL_OPEN
-        ] = OrderType.FULL_OPEN;
-        _BasicOrderToOrderType[
-            BasicOrderType.ETH_TO_ERC1155_FULL_OPEN
-        ] = OrderType.FULL_OPEN;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC20_TO_ERC721_FULL_OPEN
-        ] = OrderType.FULL_OPEN;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC20_TO_ERC1155_FULL_OPEN
-        ] = OrderType.FULL_OPEN;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC721_TO_ERC20_FULL_OPEN
-        ] = OrderType.FULL_OPEN;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC1155_TO_ERC20_FULL_OPEN
-        ] = OrderType.FULL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ETH_TO_ERC721_FULL_OPEN] =
+            OrderType.FULL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ETH_TO_ERC1155_FULL_OPEN] =
+            OrderType.FULL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ERC20_TO_ERC721_FULL_OPEN] =
+            OrderType.FULL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ERC20_TO_ERC1155_FULL_OPEN] =
+            OrderType.FULL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ERC721_TO_ERC20_FULL_OPEN] =
+            OrderType.FULL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ERC1155_TO_ERC20_FULL_OPEN] =
+            OrderType.FULL_OPEN;
 
         // PARTIAL OPEN
-        _BasicOrderToOrderType[
-            BasicOrderType.ETH_TO_ERC721_PARTIAL_OPEN
-        ] = OrderType.PARTIAL_OPEN;
-        _BasicOrderToOrderType[
-            BasicOrderType.ETH_TO_ERC1155_PARTIAL_OPEN
-        ] = OrderType.PARTIAL_OPEN;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC20_TO_ERC721_PARTIAL_OPEN
-        ] = OrderType.PARTIAL_OPEN;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC20_TO_ERC1155_PARTIAL_OPEN
-        ] = OrderType.PARTIAL_OPEN;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC721_TO_ERC20_PARTIAL_OPEN
-        ] = OrderType.PARTIAL_OPEN;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC1155_TO_ERC20_PARTIAL_OPEN
-        ] = OrderType.PARTIAL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ETH_TO_ERC721_PARTIAL_OPEN] =
+            OrderType.PARTIAL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ETH_TO_ERC1155_PARTIAL_OPEN] =
+            OrderType.PARTIAL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ERC20_TO_ERC721_PARTIAL_OPEN] =
+            OrderType.PARTIAL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ERC20_TO_ERC1155_PARTIAL_OPEN] =
+            OrderType.PARTIAL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ERC721_TO_ERC20_PARTIAL_OPEN] =
+            OrderType.PARTIAL_OPEN;
+        _BasicOrderToOrderType[BasicOrderType.ERC1155_TO_ERC20_PARTIAL_OPEN] =
+            OrderType.PARTIAL_OPEN;
 
         // FULL RESTRICTED
-        _BasicOrderToOrderType[
-            BasicOrderType.ETH_TO_ERC721_FULL_RESTRICTED
-        ] = OrderType.FULL_RESTRICTED;
-        _BasicOrderToOrderType[
-            BasicOrderType.ETH_TO_ERC1155_FULL_RESTRICTED
-        ] = OrderType.FULL_RESTRICTED;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC20_TO_ERC721_FULL_RESTRICTED
-        ] = OrderType.FULL_RESTRICTED;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC20_TO_ERC1155_FULL_RESTRICTED
-        ] = OrderType.FULL_RESTRICTED;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC721_TO_ERC20_FULL_RESTRICTED
-        ] = OrderType.FULL_RESTRICTED;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC1155_TO_ERC20_FULL_RESTRICTED
-        ] = OrderType.FULL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType.ETH_TO_ERC721_FULL_RESTRICTED] =
+            OrderType.FULL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType.ETH_TO_ERC1155_FULL_RESTRICTED] =
+            OrderType.FULL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType.ERC20_TO_ERC721_FULL_RESTRICTED] =
+            OrderType.FULL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType.ERC20_TO_ERC1155_FULL_RESTRICTED]
+        = OrderType.FULL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType.ERC721_TO_ERC20_FULL_RESTRICTED] =
+            OrderType.FULL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType.ERC1155_TO_ERC20_FULL_RESTRICTED]
+        = OrderType.FULL_RESTRICTED;
 
         // PARTIAL RESTRICTED
-        _BasicOrderToOrderType[
-            BasicOrderType.ETH_TO_ERC721_PARTIAL_RESTRICTED
-        ] = OrderType.PARTIAL_RESTRICTED;
-        _BasicOrderToOrderType[
-            BasicOrderType.ETH_TO_ERC1155_PARTIAL_RESTRICTED
-        ] = OrderType.PARTIAL_RESTRICTED;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC20_TO_ERC721_PARTIAL_RESTRICTED
-        ] = OrderType.PARTIAL_RESTRICTED;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC20_TO_ERC1155_PARTIAL_RESTRICTED
-        ] = OrderType.PARTIAL_RESTRICTED;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC721_TO_ERC20_PARTIAL_RESTRICTED
-        ] = OrderType.PARTIAL_RESTRICTED;
-        _BasicOrderToOrderType[
-            BasicOrderType.ERC1155_TO_ERC20_PARTIAL_RESTRICTED
-        ] = OrderType.PARTIAL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType.ETH_TO_ERC721_PARTIAL_RESTRICTED]
+        = OrderType.PARTIAL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType.ETH_TO_ERC1155_PARTIAL_RESTRICTED]
+        = OrderType.PARTIAL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType.ERC20_TO_ERC721_PARTIAL_RESTRICTED]
+        = OrderType.PARTIAL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType
+            .ERC20_TO_ERC1155_PARTIAL_RESTRICTED] = OrderType.PARTIAL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType.ERC721_TO_ERC20_PARTIAL_RESTRICTED]
+        = OrderType.PARTIAL_RESTRICTED;
+        _BasicOrderToOrderType[BasicOrderType
+            .ERC1155_TO_ERC20_PARTIAL_RESTRICTED] = OrderType.PARTIAL_RESTRICTED;
     }
 
     /**
@@ -272,8 +224,8 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
         // Declare additional recipient item type to derive from the route type.
         ItemType additionalRecipientsItemType;
         if (
-            route == BasicOrderRouteType.ETH_TO_ERC721 ||
-            route == BasicOrderRouteType.ETH_TO_ERC1155
+            route == BasicOrderRouteType.ETH_TO_ERC721
+                || route == BasicOrderRouteType.ETH_TO_ERC1155
         ) {
             additionalRecipientsItemType = ItemType.NATIVE;
         } else {
@@ -293,8 +245,8 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
         // Determine the token that additional recipients should have set.
         address additionalRecipientsToken;
         if (
-            route == BasicOrderRouteType.ERC721_TO_ERC20 ||
-            route == BasicOrderRouteType.ERC1155_TO_ERC20
+            route == BasicOrderRouteType.ERC721_TO_ERC20
+                || route == BasicOrderRouteType.ERC1155_TO_ERC20
         ) {
             additionalRecipientsToken = parameters.offerToken;
         } else {
@@ -304,13 +256,13 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
         // Determine the item type for received items.
         ItemType receivedItemType;
         if (
-            route == BasicOrderRouteType.ETH_TO_ERC721 ||
-            route == BasicOrderRouteType.ETH_TO_ERC1155
+            route == BasicOrderRouteType.ETH_TO_ERC721
+                || route == BasicOrderRouteType.ETH_TO_ERC1155
         ) {
             receivedItemType = ItemType.NATIVE;
         } else if (
-            route == BasicOrderRouteType.ERC20_TO_ERC721 ||
-            route == BasicOrderRouteType.ERC20_TO_ERC1155
+            route == BasicOrderRouteType.ERC20_TO_ERC721
+                || route == BasicOrderRouteType.ERC20_TO_ERC1155
         ) {
             receivedItemType = ItemType.ERC20;
         } else if (route == BasicOrderRouteType.ERC721_TO_ERC20) {
@@ -322,13 +274,13 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
         // Determine the item type for the offered item.
         ItemType offeredItemType;
         if (
-            route == BasicOrderRouteType.ERC721_TO_ERC20 ||
-            route == BasicOrderRouteType.ERC1155_TO_ERC20
+            route == BasicOrderRouteType.ERC721_TO_ERC20
+                || route == BasicOrderRouteType.ERC1155_TO_ERC20
         ) {
             offeredItemType = ItemType.ERC20;
         } else if (
-            route == BasicOrderRouteType.ETH_TO_ERC721 ||
-            route == BasicOrderRouteType.ERC20_TO_ERC721
+            route == BasicOrderRouteType.ETH_TO_ERC721
+                || route == BasicOrderRouteType.ERC20_TO_ERC721
         ) {
             offeredItemType = ItemType.ERC721;
         } else {
@@ -348,8 +300,8 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
         // Determine conduitKey argument used by transfer functions.
         bytes32 conduitKey;
         if (
-            route == BasicOrderRouteType.ERC721_TO_ERC20 ||
-            route == BasicOrderRouteType.ERC1155_TO_ERC20
+            route == BasicOrderRouteType.ERC721_TO_ERC20
+                || route == BasicOrderRouteType.ERC1155_TO_ERC20
         ) {
             conduitKey = parameters.fulfillerConduitKey;
         } else {
@@ -358,17 +310,28 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
 
         // Check for dirtied unused parameters.
         if (
-            ((route == BasicOrderRouteType.ETH_TO_ERC721 ||
-                route == BasicOrderRouteType.ETH_TO_ERC1155) &&
-                (uint160(parameters.considerationToken) |
-                    parameters.considerationIdentifier) !=
-                0) ||
-            ((route == BasicOrderRouteType.ERC20_TO_ERC721 ||
-                route == BasicOrderRouteType.ERC20_TO_ERC1155) &&
-                parameters.considerationIdentifier != 0) ||
-            ((route == BasicOrderRouteType.ERC721_TO_ERC20 ||
-                route == BasicOrderRouteType.ERC1155_TO_ERC20) &&
-                parameters.offerIdentifier != 0)
+            (
+                (
+                    route == BasicOrderRouteType.ETH_TO_ERC721
+                        || route == BasicOrderRouteType.ETH_TO_ERC1155
+                )
+                    && (
+                        uint160(parameters.considerationToken)
+                            | parameters.considerationIdentifier
+                    ) != 0
+            )
+                || (
+                    (
+                        route == BasicOrderRouteType.ERC20_TO_ERC721
+                            || route == BasicOrderRouteType.ERC20_TO_ERC1155
+                    ) && parameters.considerationIdentifier != 0
+                )
+                || (
+                    (
+                        route == BasicOrderRouteType.ERC721_TO_ERC20
+                            || route == BasicOrderRouteType.ERC1155_TO_ERC20
+                    ) && parameters.offerIdentifier != 0
+                )
         ) {
             revert UnusedItemParameters();
         }
@@ -503,11 +466,7 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
 
         // Determine whether order is restricted and, if so, that it is valid.
         _assertRestrictedBasicOrderValidity(
-            orderHash,
-            orderType,
-            parameters,
-            offeredItemType,
-            receivedItemType
+            orderHash, orderType, parameters, offeredItemType, receivedItemType
         );
 
         return true;
@@ -605,9 +564,8 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
         );
 
         // Array of Received Items for use with OrderFulfilled event.
-        ReceivedItem[] memory consideration = new ReceivedItem[](
-            parameters.additionalRecipients.length + 1
-        );
+        ReceivedItem[] memory consideration =
+            new ReceivedItem[](parameters.additionalRecipients.length + 1);
 
         {
             // Load consideration item typehash from runtime and place on stack.
@@ -626,9 +584,8 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
             );
 
             // Array of all consideration item hashes.
-            hashes.considerationHashes = new bytes32[](
-                parameters.totalOriginalAdditionalRecipients + 1
-            );
+            hashes.considerationHashes =
+                new bytes32[](parameters.totalOriginalAdditionalRecipients + 1);
 
             // Hash contents.
             hashes.considerationHashes[0] = keccak256(
@@ -660,7 +617,8 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
             // OrderFulfilled ReceivedItem[].
             consideration[0] = primaryReceivedItem;
 
-            /**  Loop through all additionalRecipients, to generate
+            /**
+             * Loop through all additionalRecipients, to generate
              *    ReceivedItems for OrderFulfilled Event and
              *    ConsiderationItems for hashing.
              */
@@ -670,9 +628,8 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
                 ++recipientCount
             ) {
                 // Get the next additionalRecipient.
-                AdditionalRecipient memory additionalRecipient = (
-                    parameters.additionalRecipients[recipientCount]
-                );
+                AdditionalRecipient memory additionalRecipient =
+                    (parameters.additionalRecipients[recipientCount]);
 
                 // Create a Received item for each additional recipients.
                 additionalReceivedItem = ReceivedItem(
@@ -721,21 +678,19 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
              */
 
             // Get hash of all consideration items.
-            hashes.receivedItemsHash = keccak256(
-                abi.encodePacked(hashes.considerationHashes)
-            );
+            hashes.receivedItemsHash =
+                keccak256(abi.encodePacked(hashes.considerationHashes));
 
             // Get remainder of additionalRecipients for tips.
             for (
-                uint256 additionalTips = parameters
-                    .totalOriginalAdditionalRecipients;
+                uint256 additionalTips =
+                    parameters.totalOriginalAdditionalRecipients;
                 additionalTips < parameters.additionalRecipients.length;
                 ++additionalTips
             ) {
                 // Get the next additionalRecipient.
-                AdditionalRecipient memory additionalRecipient = (
-                    parameters.additionalRecipients[additionalTips]
-                );
+                AdditionalRecipient memory additionalRecipient =
+                    (parameters.additionalRecipients[additionalTips]);
 
                 // Create the ReceivedItem.
                 additionalReceivedItem = ReceivedItem(
@@ -785,9 +740,7 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
             ];
 
             // Get hash of all Spent items.
-            hashes.offerItemsHash = keccak256(
-                abi.encodePacked(offerItemHashes)
-            );
+            hashes.offerItemsHash = keccak256(abi.encodePacked(offerItemHashes));
         }
 
         {
@@ -798,11 +751,8 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
             hashes.typeHash = _ORDER_TYPEHASH;
 
             // Derive the order hash.
-            hashes.orderHash = _hashOrder(
-                hashes,
-                parameters,
-                fulfillmentItemTypes
-            );
+            hashes.orderHash =
+                _hashOrder(hashes, parameters, fulfillmentItemTypes);
 
             // Emit an event signifying that the order has been fulfilled.
             emit OrderFulfilled(
@@ -817,9 +767,7 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
 
         // Verify and update the status of the derived order.
         _validateBasicOrderAndUpdateStatus(
-            hashes.orderHash,
-            parameters.offerer,
-            parameters.signature
+            hashes.orderHash, parameters.offerer, parameters.signature
         );
 
         // Return the derived order hash.
@@ -845,9 +793,8 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
         // Iterate over each additional recipient.
         for (uint256 i = 0; i < parameters.additionalRecipients.length; ++i) {
             // Retrieve the additional recipient.
-            AdditionalRecipient calldata additionalRecipient = (
-                parameters.additionalRecipients[i]
-            );
+            AdditionalRecipient calldata additionalRecipient =
+                (parameters.additionalRecipients[i]);
 
             // Read native token amount to transfer to recipient & put on stack.
             uint256 additionalRecipientAmount = additionalRecipient.amount;
@@ -859,8 +806,7 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
 
             // Transfer native token to the additional recipient.
             _transferNativeTokens(
-                additionalRecipient.recipient,
-                additionalRecipientAmount
+                additionalRecipient.recipient, additionalRecipientAmount
             );
 
             // Reduce native token value available.
@@ -879,8 +825,7 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
         if (nativeTokensRemaining > amount) {
             // Transfer remaining native token to the caller.
             _transferNativeTokens(
-                payable(msg.sender),
-                nativeTokensRemaining - amount
+                payable(msg.sender), nativeTokensRemaining - amount
             );
         }
     }
@@ -920,9 +865,8 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
         // Iterate over each additional recipient.
         for (uint256 i = 0; i < parameters.additionalRecipients.length; ++i) {
             // Retrieve the additional recipient.
-            AdditionalRecipient calldata additionalRecipient = (
-                parameters.additionalRecipients[i]
-            );
+            AdditionalRecipient calldata additionalRecipient =
+                (parameters.additionalRecipients[i]);
 
             // Decrement the amount to transfer to fulfiller if indicated.
             if (fromOfferer) {
@@ -942,12 +886,7 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
 
         // Transfer ERC20 token amount (from account must have proper approval).
         _transferERC20(
-            erc20Token,
-            from,
-            to,
-            amount,
-            conduitKey,
-            accumulatorStruct
+            erc20Token, from, to, amount, conduitKey, accumulatorStruct
         );
     }
 }

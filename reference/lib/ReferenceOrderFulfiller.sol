@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { ItemType, OrderType } from "seaport-types/src/lib/ConsiderationEnums.sol";
+import {
+    ItemType, OrderType
+} from "seaport-types/src/lib/ConsiderationEnums.sol";
 
 import {
     AdvancedOrder,
@@ -20,9 +22,8 @@ import {
     OrderToExecute
 } from "./ReferenceConsiderationStructs.sol";
 
-import {
-    ReferenceBasicOrderFulfiller
-} from "./ReferenceBasicOrderFulfiller.sol";
+import { ReferenceBasicOrderFulfiller } from
+    "./ReferenceBasicOrderFulfiller.sol";
 
 import { ReferenceCriteriaResolution } from "./ReferenceCriteriaResolution.sol";
 
@@ -46,9 +47,9 @@ contract ReferenceOrderFulfiller is
      *                          that may optionally be used to transfer approved
      *                          ERC20/721/1155 tokens.
      */
-    constructor(
-        address conduitController
-    ) ReferenceBasicOrderFulfiller(conduitController) {}
+    constructor(address conduitController)
+        ReferenceBasicOrderFulfiller(conduitController)
+    { }
 
     /**
      * @dev Internal function to validate an order and update its status, adjust
@@ -97,15 +98,12 @@ contract ReferenceOrderFulfiller is
         OrderParameters memory orderParameters = advancedOrder.parameters;
 
         // Perform each item transfer with the appropriate fractional amount.
-        orderToExecute = _applyFractions(
-            orderParameters,
-            fillNumerator,
-            fillDenominator
-        );
+        orderToExecute =
+            _applyFractions(orderParameters, fillNumerator, fillDenominator);
 
         {
             // Declare empty bytes32 array.
-            bytes32[] memory priorOrderHashes = new bytes32[](0);    
+            bytes32[] memory priorOrderHashes = new bytes32[](0);
 
             // Ensure restricted orders have a valid submitter or pass a zone check.
             _assertRestrictedAdvancedOrderAuthorization(
@@ -119,13 +117,10 @@ contract ReferenceOrderFulfiller is
                 orderParameters.zone
             );
         }
- 
+
         // Transfer each item contained in the order.
         _transferEach(
-            orderParameters,
-            orderToExecute,
-            fulfillerConduitKey,
-            recipient
+            orderParameters, orderToExecute, fulfillerConduitKey, recipient
         );
 
         {
@@ -187,9 +182,8 @@ contract ReferenceOrderFulfiller is
         );
 
         // Create the array to store the spent items for event.
-        orderToExecute.spentItems = new SpentItem[](
-            orderParameters.offer.length
-        );
+        orderToExecute.spentItems =
+            new SpentItem[](orderParameters.offer.length);
 
         // Declare a nested scope to minimize stack depth.
         {
@@ -201,8 +195,8 @@ contract ReferenceOrderFulfiller is
                 // Offer items for the native token can not be received outside
                 // of a match order function except as part of a contract order.
                 if (
-                    offerItem.itemType == ItemType.NATIVE &&
-                    orderParameters.orderType != OrderType.CONTRACT
+                    offerItem.itemType == ItemType.NATIVE
+                        && orderParameters.orderType != OrderType.CONTRACT
                 ) {
                     revert InvalidNativeOfferItem();
                 }
@@ -226,18 +220,16 @@ contract ReferenceOrderFulfiller is
         }
 
         // Create the array to store the received items for event.
-        orderToExecute.receivedItems = new ReceivedItem[](
-            orderParameters.consideration.length
-        );
+        orderToExecute.receivedItems =
+            new ReceivedItem[](orderParameters.consideration.length);
 
         // Declare a nested scope to minimize stack depth.
         {
             // Iterate over each consideration on the order.
             for (uint256 i = 0; i < orderParameters.consideration.length; ++i) {
                 // Retrieve the consideration item.
-                ConsiderationItem memory considerationItem = (
-                    orderParameters.consideration[i]
-                );
+                ConsiderationItem memory considerationItem =
+                    (orderParameters.consideration[i]);
 
                 // Apply fraction & derive considerationItem amount to transfer.
                 uint256 amount = _applyFraction(
@@ -316,7 +308,8 @@ contract ReferenceOrderFulfiller is
             // Iterate over each received item on the order.
             for (uint256 i = 0; i < orderToExecute.receivedItems.length; ++i) {
                 // Retrieve the received item.
-                ReceivedItem memory receivedItem = orderToExecute.receivedItems[i];
+                ReceivedItem memory receivedItem =
+                    orderToExecute.receivedItems[i];
 
                 if (receivedItem.itemType == ItemType.NATIVE) {
                     // Ensure that sufficient native tokens are still available.
@@ -353,17 +346,14 @@ contract ReferenceOrderFulfiller is
      *
      * @return advancedOrder The new advanced order.
      */
-    function _convertOrderToAdvanced(
-        Order calldata order
-    ) internal pure returns (AdvancedOrder memory advancedOrder) {
+    function _convertOrderToAdvanced(Order calldata order)
+        internal
+        pure
+        returns (AdvancedOrder memory advancedOrder)
+    {
         // Convert to partial order (1/1 or full fill) and return new value.
-        advancedOrder = AdvancedOrder(
-            order.parameters,
-            1,
-            1,
-            order.signature,
-            ""
-        );
+        advancedOrder =
+            AdvancedOrder(order.parameters, 1, 1, order.signature, "");
     }
 
     /**
@@ -374,9 +364,11 @@ contract ReferenceOrderFulfiller is
      *
      * @return advancedOrders The new array of partial orders.
      */
-    function _convertOrdersToAdvanced(
-        Order[] calldata orders
-    ) internal pure returns (AdvancedOrder[] memory advancedOrders) {
+    function _convertOrdersToAdvanced(Order[] calldata orders)
+        internal
+        pure
+        returns (AdvancedOrder[] memory advancedOrders)
+    {
         // Read the number of orders from calldata and place on the stack.
         uint256 totalOrders = orders.length;
 
