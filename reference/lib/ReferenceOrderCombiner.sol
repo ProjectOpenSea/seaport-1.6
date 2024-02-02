@@ -435,12 +435,16 @@ contract ReferenceOrderCombiner is
                 continue;
             }
 
-            // Update the status.
-            _updateStatus(
+            // Update the status if the order is still valid (or skip it)
+            if (!_updateStatus(
                 orderHashes[i],
                 storedFractions[i].storedNumerator,
-                storedFractions[i].storedDenominator
-            );
+                storedFractions[i].storedDenominator,
+                orderValidationParams.revertOnInvalid
+            )) {
+                orderHashes[i] = bytes32(0);
+                continue;
+            }
 
             // Get the array of spentItems from the orderToExecute struct.
             SpentItem[] memory spentItems = ordersToExecute[i].spentItems;

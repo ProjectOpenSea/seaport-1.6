@@ -131,7 +131,8 @@ contract ReferenceOrderValidator is
         _updateStatus(
             orderValidation.orderHash,
             orderValidation.newNumerator,
-            uint120(orderValidation.newDenominator)
+            uint120(orderValidation.newDenominator),
+            true // Signifies to revert if the order is invalid.
         );
 
         // Return order hash, new numerator and denominator.
@@ -319,10 +320,11 @@ contract ReferenceOrderValidator is
     function _updateStatus(
         bytes32 orderHash,
         uint256 numerator,
-        uint256 denominator
-    ) internal {
+        uint256 denominator,
+        bool revertOnInvalid
+    ) internal returns (bool valid) {
         if (numerator == 0) {
-            return;
+            return false;
         }
 
         // Retrieve the order status using the derived order hash.
@@ -352,8 +354,11 @@ contract ReferenceOrderValidator is
 
             // Once adjusted, if current+supplied numerator exceeds denominator:
             if (filledNumerator + numerator > denominator) {
-                // Revert.
-                revert OrderAlreadyFilled(orderHash);
+                if (revertOnInvalid) {
+                    revert OrderAlreadyFilled(orderHash);
+                } else {
+                    return false;
+                }
             }
 
             // Increment the filled numerator by the new numerator.
@@ -392,6 +397,8 @@ contract ReferenceOrderValidator is
             orderStatus.numerator = uint120(numerator);
             orderStatus.denominator = uint120(denominator);
         }
+
+        return true;
     }
 
     function _callGenerateOrder(
