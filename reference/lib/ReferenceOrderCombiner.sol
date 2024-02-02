@@ -216,18 +216,6 @@ contract ReferenceOrderCombiner is
             // Retrieve the current order.
             AdvancedOrder memory advancedOrder = advancedOrders[i];
 
-            // Determine if max number orders have already been fulfilled.
-            if (orderValidationParams.maximumFulfilled == 0) {
-                // Mark fill fraction as zero as the order will not be used.
-                advancedOrders[i].numerator = 0;
-
-                // Mark fill fraction as zero as the order will not be used.
-                ordersToExecute[i].numerator = 0;
-
-                // Continue iterating through the remaining orders.
-                continue;
-            }
-
             // Validate the order and determine fraction to fill.
             OrderValidation memory orderValidation = _validateOrder(
                 advancedOrder, orderValidationParams.revertOnInvalid
@@ -248,9 +236,6 @@ contract ReferenceOrderCombiner is
 
             // Otherwise, track the order hash in question.
             orderHashes[i] = orderValidation.orderHash;
-
-            // Decrement the number of fulfilled orders.
-            orderValidationParams.maximumFulfilled--;
 
             // Store the numerator and denominator for the order status.
             storedFractions[i] = StoredFractions({
@@ -417,12 +402,20 @@ contract ReferenceOrderCombiner is
                 continue;
             }
 
+            // Determine if max number orders have already been fulfilled.
+            if (orderValidationParams.maximumFulfilled == 0) {
+                orderHashes[i] == bytes32(0);
+
+                // Continue iterating through the remaining orders.
+                continue;
+            }
+
             // Retrieve parameters for the order in question.
             OrderParameters memory orderParameters =
                 (advancedOrders[i].parameters);
 
             // Ensure restricted orders have a valid submitter or pass a zone check.
-            bool valid = _checkRestrictedAdvancedOrderAuthorization(
+            (bool valid, bool checked) = _checkRestrictedAdvancedOrderAuthorization(
                 advancedOrders[i],
                 ordersToExecute[i],
                 _shorten(orderHashes, i),
@@ -435,16 +428,19 @@ contract ReferenceOrderCombiner is
                 continue;
             }
 
-            // Update the status if the order is still valid (or skip it)
+            // Update the status if the order is still valid (or skip it if not checked)
             if (!_updateStatus(
                 orderHashes[i],
                 storedFractions[i].storedNumerator,
                 storedFractions[i].storedDenominator,
-                orderValidationParams.revertOnInvalid
+                orderValidationParams.revertOnInvalid || checked
             )) {
                 orderHashes[i] = bytes32(0);
                 continue;
             }
+
+            // Decrement the number of fulfilled orders.
+            orderValidationParams.maximumFulfilled--;
 
             // Get the array of spentItems from the orderToExecute struct.
             SpentItem[] memory spentItems = ordersToExecute[i].spentItems;

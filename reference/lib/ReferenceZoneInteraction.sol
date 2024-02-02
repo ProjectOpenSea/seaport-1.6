@@ -95,7 +95,7 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
         bytes32[] memory orderHashes,
         bytes32 orderHash,
         bool revertOnInvalid
-    ) internal returns (bool valid) {
+    ) internal returns (bool valid, bool checked) {
         // Order type 2-3 require zone or offerer be caller or zone to approve.
         if (
             (
@@ -122,16 +122,18 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
                 if (selector != ZoneInterface.authorizeOrder.selector) {
                     revert InvalidRestrictedOrder(orderHash);
                 }
+
+                return (true, true);
             } catch {
                 if (revertOnInvalid) {
                     revert InvalidRestrictedOrder(orderHash);
                 }
 
-                return false;
+                return (false, false);
             }
+        } else {
+            return (true, false);
         }
-
-        return true;
     }
 
     function _assertRestrictedAdvancedOrderAuthorization(
