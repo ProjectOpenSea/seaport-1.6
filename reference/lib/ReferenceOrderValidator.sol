@@ -130,7 +130,7 @@ contract ReferenceOrderValidator is
 
         _updateStatus(
             orderValidation.orderHash,
-            orderValidation.storedNumerator,
+            orderValidation.newNumerator,
             uint120(orderValidation.newDenominator)
         );
 
@@ -174,7 +174,7 @@ contract ReferenceOrderValidator is
         ) {
             // Assuming an invalid time and no revert, return zeroed out values.
             return OrderValidation(
-                bytes32(0), 0, 0, 0, _convertAdvancedToOrder(orderParameters, 0)
+                bytes32(0), 0, 0, _convertAdvancedToOrder(orderParameters, 0)
             );
         }
 
@@ -199,7 +199,7 @@ contract ReferenceOrderValidator is
             );
 
             return OrderValidation(
-                orderHash, 0, newNumerator, newDenominator, orderToExecute
+                orderHash, newNumerator, newDenominator, orderToExecute
             );
         }
 
@@ -228,15 +228,14 @@ contract ReferenceOrderValidator is
 
         // Ensure order is fillable and is not cancelled.
         if (
-            ! // Allow partially used orders to be filled.
-            _verifyOrderStatus(
+            // Allow partially used orders to be filled.
+            !_verifyOrderStatus(
                 orderValidation.orderHash, orderStatus, false, revertOnInvalid
             )
         ) {
             // Assuming an invalid order status and no revert, return zero fill.
             return OrderValidation(
                 orderValidation.orderHash,
-                0,
                 0,
                 0,
                 _convertAdvancedToOrder(orderParameters, 0)
@@ -303,14 +302,11 @@ contract ReferenceOrderValidator is
                 uint256 maxOverhead = type(uint256).max - type(uint120).max;
                 ((filledNumerator + maxOverhead) & (denominator + maxOverhead));
             }
-        } else {
-            filledNumerator = numerator;
         }
 
         // Return order hash, new numerator and denominator.
         return OrderValidation(
             orderValidation.orderHash,
-            uint120(filledNumerator),
             uint120(numerator),
             uint120(denominator),
             _convertAdvancedToOrder(orderParameters, uint120(numerator))
@@ -322,21 +318,80 @@ contract ReferenceOrderValidator is
      */
     function _updateStatus(
         bytes32 orderHash,
-        uint120 filledNumerator,
-        uint120 denominator
+        uint256 numerator,
+        uint256 denominator
     ) internal {
-        if (filledNumerator == 0) {
+        if (numerator == 0) {
             return;
         }
 
         // Retrieve the order status using the derived order hash.
         OrderStatus storage orderStatus = _orderStatus[orderHash];
 
-        // Update order status and fill amount, packing struct values.
-        orderStatus.isValidated = true;
-        orderStatus.isCancelled = false;
-        orderStatus.numerator = filledNumerator;
-        orderStatus.denominator = denominator;
+        // Read filled amount as numerator and denominator and put on the stack.
+        uint256 filledNumerator = uint256(orderStatus.numerator);
+        uint256 filledDenominator = uint256(orderStatus.denominator);
+
+        // If order currently has a non-zero denominator it is partially filled.
+        if (filledDenominator != 0) {
+            // If denominator of 1 supplied, fill all remaining amount on order.
+            if (denominator == 1) {
+                // Scale numerator & denominator to match current denominator.
+                numerator = filledDenominator;
+                denominator = filledDenominator;
+            }
+            // Otherwise, if supplied denominator differs from current one...
+            else if (filledDenominator != denominator) {
+                // scale current numerator by the supplied denominator, then...
+                filledNumerator *= denominator;
+
+                // the supplied numerator & denominator by current denominator.
+                numerator *= filledDenominator;
+                denominator *= filledDenominator;
+            }
+
+            // Once adjusted, if current+supplied numerator exceeds denominator:
+            if (filledNumerator + numerator > denominator) {
+                // Revert.
+                revert OrderAlreadyFilled(orderHash);
+            }
+
+            // Increment the filled numerator by the new numerator.
+            filledNumerator += numerator;
+
+            // Ensure fractional amounts are below max uint120.
+            if (
+                filledNumerator > type(uint120).max
+                    || denominator > type(uint120).max
+            ) {
+                // Derive greatest common divisor using euclidean algorithm.
+                uint256 scaleDown = _greatestCommonDivisor(
+                    numerator,
+                    _greatestCommonDivisor(filledNumerator, denominator)
+                );
+
+                // Scale all fractional values down by gcd.
+                numerator = numerator / scaleDown;
+                filledNumerator = filledNumerator / scaleDown;
+                denominator = denominator / scaleDown;
+
+                // Perform the overflow check a second time.
+                uint256 maxOverhead = type(uint256).max - type(uint120).max;
+                ((filledNumerator + maxOverhead) & (denominator + maxOverhead));
+            }
+
+            // Update order status and fill amount, packing struct values.
+            orderStatus.isValidated = true;
+            orderStatus.isCancelled = false;
+            orderStatus.numerator = uint120(filledNumerator);
+            orderStatus.denominator = uint120(denominator);
+        } else {
+            // Update order status and fill amount, packing struct values.
+            orderStatus.isValidated = true;
+            orderStatus.isCancelled = false;
+            orderStatus.numerator = uint120(numerator);
+            orderStatus.denominator = uint120(denominator);
+        }
     }
 
     function _callGenerateOrder(

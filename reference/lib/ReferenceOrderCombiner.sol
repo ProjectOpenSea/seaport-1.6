@@ -254,8 +254,8 @@ contract ReferenceOrderCombiner is
 
             // Store the numerator and denominator for the order status.
             storedFractions[i] = StoredFractions({
-                storedNumerator: orderValidation.storedNumerator,
-                storedDenominator: uint120(orderValidation.newDenominator)
+                storedNumerator: orderValidation.newNumerator,
+                storedDenominator: orderValidation.newDenominator
             });
 
             {

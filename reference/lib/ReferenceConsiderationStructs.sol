@@ -16,13 +16,12 @@ import { ConduitTransfer } from
 // This file should only be used by the Reference Implementation
 
 struct StoredFractions {
-    uint120 storedNumerator;
-    uint120 storedDenominator;
+    uint256 storedNumerator;
+    uint256 storedDenominator;
 }
 
 struct OrderValidation {
     bytes32 orderHash;
-    uint120 storedNumerator;
     uint256 newNumerator;
     uint256 newDenominator;
     OrderToExecute orderToExecute;
