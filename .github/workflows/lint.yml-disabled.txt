@@ -1,0 +1,37 @@
+name: Forge Linting
+
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+env:
+  FOUNDRY_PROFILE: ci
+
+jobs:
+  check:
+    strategy:
+      fail-fast: true
+
+    name: Foundry project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Lint
+        run: |
+          echo "Running forge fmt --check"
+          if ! forge fmt --check; then
+            echo "The linting check failed. You can fix it locally with `forge fmt` and then push, or you can have a GitHub action take care of it for you by commenting '!fix' on the PR."
+            exit 1
+          fi
