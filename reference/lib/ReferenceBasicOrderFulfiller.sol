@@ -345,6 +345,15 @@ contract ReferenceBasicOrderFulfiller is ReferenceOrderValidator {
             offeredItemType
         );
 
+        // Determine whether order is restricted and, if so, that it is valid.
+        _assertRestrictedBasicOrderAuthorization(
+            orderHash,
+            orderType,
+            parameters,
+            offeredItemType,
+            receivedItemType
+        );
+
         // Determine conduitKey argument used by transfer functions.
         bytes32 conduitKey;
         if (
