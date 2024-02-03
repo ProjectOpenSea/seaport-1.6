@@ -415,7 +415,8 @@ contract ReferenceOrderCombiner is
                 (advancedOrders[i].parameters);
 
             // Ensure restricted orders have a valid submitter or pass a zone check.
-            (bool valid, bool checked) = _checkRestrictedAdvancedOrderAuthorization(
+            (bool valid, bool checked) =
+            _checkRestrictedAdvancedOrderAuthorization(
                 advancedOrders[i],
                 ordersToExecute[i],
                 _shorten(orderHashes, i),
@@ -429,12 +430,14 @@ contract ReferenceOrderCombiner is
             }
 
             // Update the status if the order is still valid (or skip it if not checked)
-            if (!_updateStatus(
-                orderHashes[i],
-                storedFractions[i].storedNumerator,
-                storedFractions[i].storedDenominator,
-                orderValidationParams.revertOnInvalid || checked
-            )) {
+            if (
+                !_updateStatus(
+                    orderHashes[i],
+                    storedFractions[i].storedNumerator,
+                    storedFractions[i].storedDenominator,
+                    orderValidationParams.revertOnInvalid || checked
+                )
+            ) {
                 orderHashes[i] = bytes32(0);
                 continue;
             }

@@ -19,7 +19,8 @@ import {
 import {
     AccumulatorStruct,
     FractionData,
-    OrderToExecute
+    OrderToExecute,
+    OrderValidation
 } from "./ReferenceConsiderationStructs.sol";
 
 import { ReferenceBasicOrderFulfiller } from
@@ -84,12 +85,8 @@ contract ReferenceOrderFulfiller is
         address recipient
     ) internal returns (bool) {
         // Validate order, update status, and determine fraction to fill.
-        (
-            bytes32 orderHash,
-            uint256 fillNumerator,
-            uint256 fillDenominator,
-            OrderToExecute memory orderToExecute
-        ) = _validateOrderAndUpdateStatus(advancedOrder, true);
+        OrderValidation memory orderValidation =
+            _validateOrder(advancedOrder, true);
 
         // Apply criteria resolvers using generated orders and details arrays.
         _applyCriteriaResolversAdvanced(advancedOrder, criteriaResolvers);
@@ -98,8 +95,11 @@ contract ReferenceOrderFulfiller is
         OrderParameters memory orderParameters = advancedOrder.parameters;
 
         // Perform each item transfer with the appropriate fractional amount.
-        orderToExecute =
-            _applyFractions(orderParameters, fillNumerator, fillDenominator);
+        orderValidation.orderToExecute = _applyFractions(
+            orderParameters,
+            orderValidation.newNumerator,
+            orderValidation.newDenominator
+        );
 
         {
             // Declare empty bytes32 array.
@@ -108,9 +108,9 @@ contract ReferenceOrderFulfiller is
             // Ensure restricted orders have a valid submitter or pass a zone check.
             _assertRestrictedAdvancedOrderAuthorization(
                 advancedOrder,
-                orderToExecute,
+                orderValidation.orderToExecute,
                 priorOrderHashes,
-                orderHash,
+                orderValidation.orderHash,
                 orderParameters.zoneHash,
                 orderParameters.orderType,
                 orderParameters.offerer,
@@ -118,22 +118,32 @@ contract ReferenceOrderFulfiller is
             );
         }
 
+        _updateStatus(
+            orderValidation.orderHash,
+            orderValidation.newNumerator,
+            orderValidation.newDenominator,
+            true
+        );
+
         // Transfer each item contained in the order.
         _transferEach(
-            orderParameters, orderToExecute, fulfillerConduitKey, recipient
+            orderParameters,
+            orderValidation.orderToExecute,
+            fulfillerConduitKey,
+            recipient
         );
 
         {
             // Declare bytes32 array with this order's hash
             bytes32[] memory priorOrderHashes = new bytes32[](1);
-            priorOrderHashes[0] = orderHash;
+            priorOrderHashes[0] = orderValidation.orderHash;
 
             // Ensure restricted orders have a valid submitter or pass a zone check.
             _assertRestrictedAdvancedOrderValidity(
                 advancedOrder,
-                orderToExecute,
+                orderValidation.orderToExecute,
                 priorOrderHashes,
-                orderHash,
+                orderValidation.orderHash,
                 orderParameters.zoneHash,
                 orderParameters.orderType,
                 orderParameters.offerer,
@@ -143,12 +153,12 @@ contract ReferenceOrderFulfiller is
 
         // Emit an event signifying that the order has been fulfilled.
         emit OrderFulfilled(
-            orderHash,
+            orderValidation.orderHash,
             orderParameters.offerer,
             orderParameters.zone,
             recipient,
-            orderToExecute.spentItems,
-            orderToExecute.receivedItems
+            orderValidation.orderToExecute.spentItems,
+            orderValidation.orderToExecute.receivedItems
         );
 
         return true;
