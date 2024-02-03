@@ -12,6 +12,24 @@ import { ConduitTransfer } from "seaport-types/src/conduit/lib/ConduitStructs.so
 
 // This file should only be used by the Reference Implementation
 
+struct StoredFractions {
+    uint256 storedNumerator;
+    uint256 storedDenominator;
+}
+
+struct OrderValidation {
+    bytes32 orderHash;
+    uint256 newNumerator;
+    uint256 newDenominator;
+    OrderToExecute orderToExecute;
+}
+
+struct OrderValidationParams {
+    bool revertOnInvalid;
+    uint256 maximumFulfilled;
+    address recipient;
+}
+
 /**
  * @dev A struct used to hold Consideration Indexes and Fulfillment validity.
  */
