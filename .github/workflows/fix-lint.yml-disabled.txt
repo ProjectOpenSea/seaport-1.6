@@ -2,7 +2,7 @@ name: Autofix Linting
 
 on:
   issue_comment:
-    types: [created]
+    types: [created, edited]
 
 # Down scope as necessary via https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
 permissions:
@@ -13,12 +13,12 @@ permissions:
 jobs:
   run-linters:
     name: Run linters
-    if: github.event.issue.pull_request && ${{ github.event.comment.body == '!fix' }}
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, !fix') }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: GetBranch
-        id: 'get-branch'
+      - name: Get branch
+        id: "get-branch"
         run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
         env:
           REPO: ${{ github.repository }}
@@ -30,12 +30,11 @@ jobs:
         with:
           ref: ${{ steps.get-branch.outputs.branch }}
 
-
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-      
+
       - name: Lint
         run: |
           forge fmt
