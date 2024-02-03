@@ -31,7 +31,7 @@ jobs:
       - name: Lint
         run: |
           echo "Running forge fmt --check"
-          if ! forge fmt --check; then 
+          if ! forge fmt --check; then
             echo "The linting check failed. You can fix it locally with `forge fmt` and then push, or you can have a GitHub action take care of it for you by commenting '!fix' on the PR."
             exit 1
           fi

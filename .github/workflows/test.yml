@@ -39,23 +39,23 @@ jobs:
       - name: Run tests
         run: FOUNDRY_PROFILE=test forge test -vvv
 
-      - name: Lint
-        run: |
-          forge fmt
-          pwd
-          if [[ `git diff --exit-code` ]]; then
-            git config --local user.name 'GitHub Actions Bot'
-            git config --local user.email '<>'
-            git add .
-            git commit -m "Github Actions automatically updated formatting with forge fmt"
-            COMMIT_HASH=$(git rev-parse HEAD)
-            echo "# Github Actions automatically updated formatting with forge fmt\n$COMMIT_HASH" >> .git-blame-ignore-revs
-            git add .git-blame-ignore-revs
-            git commit -m "Updated .git-blame-ignore-revs with commit $COMMIT_HASH"
-            BRANCH_NAME=$(git symbolic-ref --short HEAD)
-            git push origin $BRANCH_NAME
-          fi
-        id: update
+      # - name: Lint
+      #   run: |
+      #     forge fmt
+      #     pwd
+      #     if [[ `git diff --exit-code` ]]; then
+      #       git config --local user.name 'GitHub Actions Bot'
+      #       git config --local user.email '<>'
+      #       git add .
+      #       git commit -m "Github Actions automatically updated formatting with forge fmt"
+      #       COMMIT_HASH=$(git rev-parse HEAD)
+      #       echo "# Github Actions automatically updated formatting with forge fmt\n$COMMIT_HASH" >> .git-blame-ignore-revs
+      #       git add .git-blame-ignore-revs
+      #       git commit -m "Updated .git-blame-ignore-revs with commit $COMMIT_HASH"
+      #       BRANCH_NAME=$(git symbolic-ref --short HEAD)
+      #       git push origin $BRANCH_NAME
+      #     fi
+      #   id: update
 
   forge-offerers:
     name: Run Contract Offerer Forge Tests (via_ir = false; fuzz_runs = 1000)
