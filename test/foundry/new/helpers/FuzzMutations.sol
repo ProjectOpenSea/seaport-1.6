@@ -276,6 +276,10 @@ library MutationFilters {
             return true;
         }
 
+        // if (context.executionState.orderDetails.length <= 1) {
+        //     return true;
+        // }
+
         return ineligibleWhenUnavailable(context, orderIndex);
     }
 
@@ -1912,7 +1916,7 @@ contract FuzzMutations is Test, FuzzExecutor {
         exec(context);
     }
 
-    function mutation_invalidRestrictedOrderReverts(
+    function mutation_invalidRestrictedOrderAuthorizeReverts(
         FuzzTestContext memory context,
         MutationState memory mutationState
     ) external {
@@ -1922,12 +1926,44 @@ contract FuzzMutations is Test, FuzzExecutor {
         // This mutation triggers a revert by setting a failure reason that gets
         // stored in the HashCalldataContractOfferer.
         HashValidationZoneOfferer(payable(order.parameters.zone))
-            .setFailureReasonForValidateOrder(orderHash, OffererZoneFailureReason.Zone_reverts);
+            .setFailureReasonForAuthorizeOrder(orderHash, OffererZoneFailureReason.Zone_authorizeReverts);
 
         exec(context);
     }
 
-    function mutation_invalidRestrictedOrderInvalidMagicValue(
+    function mutation_invalidRestrictedOrderValidateReverts(
+        FuzzTestContext memory context,
+        MutationState memory mutationState
+    ) external {
+        AdvancedOrder memory order = mutationState.selectedOrder;
+        bytes32 orderHash = mutationState.selectedOrderHash;
+
+        // This mutation triggers a revert by setting a failure reason that gets
+        // stored in the HashCalldataContractOfferer.
+        HashValidationZoneOfferer(payable(order.parameters.zone))
+            .setFailureReasonForValidateOrder(orderHash, OffererZoneFailureReason.Zone_validateReverts);
+
+        exec(context);
+    }
+
+    function mutation_invalidRestrictedOrderAuthorizeInvalidMagicValue(
+        FuzzTestContext memory context,
+        MutationState memory mutationState
+    ) external {
+        AdvancedOrder memory order = mutationState.selectedOrder;
+        bytes32 orderHash = mutationState.selectedOrderHash;
+
+        // This mutation triggers a revert by setting a failure reason that gets
+        // stored in the HashCalldataContractOfferer.
+        HashValidationZoneOfferer(payable(order.parameters.zone))
+            .setFailureReasonForAuthorizeOrder(
+            orderHash, OffererZoneFailureReason.Zone_authorizeInvalidMagicValue
+        );
+
+        exec(context);
+    }
+
+    function mutation_invalidRestrictedOrderValidateInvalidMagicValue(
         FuzzTestContext memory context,
         MutationState memory mutationState
     ) external {
@@ -1938,7 +1974,7 @@ contract FuzzMutations is Test, FuzzExecutor {
         // stored in the HashCalldataContractOfferer.
         HashValidationZoneOfferer(payable(order.parameters.zone))
             .setFailureReasonForValidateOrder(
-            orderHash, OffererZoneFailureReason.Zone_InvalidMagicValue
+            orderHash, OffererZoneFailureReason.Zone_validateInvalidMagicValue
         );
 
         exec(context);

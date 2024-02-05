@@ -56,6 +56,7 @@ contract HashValidationZoneOfferer is
     error IncorrectSeaportBalance(
         uint256 expectedBalance, uint256 actualBalance
     );
+    error HashValidationZoneOffererAuthorizeOrderReverts();
     error HashValidationZoneOffererValidateOrderReverts();
     error HashValidationZoneOffererRatifyOrderReverts();
 
@@ -234,12 +235,28 @@ contract HashValidationZoneOfferer is
         failureReasonsForValidateOrder[orderHash] = newFailureReason;
     }
 
-    function authorizeOrder(ZoneParameters calldata)
+    function authorizeOrder(ZoneParameters calldata zoneParameters)
         public
-        pure
-        returns (bytes4)
+        view
+        returns (bytes4 authorizedOrderMagicValue)
     {
-        return this.authorizeOrder.selector;
+        // Get the orderHash from zoneParameters
+        bytes32 orderHash = zoneParameters.orderHash;
+
+        if (failureReasonsForAuthorizeOrder[orderHash] == OffererZoneFailureReason.Zone_authorizeReverts)
+        {
+            revert HashValidationZoneOffererAuthorizeOrderReverts();
+        }
+
+        if (
+            failureReasonsForAuthorizeOrder[orderHash]
+                == OffererZoneFailureReason.Zone_authorizeInvalidMagicValue
+        ) {
+            authorizedOrderMagicValue = bytes4(0x12345678);
+        } else {
+            // Return the selector of validateOrder as the magic value.
+            authorizedOrderMagicValue = this.authorizeOrder.selector;
+        }
     }
 
     /**
@@ -258,7 +275,7 @@ contract HashValidationZoneOfferer is
         // Get the orderHash from zoneParameters
         bytes32 orderHash = zoneParameters.orderHash;
 
-        if (failureReasonsForValidateOrder[orderHash] == OffererZoneFailureReason.Zone_reverts)
+        if (failureReasonsForValidateOrder[orderHash] == OffererZoneFailureReason.Zone_validateReverts)
         {
             revert HashValidationZoneOffererValidateOrderReverts();
         }
@@ -305,7 +322,7 @@ contract HashValidationZoneOfferer is
 
         if (
             failureReasonsForValidateOrder[orderHash]
-                == OffererZoneFailureReason.Zone_InvalidMagicValue
+                == OffererZoneFailureReason.Zone_validateInvalidMagicValue
         ) {
             validOrderMagicValue = bytes4(0x12345678);
         } else {
