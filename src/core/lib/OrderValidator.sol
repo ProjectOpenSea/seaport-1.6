@@ -84,7 +84,7 @@ contract OrderValidator is Executor, ZoneInteraction {
      * @param signature A signature from the offerer indicating that the order
      *                  has been approved.
      */
-    function _validateBasicOrderAndUpdateStatus(
+    function _validateBasicOrderAndUpdateStatus(               
         bytes32 orderHash,
         bytes calldata signature
     ) internal {
@@ -111,6 +111,8 @@ contract OrderValidator is Executor, ZoneInteraction {
             _verifySignature(offerer, orderHash, signature);
         }
 
+        // TODO: perform authorizeOrder call here
+
         // Update order status as fully filled, packing struct values.
         orderStatus.isValidated = true;
         orderStatus.isCancelled = false;
@@ -135,7 +137,7 @@ contract OrderValidator is Executor, ZoneInteraction {
      *                        will be filled.
      * @return denominator    A value indicating the total size of the order.
      */
-    function _validateOrderAndUpdateStatus(
+    function _validateOrder(
         AdvancedOrder memory advancedOrder,
         bool revertOnInvalid
     )
@@ -385,7 +387,155 @@ contract OrderValidator is Executor, ZoneInteraction {
                 // Exit the "loop" now that all evaluation is complete.
                 break
             }
+        }
+    }
 
+    function _updateStatus(
+        bytes32 orderHash,
+        uint256 numerator,
+        uint256 denominator,
+        bool revertOnInvalid
+    ) internal returns (bool) {
+        // Retrieve the order status using the derived order hash.
+        OrderStatus storage orderStatus = _orderStatus[orderHash];
+
+        bool hasCarryOrNoNumerator = numerator == 0;
+
+        uint256 orderStatusSlot;
+        uint256 filledNumerator;
+
+        // Utilize assembly to determine the fraction to fill and update status.
+        assembly {
+            orderStatusSlot := orderStatus.slot
+            // Read filled amount as numerator and denominator and put on stack.
+            filledNumerator := sload(orderStatusSlot)
+            let filledDenominator :=
+                shr(OrderStatus_filledDenominator_offset, filledNumerator)
+
+            // "Loop" until the appropriate fill fraction has been determined.
+            for { } 1 { } {
+                // If no portion of the order has been filled yet...
+                if iszero(filledDenominator) {
+                    // fill the full supplied fraction.
+                    filledNumerator := numerator
+
+                    // Exit the "loop" early.
+                    break
+                }
+
+                // Shift and mask to calculate the current filled numerator.
+                filledNumerator :=
+                    and(
+                        shr(OrderStatus_filledNumerator_offset, filledNumerator),
+                        MaxUint120
+                    )
+
+                // If denominator of 1 supplied, fill entire remaining amount.
+                if eq(denominator, 1) {
+                    // Set the amount to fill to the remaining amount.
+                    numerator := sub(filledDenominator, filledNumerator)
+
+                    hasCarryOrNoNumerator := iszero(numerator)
+
+                    // Set the fill size to the current size.
+                    denominator := filledDenominator
+
+                    // Set the filled amount to the current size.
+                    filledNumerator := filledDenominator
+
+                    // Exit the "loop" early.
+                    break
+                }
+
+                // If supplied denominator is equal to the current one:
+                if eq(denominator, filledDenominator) {
+                    // Increment the filled numerator by the new numerator.
+                    filledNumerator := add(numerator, filledNumerator)
+
+                    hasCarryOrNoNumerator := gt(filledNumerator, denominator)
+
+                    // Exit the "loop" early.
+                    break
+                }
+
+                // Otherwise, if supplied denominator differs from current one:
+                // Scale the filled amount up by the supplied size.
+                filledNumerator := mul(filledNumerator, denominator)
+
+                // Scale the supplied amount and size up by the current size.
+                numerator := mul(numerator, filledDenominator)
+                denominator := mul(denominator, filledDenominator)
+
+                // Increment the filled numerator by the new numerator.
+                filledNumerator := add(numerator, filledNumerator)
+
+                hasCarryOrNoNumerator := gt(filledNumerator, denominator)
+
+                // Check filledNumerator and denominator for uint120 overflow.
+                if or(
+                    gt(filledNumerator, MaxUint120), gt(denominator, MaxUint120)
+                ) {
+                    // Derive greatest common divisor using euclidean algorithm.
+                    function gcd(_a, _b) -> out {
+                        // "Loop" until only one non-zero value remains.
+                        for { } _b { } {
+                            // Assign the second value to a temporary variable.
+                            let _c := _b
+
+                            // Derive the modulus of the two values.
+                            _b := mod(_a, _c)
+
+                            // Set the first value to the temporary value.
+                            _a := _c
+                        }
+
+                        // Return the remaining non-zero value.
+                        out := _a
+                    }
+
+                    // Determine the amount to scale down the fill fractions.
+                    let scaleDown :=
+                        gcd(numerator, gcd(filledNumerator, denominator))
+
+                    // Ensure that the divisor is at least one.
+                    let safeScaleDown := add(scaleDown, iszero(scaleDown))
+
+                    // Scale all fractional values down by gcd.
+                    numerator := div(numerator, safeScaleDown)
+                    filledNumerator := div(filledNumerator, safeScaleDown)
+                    denominator := div(denominator, safeScaleDown)
+
+                    // Perform the overflow check a second time.
+                    if or(
+                        gt(filledNumerator, MaxUint120),
+                        gt(denominator, MaxUint120)
+                    ) {
+                        // Store the Panic error signature.
+                        mstore(0, Panic_error_selector)
+                        // Store the arithmetic (0x11) panic code.
+                        mstore(Panic_error_code_ptr, Panic_arithmetic)
+
+                        // revert(abi.encodeWithSignature(
+                        //     "Panic(uint256)", 0x11
+                        // ))
+                        revert(Error_selector_offset, Panic_error_length)
+                    }
+                }
+
+                // Exit the "loop" now that all evaluation is complete.
+                break
+            }
+        }
+
+        if (hasCarryOrNoNumerator) {
+            if (revertOnInvalid) {
+                revert OrderAlreadyFilled(orderHash);
+            } else {
+                return false;
+            }
+        }
+
+        assembly {
             // Update order status and fill amount, packing struct values.
             // [denominator: 15 bytes] [numerator: 15 bytes]
             // [isCancelled: 1 byte] [isValidated: 1 byte]
@@ -400,6 +550,8 @@ contract OrderValidator is Executor, ZoneInteraction {
                 )
             )
         }
+
+        return true;
     }
 
     /**

@@ -255,37 +255,24 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                     advancedOrder := mload(add(advancedOrders, i))
                 }
 
-                // Determine if max number orders have already been fulfilled.
-                if (maximumFulfilled == 0) {
-                    // Mark fill fraction as zero as the order will not be used.
-                    advancedOrder.numerator = 0;
-
-                    // Continue iterating through the remaining orders.
-                    continue;
-                }
-
                 // Validate it, update status, and determine fraction to fill.
                 (bytes32 orderHash, uint256 numerator, uint256 denominator) =
-                _validateOrderAndUpdateStatus(advancedOrder, revertOnInvalid);
+                _validateOrder(advancedOrder, revertOnInvalid);
+
+                advancedOrder.numerator = uint120(numerator);
 
                 // Do not track hash or adjust prices if order is not fulfilled.
                 if (numerator == 0) {
-                    // Mark fill fraction as zero if the order is not fulfilled.
-                    advancedOrder.numerator = 0;
-
                     // Continue iterating through the remaining orders.
                     continue;
                 }
+
+                advancedOrder.denominator = uint120(denominator);
 
                 // Otherwise, track the order hash in question.
                 assembly {
                     mstore(add(orderHashes, i), orderHash)
                 }
-
-                // Decrement the number of fulfilled orders.
-                // Skip underflow check as the condition before
-                // implies that maximumFulfilled > 0.
-                --maximumFulfilled;
 
                 // Place the start time for the order on the stack.
                 uint256 startTime = advancedOrder.parameters.startTime;
@@ -480,10 +467,43 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                     continue;
                 }
 
+                // Determine if max number orders have already been fulfilled.
+                if (maximumFulfilled == 0) {
+                    assembly {
+                        mstore(add(orderHashes, i), 0)
+                    }
+
+                    // Continue iterating through the remaining orders.
+                    continue;
+                }
+
                 // Retrieve order using assembly to bypass out-of-range check.
                 assembly {
                     advancedOrder := mload(add(advancedOrders, i))
                 }
+
+                // TODO: perform authorizeOrder call
+
+                // Update order status as long as there is some fraction available.
+                {
+                    if (!_updateStatus(
+                        orderHash,
+                        advancedOrder.numerator,
+                        advancedOrder.denominator,
+                        revertOnInvalid
+                    )) {
+                        assembly {
+                            mstore(add(orderHashes, i), 0)
+                        }
+
+                        continue;
+                    }
+                }
+
+                // Decrement the number of fulfilled orders.
+                // Skip underflow check as the condition before
+                // implies that maximumFulfilled > 0.
+                --maximumFulfilled;
 
                 // Retrieve parameters for the order in question.
                 OrderParameters memory orderParameters =
