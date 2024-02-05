@@ -467,19 +467,21 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                     continue;
                 }
 
+                // Retrieve order using assembly to bypass out-of-range check.
+                assembly {
+                    advancedOrder := mload(add(advancedOrders, i))
+                }
+
                 // Determine if max number orders have already been fulfilled.
                 if (maximumFulfilled == 0) {
                     assembly {
                         mstore(add(orderHashes, i), 0)
                     }
 
+                    advancedOrder.numerator = 0;
+
                     // Continue iterating through the remaining orders.
                     continue;
-                }
-
-                // Retrieve order using assembly to bypass out-of-range check.
-                assembly {
-                    advancedOrder := mload(add(advancedOrders, i))
                 }
 
                 // TODO: perform authorizeOrder call
@@ -495,6 +497,8 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         assembly {
                             mstore(add(orderHashes, i), 0)
                         }
+
+                        advancedOrder.numerator = 0;
 
                         continue;
                     }
