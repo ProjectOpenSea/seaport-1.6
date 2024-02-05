@@ -57,7 +57,10 @@ contract HashCalldataContractOfferer is ContractOffererInterface {
     DropItemMutation[] public dropItemMutations;
     ExtraItemMutation[] public extraItemMutations;
 
-    mapping(bytes32 => OffererZoneFailureReason) public failureReasons;
+    mapping(bytes32 => OffererZoneFailureReason) public
+        failureReasonsForGenerateOrder;
+    mapping(bytes32 => OffererZoneFailureReason) public
+        failureReasonsForRatifyOrder;
 
     address private _SEAPORT;
     address internal _expectedOfferRecipient;
@@ -65,11 +68,32 @@ contract HashCalldataContractOfferer is ContractOffererInterface {
     mapping(bytes32 => bytes32) public orderHashToGenerateOrderDataHash;
     mapping(bytes32 => bytes32) public orderHashToRatifyOrderDataHash;
 
-    function setFailureReason(
+    function setFailureReasonForGenerateOrder(
         bytes32 orderHash,
         OffererZoneFailureReason newFailureReason
     ) external {
-        failureReasons[orderHash] = newFailureReason;
+        failureReasonsForGenerateOrder[orderHash] = newFailureReason;
+    }
+
+    function setFailureReasonForRatifyOrder(
+        bytes32 orderHash,
+        OffererZoneFailureReason newFailureReason
+    ) external {
+        failureReasonsForRatifyOrder[orderHash] = newFailureReason;
+    }
+
+    function setGenerateFailureReason(
+        bytes32 orderHash,
+        OffererZoneFailureReason newFailureReason
+    ) external {
+        failureReasonsForGenerateOrder[orderHash] = newFailureReason;
+    }
+
+    function setRatifyFailureReason(
+        bytes32 orderHash,
+        OffererZoneFailureReason newFailureReason
+    ) external {
+        failureReasonsForRatifyOrder[orderHash] = newFailureReason;
     }
 
     function addItemAmountMutation(
@@ -242,12 +266,12 @@ contract HashCalldataContractOfferer is ContractOffererInterface {
         );
 
         if (
-            failureReasons[orderHash]
+            failureReasonsForGenerateOrder[orderHash]
                 == OffererZoneFailureReason.ContractOfferer_generateReverts
         ) {
             revert HashCalldataContractOffererGenerateOrderReverts();
         } else if (
-            failureReasons[orderHash]
+            failureReasonsForGenerateOrder[orderHash]
                 == OffererZoneFailureReason
                     .ContractOfferer_generateReturnsInvalidEncoding
         ) {
@@ -369,7 +393,7 @@ contract HashCalldataContractOfferer is ContractOffererInterface {
             bytes32(contractNonce ^ (uint256(uint160(address(this))) << 96));
 
         if (
-            failureReasons[orderHash]
+            failureReasonsForRatifyOrder[orderHash]
                 == OffererZoneFailureReason.ContractOfferer_ratifyReverts
         ) {
             revert HashCalldataContractOffererRatifyOrderReverts();
@@ -394,7 +418,7 @@ contract HashCalldataContractOfferer is ContractOffererInterface {
         }
 
         if (
-            failureReasons[orderHash]
+            failureReasonsForRatifyOrder[orderHash]
                 == OffererZoneFailureReason.ContractOfferer_InvalidMagicValue
         ) {
             return bytes4(0x12345678);

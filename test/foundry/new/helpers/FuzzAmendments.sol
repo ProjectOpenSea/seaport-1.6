@@ -348,7 +348,7 @@ abstract contract FuzzAmendments is Test {
                 }
 
                 HashCalldataContractOfferer(payable(orderParams.offerer))
-                    .setFailureReason(
+                    .setFailureReasonForGenerateOrder(
                     orderHash,
                     OffererZoneFailureReason.ContractOfferer_generateReverts
                 );

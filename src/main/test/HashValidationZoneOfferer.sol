@@ -215,13 +215,23 @@ contract HashValidationZoneOfferer is
     bool public called = false;
     uint256 public callCount = 0;
 
-    mapping(bytes32 => OffererZoneFailureReason) public failureReasons;
+    mapping(bytes32 => OffererZoneFailureReason) public
+        failureReasonsForAuthorizeOrder;
+    mapping(bytes32 => OffererZoneFailureReason) public
+        failureReasonsForValidateOrder;
 
-    function setFailureReason(
+    function setFailureReasonForAuthorizeOrder(
         bytes32 orderHash,
         OffererZoneFailureReason newFailureReason
     ) external {
-        failureReasons[orderHash] = newFailureReason;
+        failureReasonsForAuthorizeOrder[orderHash] = newFailureReason;
+    }
+
+        function setFailureReasonForValidateOrder(
+        bytes32 orderHash,
+        OffererZoneFailureReason newFailureReason
+    ) external {
+        failureReasonsForValidateOrder[orderHash] = newFailureReason;
     }
 
     function authorizeOrder(ZoneParameters calldata)
@@ -248,7 +258,7 @@ contract HashValidationZoneOfferer is
         // Get the orderHash from zoneParameters
         bytes32 orderHash = zoneParameters.orderHash;
 
-        if (failureReasons[orderHash] == OffererZoneFailureReason.Zone_reverts)
+        if (failureReasonsForValidateOrder[orderHash] == OffererZoneFailureReason.Zone_reverts)
         {
             revert HashValidationZoneOffererValidateOrderReverts();
         }
@@ -294,7 +304,7 @@ contract HashValidationZoneOfferer is
         callCount++;
 
         if (
-            failureReasons[orderHash]
+            failureReasonsForValidateOrder[orderHash]
                 == OffererZoneFailureReason.Zone_InvalidMagicValue
         ) {
             validOrderMagicValue = bytes4(0x12345678);
