@@ -353,7 +353,7 @@ library FuzzMutationSelectorLib {
         failuresAndFilters[i++] = Failure.InvalidRestrictedOrder_authorizeReverts.and(
             Failure.InvalidRestrictedOrder_authorizeInvalidMagicValue
         ).withOrder(
-            MutationFilters.ineligibleWhenNotAvailableOrNotRestrictedOrder
+            MutationFilters.ineligibleWhenLoneOrNotAvailableOrNotRestricted
         );
 
         failuresAndFilters[i++] = Failure.InvalidRestrictedOrder_validateReverts.and(
@@ -906,7 +906,7 @@ library FailureDetailsLib {
             .selector
             .withOrder(
             "InvalidRestrictedOrder_authorizeReverts",
-            FuzzMutations.mutation_invalidRestrictedOrderValidateReverts.selector
+            FuzzMutations.mutation_invalidRestrictedOrderAuthorizeReverts.selector
         );
 
         failureDetailsArray[i++] = HashValidationZoneOfferer

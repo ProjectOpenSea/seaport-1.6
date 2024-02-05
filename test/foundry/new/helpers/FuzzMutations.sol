@@ -267,6 +267,29 @@ library MutationFilters {
         return ineligibleWhenFulfillAvailable(context);
     }
 
+    // TODO: Revisit this.
+    function ineligibleWhenLoneAvailableOrder(
+        AdvancedOrder memory /* order */,
+        uint256 /* orderIndex */,
+        FuzzTestContext memory context
+    ) internal pure returns (bool) {
+        uint256 availableRestrictedCount;
+
+        for (uint256 i = 0; i < context.executionState.orders.length; ++i) {
+            if (ineligibleWhenUnavailable(context, i)) {
+                continue;
+            } else {
+                availableRestrictedCount += 1;
+            }
+        }
+
+        if (availableRestrictedCount < 2) {
+            return true;
+        }
+
+        return false;
+    }
+
     function ineligibleWhenNotAvailableOrNotRestrictedOrder(
         AdvancedOrder memory order,
         uint256 orderIndex,
@@ -276,9 +299,21 @@ library MutationFilters {
             return true;
         }
 
-        // if (context.executionState.orderDetails.length <= 1) {
-        //     return true;
-        // }
+        return ineligibleWhenUnavailable(context, orderIndex);
+    }
+
+    function ineligibleWhenLoneOrNotAvailableOrNotRestricted(
+        AdvancedOrder memory order,
+        uint256 orderIndex,
+        FuzzTestContext memory context
+    ) internal pure returns (bool) {
+        if (ineligibleWhenLoneAvailableOrder(order, orderIndex, context)) {
+            return true;
+        }
+
+        if (ineligibleWhenNotRestrictedOrder(order)) {
+            return true;
+        }
 
         return ineligibleWhenUnavailable(context, orderIndex);
     }
