@@ -100,9 +100,9 @@ contract ReferenceOrderValidator is
     }
 
     /**
-     * @dev Internal function to validate an order, determine what portion to
-     *      fill, and update its status. The desired fill amount is supplied as
-     *      a fraction, as is the returned amount to fill.
+     * @dev Internal function to validate an order and determine what portion to
+     *      fill. The desired fill amount is supplied as a fraction, as is the
+     *      returned amount to fill.
      *
      * @param advancedOrder   The order to fulfill as well as the fraction to
      *                        fill. Note that all offer and consideration
@@ -111,7 +111,8 @@ contract ReferenceOrderValidator is
      * @param revertOnInvalid A boolean indicating whether to revert if the
      *                        order is invalid due to the time or order status.
      *
-     * @return orderValidation The order validation details.
+     * @return orderValidation The order validation details, including the fill
+     *                         amount.
      */
     function _validateOrder(
         AdvancedOrder memory advancedOrder,
@@ -273,6 +274,13 @@ contract ReferenceOrderValidator is
 
     /**
      * @dev Internal function to update an order's status.
+     *
+     * @param orderHash       The hash of the order.
+     * @param numerator       The numerator of the fraction to fill.
+     * @param denominator     The denominator of the fraction to fill.
+     * @param revertOnInvalid Whether to revert on invalid input.
+     *
+     * @return valid A boolean indicating whether the order is valid.
      */
     function _updateStatus(
         bytes32 orderHash,
@@ -284,7 +292,7 @@ contract ReferenceOrderValidator is
             return false;
         }
 
-        // Retrieve the order status using the derived order hash.
+        // Retrieve the order status using the provided order hash.
         OrderStatus storage orderStatus = _orderStatus[orderHash];
 
         // Read filled amount as numerator and denominator and put on the stack.
@@ -309,8 +317,11 @@ contract ReferenceOrderValidator is
                 denominator *= filledDenominator;
             }
 
-            // Once adjusted, if current+supplied numerator exceeds denominator:
+            // Once adjusted, if current+supplied numerator exceeds
+            // denominator...
             if (filledNumerator + numerator > denominator) {
+                // Revert or return false, which indicates that the order is
+                // invalid.
                 if (revertOnInvalid) {
                     revert OrderAlreadyFilled(orderHash);
                 } else {
@@ -348,7 +359,9 @@ contract ReferenceOrderValidator is
             orderStatus.numerator = uint120(filledNumerator);
             orderStatus.denominator = uint120(denominator);
         } else {
-            // Update order status and fill amount, packing struct values.
+            // If the order currently has a zero denominator, it is not
+            // partially filled. Update the order status and fill amount,
+            // packing struct values.
             orderStatus.isValidated = true;
             orderStatus.isCancelled = false;
             orderStatus.numerator = uint120(numerator);

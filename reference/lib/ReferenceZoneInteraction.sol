@@ -50,7 +50,7 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
                 receivedItemType
             );
 
-        // Order type 2-3 require zone or offerer be caller or zone to approve.
+        // Order types 2-3 require zone or offerer be caller or zone to approve.
         // Note that in cases where fulfiller == zone, the restricted order
         // validation will be skipped.
         if (
@@ -112,7 +112,7 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
                 receivedItemType
             );
 
-        // Order type 2-3 require zone or offerer be caller or zone to approve.
+        // Order types 2-3 require zone or offerer be caller or zone to approve.
         // Note that in cases where fulfiller == zone, the restricted order
         // validation will be skipped.
         if (
@@ -142,14 +142,34 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
         }
     }
 
+    /**
+     * @dev Internal function to check if a restricted advanced order is
+     *      authorized by its zone or offerer, in cases where the caller is not
+     *      the zone or offerer.
+     *
+     * @param advancedOrder        The advanced order in question.
+     * @param orderToExecute       The order to execute.
+     * @param orderHashes          The order hashes of each order supplied
+     *                             alongside the current order as part of a
+                                   "match" or "fulfill available" variety of
+                                   order fulfillment.
+     * @param orderHash            The hash of the order to execute.
+     * @param revertOnUnauthorized A boolean indicating whether the function
+     *                             should revert if the order is invalid.
+     *
+     * @return authorized          A boolean indicating whether the order is
+     *                             authorized by the zone or offerer.
+     * @return checked             A boolean indicating whether the order has
+     *                             been checked for authorization.
+     */
     function _checkRestrictedAdvancedOrderAuthorization(
         AdvancedOrder memory advancedOrder,
         OrderToExecute memory orderToExecute,
         bytes32[] memory orderHashes,
         bytes32 orderHash,
-        bool revertOnInvalid
-    ) internal returns (bool valid, bool checked) {
-        // Order type 2-3 require zone or offerer be caller or zone to approve.
+        bool revertOnUnauthorized
+    ) internal returns (bool authorized, bool checked) {
+        // Order types 2-3 require zone or offerer be caller or zone to approve.
         if (
             (
                 advancedOrder.parameters.orderType == OrderType.FULL_RESTRICTED
@@ -178,7 +198,7 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
 
                 return (true, true);
             } catch {
-                if (revertOnInvalid) {
+                if (revertOnUnauthorized) {
                     revert InvalidRestrictedOrder(orderHash);
                 }
 
@@ -189,6 +209,23 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
         }
     }
 
+    /**
+     * @dev Internal function to validate that a restricted advanced order is
+     *      authorized by its zone or offerer, in cases where the caller is not
+     *      the zone or offerer.
+     *
+     * @param advancedOrder        The advanced order in question.
+     * @param orderToExecute       The order to execute.
+     * @param orderHashes          The order hashes of each order supplied
+     *                             alongside the current order as part of a
+                                   "match" or "fulfill available" variety of
+                                   order fulfillment.
+     * @param orderHash            The hash of the order to execute.
+     * @param zoneHash             The hash to provide upon calling the zone.
+     * @param orderType            The type of the order.
+     * @param offerer              The offerer in question.
+     * @param zone                 The zone in question.
+     */
     function _assertRestrictedAdvancedOrderAuthorization(
         AdvancedOrder memory advancedOrder,
         OrderToExecute memory orderToExecute,
@@ -199,7 +236,7 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
         address offerer,
         address zone
     ) internal {
-        // Order type 2-3 require zone or offerer be caller or zone to approve.
+        // Order types 2-3 require zone or offerer be caller or zone to approve.
         if (
             (
                 orderType == OrderType.FULL_RESTRICTED
@@ -253,7 +290,7 @@ contract ReferenceZoneInteraction is ZoneInteractionErrors {
         address offerer,
         address zone
     ) internal {
-        // Order type 2-3 require zone or offerer be caller or zone to approve.
+        // Order types 2-3 require zone or offerer be caller or zone to approve.
         if (
             (orderType == OrderType.FULL_RESTRICTED ||
                 orderType == OrderType.PARTIAL_RESTRICTED) && msg.sender != zone
