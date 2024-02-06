@@ -123,7 +123,15 @@ contract OrderFulfiller is
 
         // TODO: perform authorizeOrder call here
 
-        _updateStatus(orderHash, fillNumerator, fillDenominator, true);
+        if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
+            _updateStatus(orderHash, fillNumerator, fillDenominator, true);
+        } else {
+            // Return the generated order based on the order params and the
+            // provided extra data.
+            orderHash = _getGeneratedOrder(
+                orderParameters, advancedOrder.extraData, true
+            );
+        }
 
         _transferEach(orderParameters, fulfillerConduitKey);
 

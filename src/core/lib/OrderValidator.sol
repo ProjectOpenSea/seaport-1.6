@@ -194,11 +194,8 @@ contract OrderValidator is Executor, ZoneInteraction {
                 _revertBadFraction();
             }
 
-            // Return the generated order based on the order params and the
-            // provided extra data. If revertOnInvalid is true, the function
-            // will revert if the input is invalid.
-            return _getGeneratedOrder(
-                orderParameters, advancedOrder.extraData, revertOnInvalid
+            return (
+                bytes32(uint256(1)), 1, 1
             );
         }
 
@@ -658,8 +655,6 @@ contract OrderValidator is Executor, ZoneInteraction {
      * @param revertOnInvalid Whether to revert on invalid input.
      *
      * @return orderHash   The order hash.
-     * @return numerator   The numerator.
-     * @return denominator The denominator.
      */
     function _getGeneratedOrder(
         OrderParameters memory orderParameters,
@@ -667,7 +662,7 @@ contract OrderValidator is Executor, ZoneInteraction {
         bool revertOnInvalid
     )
         internal
-        returns (bytes32 orderHash, uint256 numerator, uint256 denominator)
+        returns (bytes32 orderHash)
     {
         // Ensure that consideration array length is equal to the total original
         // consideration items value.
@@ -692,7 +687,7 @@ contract OrderValidator is Executor, ZoneInteraction {
                 uint256 contractNonce;
                 unchecked {
                     // Note: nonce will be incremented even for skipped orders,
-                    // and  even if generateOrder's return data does not satisfy
+                    // and even if generateOrder's return data does not satisfy
                     // all the constraints. This is the case when errorBuffer
                     // != 0 and revertOnInvalid == false.
                     contractNonce = _contractNonces[offerer]++;
@@ -812,8 +807,8 @@ contract OrderValidator is Executor, ZoneInteraction {
             _revertInvalidContractOrder(orderHash);
         }
 
-        // Return order hash and full fill amount (numerator & denominator = 1).
-        return (orderHash, 1, 1);
+        // Return the order hash.
+        return orderHash;
     }
 
     /**
@@ -1039,8 +1034,6 @@ contract OrderValidator is Executor, ZoneInteraction {
      * @param contractOrderHash The contract order hash.
      *
      * @return orderHash   The order hash.
-     * @return numerator   The numerator.
-     * @return denominator The denominator.
      */
     function _revertOrReturnEmpty(
         bool revertOnInvalid,
@@ -1048,13 +1041,13 @@ contract OrderValidator is Executor, ZoneInteraction {
     )
         internal
         pure
-        returns (bytes32 orderHash, uint256 numerator, uint256 denominator)
+        returns (bytes32 orderHash)
     {
         if (revertOnInvalid) {
             _revertInvalidContractOrder(contractOrderHash);
         }
 
-        return (contractOrderHash, 0, 0);
+        return contractOrderHash;
     }
 
     /**

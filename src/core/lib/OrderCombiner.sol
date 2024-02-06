@@ -484,10 +484,10 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                     continue;
                 }
 
-                // TODO: perform authorizeOrder call
-
                 // Update order status as long as there is some fraction available.
-                {
+                if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
+                    // TODO: perform authorizeOrder call
+
                     if (!_updateStatus(
                         orderHash,
                         advancedOrder.numerator,
@@ -498,6 +498,23 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                             mstore(add(orderHashes, i), 0)
                         }
 
+                        advancedOrder.numerator = 0;
+
+                        continue;
+                    }
+                } else {
+                    // Return the generated order based on the order params and the
+                    // provided extra data. If revertOnInvalid is true, the function
+                    // will revert if the input is invalid.
+                    orderHash = _getGeneratedOrder(
+                        advancedOrder.parameters, advancedOrder.extraData, revertOnInvalid
+                    );
+
+                    assembly {
+                        mstore(add(orderHashes, i), orderHash)
+                    }
+
+                    if (orderHash == bytes32(0)) {
                         advancedOrder.numerator = 0;
 
                         continue;
