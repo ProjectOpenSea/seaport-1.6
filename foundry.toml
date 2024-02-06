@@ -45,7 +45,7 @@ src = 'reference'
 out = 'reference-out'
 script = 'reference'
 # specify something so it doesn't try to compile the files in test/foundry
-test = 'reference'
+test = 'test/foundry'
 
 [profile.optimized]
 src = 'src'
