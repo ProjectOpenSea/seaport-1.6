@@ -87,7 +87,7 @@ contract ReferenceOrderFulfiller is
         bytes32 fulfillerConduitKey,
         address recipient
     ) internal returns (bool) {
-        // Validate order, update status, and determine fraction to fill.
+        // Validate the order and revert if it's invalid.
         OrderValidation memory orderValidation = _validateOrder(
             advancedOrder, true
         );
@@ -122,6 +122,8 @@ contract ReferenceOrderFulfiller is
             );
         }
 
+        // Update the order status to reflect the new numerator and denominator.
+        // Revert if the order is not valid.
         _updateStatus(
             orderValidation.orderHash,
             orderValidation.newNumerator,
