@@ -139,7 +139,7 @@ contract ReferenceOrderFulfiller is
             recipient
         );
 
-        {
+        if (orderParameters.orderType != OrderType.CONTRACT) {
             // Declare bytes32 array with this order's hash
             bytes32[] memory priorOrderHashes = new bytes32[](1);
             priorOrderHashes[0] = orderValidation.orderHash;
@@ -155,6 +155,15 @@ contract ReferenceOrderFulfiller is
                 orderParameters.offerer,
                 orderParameters.zone
             );
+        } else {
+            (bytes32 orderHash, OrderToExecute memory orderToExecute) = _getGeneratedOrder(
+                advancedOrder.parameters,
+                advancedOrder.extraData,
+                true
+            );
+
+            orderValidation.orderHash = orderHash;
+            orderValidation.orderToExecute = orderToExecute;
         }
 
         // Emit an event signifying that the order has been fulfilled.
