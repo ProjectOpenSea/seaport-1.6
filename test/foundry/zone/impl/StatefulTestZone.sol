@@ -2,8 +2,8 @@
 pragma solidity ^0.8.17;
 
 import {
-    ZoneParameters,
-    Schema
+    Schema,
+    ZoneParameters
 } from "seaport-types/src/lib/ConsiderationStructs.sol";
 
 import { ItemType } from "seaport-types/src/lib/ConsiderationEnums.sol";

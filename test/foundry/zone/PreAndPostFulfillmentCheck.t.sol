@@ -3,8 +3,6 @@ pragma solidity ^0.8.17;
 
 import { BaseOrderTest } from "../utils/BaseOrderTest.sol";
 
-import { TestZone } from "./impl/TestZone.sol";
-
 import { TestTransferValidationZoneOfferer } from
     "seaport/test/TestTransferValidationZoneOfferer.sol";
 
@@ -32,7 +30,6 @@ import { ConsiderationInterface } from
     "seaport-types/src/interfaces/ConsiderationInterface.sol";
 
 contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
-    TestZone zone = new TestZone();
     StatefulTestZone statefulZone =
         new StatefulTestZone(50);
 
@@ -40,11 +37,6 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
         ConsiderationInterface consideration;
         uint8 numOriginalAdditional;
         uint8 numTips;
-    }
-
-    struct EthConsideration {
-        address payable recipient;
-        uint256 amount;
     }
 
     function test(function(Context memory) external fn, Context memory context)
@@ -63,7 +55,7 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
         referenceConduitController.updateChannel(
             address(referenceConduit), address(this), true
         );
-        vm.label(address(zone), "TestZone");
+        vm.label(address(statefulZone), "TestZone");
     }
 
     function testAscendingAmount() public {
