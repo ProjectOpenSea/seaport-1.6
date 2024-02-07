@@ -146,17 +146,8 @@ contract ReferenceOrderValidator is
                 revert BadFraction();
             }
 
-            (
-                bytes32 orderHash,
-                uint256 newNumerator,
-                uint256 newDenominator,
-                OrderToExecute memory orderToExecute
-            ) = _getGeneratedOrder(
-                orderParameters, advancedOrder.extraData, revertOnInvalid
-            );
-
             return OrderValidation(
-                orderHash, newNumerator, newDenominator, orderToExecute
+                bytes32(uint256(1)), 1, 1, _convertAdvancedToOrder(orderParameters, 1)
             );
         }
 
@@ -405,8 +396,6 @@ contract ReferenceOrderValidator is
      * @param revertOnInvalid Whether to revert on invalid input.
      *
      * @return orderHash   The order hash.
-     * @return numerator   The numerator.
-     * @return denominator The denominator.
      */
     function _getGeneratedOrder(
         OrderParameters memory orderParameters,
@@ -416,8 +405,6 @@ contract ReferenceOrderValidator is
         internal
         returns (
             bytes32 orderHash,
-            uint256 numerator,
-            uint256 denominator,
             OrderToExecute memory orderToExecute
         )
     {
@@ -712,7 +699,7 @@ contract ReferenceOrderValidator is
         }
 
         // Return the order hash, the numerator, and the denominator.
-        return (orderHash, 1, 1, orderToExecute);
+        return (orderHash, orderToExecute);
     }
 
     /**
@@ -913,8 +900,6 @@ contract ReferenceOrderValidator is
      * @param contractOrderHash The contract order hash.
      *
      * @return orderHash   The order hash.
-     * @return numerator   The numerator.
-     * @return denominator The denominator.
      */
     function _revertOrReturnEmpty(
         bool revertOnInvalid,
@@ -924,16 +909,14 @@ contract ReferenceOrderValidator is
         pure
         returns (
             bytes32 orderHash,
-            uint256 numerator,
-            uint256 denominator,
             OrderToExecute memory emptyOrder
         )
     {
         // If invalid input should not revert...
         if (!revertOnInvalid) {
-            // Return the contract order hash and zero values for the numerator
+            // Return no contract order hash and zero values for the numerator
             // and denominator.
-            return (contractOrderHash, 0, 0, emptyOrder);
+            return (bytes32(0), emptyOrder);
         }
 
         // Otherwise, revert.
