@@ -510,6 +510,61 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         advancedOrder.parameters, advancedOrder.extraData, revertOnInvalid
                     );
 
+                    ////// TEMP TEMP TEMP — instead we should copy these encoded values
+                    // right from the returndata of generateOrder or something similar.
+
+                    // Iterate over each offer item on the order.
+                    for (uint256 j = 0; j < advancedOrder.parameters.offer.length; ++j) {
+                        // Retrieve the offer item.
+                        OfferItem memory offerItem = advancedOrder.parameters.offer[j];
+
+                        // Update amounts in memory to match the current amount.
+                        // Note that the end amount is used to track spent amounts.
+                        offerItem.endAmount = offerItem.startAmount;
+                    }
+
+                    // Iterate over each consideration item on the order.
+                    for (uint256 j = 0; j < advancedOrder.parameters.consideration.length; ++j) {
+                        // Retrieve the consideration item.
+                        ConsiderationItem memory considerationItem =
+                            (advancedOrder.parameters.consideration[j]);
+
+                        uint256 currentAmount = considerationItem.startAmount;
+
+                        // Utilize assembly to manually "shift" the recipient value,
+                        // then to copy the start amount to the recipient.
+                        // Note that this sets up the memory layout that is
+                        // subsequently relied upon by
+                        // _aggregateValidFulfillmentConsiderationItems.
+                        assembly {
+                            // Derive the pointer to the recipient using the item
+                            // pointer along with the offset to the recipient.
+                            let considerationItemRecipientPtr :=
+                                add(
+                                    considerationItem,
+                                    ConsiderationItem_recipient_offset // recipient
+                                )
+
+                            // Write recipient to endAmount, as endAmount is not
+                            // used from this point on and can be repurposed to fit
+                            // the layout of a ReceivedItem.
+                            mstore(
+                                add(
+                                    considerationItem,
+                                    ReceivedItem_recipient_offset // old endAmount
+                                ),
+                                mload(considerationItemRecipientPtr)
+                            )
+
+                            // Write startAmount to recipient, as recipient is not
+                            // used from this point on and can be repurposed to
+                            // track received amounts.
+                            mstore(considerationItemRecipientPtr, currentAmount)
+                        }
+                    }
+
+                    ////// END TEMP TEMP TEMP
+
                     assembly {
                         mstore(add(orderHashes, i), orderHash)
                     }

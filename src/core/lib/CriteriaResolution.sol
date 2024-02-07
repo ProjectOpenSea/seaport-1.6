@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import { ItemType, Side } from "seaport-types/src/lib/ConsiderationEnums.sol";
+import {
+    ItemType,
+    OrderType,
+    Side
+} from "seaport-types/src/lib/ConsiderationEnums.sol";
 
 import {
     AdvancedOrder,
@@ -172,6 +176,13 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                 // Retrieve the parameters for the order.
                 OrderParameters memory orderParameters =
                     (advancedOrder.parameters);
+
+                // Skip verification that all criteria have been resolved
+                // for contract orders, as they will be checked as part
+                // of order generation.
+                if (orderParameters.orderType == OrderType.CONTRACT) {
+                    continue;
+                }
 
                 // Read consideration length from memory and place on stack.
                 uint256 totalItems = orderParameters.consideration.length;

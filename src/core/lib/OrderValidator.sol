@@ -40,7 +40,8 @@ import {
     MaxUint120,
     OrderStatus_filledDenominator_offset,
     OrderStatus_filledNumerator_offset,
-    OrderStatus_ValidatedAndNotCancelled
+    OrderStatus_ValidatedAndNotCancelled,
+    ReceivedItem_recipient_offset
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
 import {
@@ -574,15 +575,18 @@ contract OrderValidator is Executor, ZoneInteraction {
             let itemType := mload(originalItem)
             let identifier := mload(add(originalItem, Common_identifier_offset))
 
-            // Set returned identifier for criteria-based items w/ criteria = 0.
-            if and(gt(itemType, 3), iszero(identifier)) {
+            // Set returned identifier for criteria-based items w/ criteria = 0
+            // (and revert if criteria != 0).
+            if gt(itemType, 3) {
+                if identifier {
+                    // TODO: replace with an "unresolved criteria" error?
+                    revert(0, 0)
+                }
+
                 // replace item type
                 itemType := sub(3, eq(itemType, 4))
                 identifier := mload(add(newItem, Common_identifier_offset))
             }
-
-            let originalAmount := mload(add(originalItem, Common_amount_offset))
-            let newAmount := mload(add(newItem, Common_amount_offset))
 
             isInvalid :=
                 iszero(
@@ -596,18 +600,12 @@ contract OrderValidator is Executor, ZoneInteraction {
                             ),
                             eq(itemType, mload(newItem))
                         ),
-                        // originalItem.identifier == newItem.identifier &&
-                        // originalItem.startAmount == originalItem.endAmount
-                        and(
-                            eq(
-                                identifier,
-                                mload(add(newItem, Common_identifier_offset))
-                            ),
-                            eq(
-                                originalAmount,
-                                mload(add(originalItem, Common_endAmount_offset))
-                            )
+                        // originalItem.identifier == newItem.identifier
+                        eq(
+                            identifier,
+                            mload(add(newItem, Common_identifier_offset))
                         )
+
                     )
                 )
         }
@@ -787,7 +785,7 @@ contract OrderValidator is Executor, ZoneInteraction {
                         > mPtrOriginal.offset(Common_amount_offset).readUint256()
                 ) | _compareItems(mPtrOriginal, mPtrNew)
                     | _checkRecipients(
-                        mPtrOriginal.offset(ConsiderItem_recipient_offset)
+                        mPtrOriginal.offset(ReceivedItem_recipient_offset)
                             .readAddress(),
                         mPtrNew.offset(ConsiderItem_recipient_offset).readAddress()
                     );
