@@ -416,6 +416,7 @@ contract ReferenceOrderCombiner is
             // Determine if max number orders have already been fulfilled.
             if (orderValidationParams.maximumFulfilled == 0) {
                 orderHashes[i] = bytes32(0);
+                ordersToExecute[i].numerator = 0;
 
                 // Continue iterating through the remaining orders.
                 continue;
@@ -429,7 +430,7 @@ contract ReferenceOrderCombiner is
             // Ensure restricted orders have valid submitter or pass zone check.
             (
                 bool valid,
-                bool checked
+                /* bool checked */
             ) = _checkRestrictedAdvancedOrderAuthorization(
                 advancedOrders[i],
                 ordersToExecute[i],
