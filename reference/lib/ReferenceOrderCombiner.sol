@@ -403,7 +403,7 @@ contract ReferenceOrderCombiner is
         }
 
         // Apply criteria resolvers to each order as applicable.
-        _applyCriteriaResolvers(ordersToExecute, criteriaResolvers);
+        _applyCriteriaResolvers(advancedOrders, ordersToExecute, criteriaResolvers);
 
         // Emit an event for each order signifying that it has been fulfilled.
         // Iterate over each order.

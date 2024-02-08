@@ -143,6 +143,7 @@ contract OrderValidator is Executor, ZoneInteraction {
         bool revertOnInvalid
     )
         internal
+        view
         returns (bytes32 orderHash, uint256 numerator, uint256 denominator)
     {
         // Retrieve the parameters for the order.

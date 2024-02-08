@@ -117,7 +117,7 @@ contract ReferenceOrderValidator is
     function _validateOrder(
         AdvancedOrder memory advancedOrder,
         bool revertOnInvalid
-    ) internal returns (OrderValidation memory orderValidation) {
+    ) internal view returns (OrderValidation memory orderValidation) {
         // Retrieve the parameters for the order.
         OrderParameters memory orderParameters = advancedOrder.parameters;
 
@@ -540,9 +540,13 @@ contract ReferenceOrderValidator is
                 // fulfiller can pick which identifier to receive by providing a
                 // CriteriaResolver.
                 if (
-                    uint256(originalOffer.itemType) > 3 &&
-                    originalOffer.identifierOrCriteria == 0
+                    uint256(originalOffer.itemType) > 3
                 ) {
+                    if (newOffer.identifier != 0) {
+                        // TODO: better error message
+                        revert("");
+                    }
+
                     originalOffer.itemType = ItemType(
                         uint256(originalOffer.itemType) - 2
                     );
@@ -551,7 +555,6 @@ contract ReferenceOrderValidator is
 
                 // Ensure the original and generated items are compatible.
                 if (
-                    originalOffer.startAmount != originalOffer.endAmount ||
                     originalOffer.endAmount > newOffer.amount ||
                     originalOffer.itemType != newOffer.itemType ||
                     originalOffer.token != newOffer.token ||
@@ -621,8 +624,6 @@ contract ReferenceOrderValidator is
                 // for the amount (which may be reduced by the contract offerer)
                 // and the recipient if some non-zero address has been provided.
                 if (
-                    originalConsideration.startAmount !=
-                    originalConsideration.endAmount ||
                     newConsideration.amount > originalConsideration.endAmount ||
                     originalConsideration.itemType !=
                     newConsideration.itemType ||
