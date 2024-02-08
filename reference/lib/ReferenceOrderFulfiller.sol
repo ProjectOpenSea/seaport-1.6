@@ -105,10 +105,10 @@ contract ReferenceOrderFulfiller is
             orderValidation.newDenominator
         );
 
-        if (orderParameters.orderType != OrderType.CONTRACT) {
-            // Declare empty bytes32 array.
-            bytes32[] memory priorOrderHashes = new bytes32[](0);
+        // Declare empty bytes32 array.
+        bytes32[] memory priorOrderHashes = new bytes32[](0);
 
+        if (orderParameters.orderType != OrderType.CONTRACT) {
             // Ensure restricted orders have valid submitter or pass zone check.
             _assertRestrictedAdvancedOrderAuthorization(
                 advancedOrder,
@@ -149,7 +149,7 @@ contract ReferenceOrderFulfiller is
         );
 
         // Declare bytes32 array with this order's hash
-        bytes32[] memory priorOrderHashes = new bytes32[](1);
+        priorOrderHashes = new bytes32[](1);
         priorOrderHashes[0] = orderValidation.orderHash;
 
         // Ensure restricted orders have valid submitter or pass zone check.
