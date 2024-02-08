@@ -105,7 +105,7 @@ contract ReferenceOrderFulfiller is
             orderValidation.newDenominator
         );
 
-        {
+        if (orderParameters.orderType != OrderType.CONTRACT) {
             // Declare empty bytes32 array.
             bytes32[] memory priorOrderHashes = new bytes32[](0);
 
@@ -120,40 +120,14 @@ contract ReferenceOrderFulfiller is
                 orderParameters.offerer,
                 orderParameters.zone
             );
-        }
 
-        // Update the order status to reflect the new numerator and denominator.
-        // Revert if the order is not valid.
-        _updateStatus(
-            orderValidation.orderHash,
-            orderValidation.newNumerator,
-            orderValidation.newDenominator,
-            true
-        );
-
-        // Transfer each item contained in the order.
-        _transferEach(
-            orderParameters,
-            orderValidation.orderToExecute,
-            fulfillerConduitKey,
-            recipient
-        );
-
-        if (orderParameters.orderType != OrderType.CONTRACT) {
-            // Declare bytes32 array with this order's hash
-            bytes32[] memory priorOrderHashes = new bytes32[](1);
-            priorOrderHashes[0] = orderValidation.orderHash;
-
-            // Ensure restricted orders have valid submitter or pass zone check.
-            _assertRestrictedAdvancedOrderValidity(
-                advancedOrder,
-                orderValidation.orderToExecute,
-                priorOrderHashes,
+            // Update the order status to reflect the new numerator and denominator.
+            // Revert if the order is not valid.
+            _updateStatus(
                 orderValidation.orderHash,
-                orderParameters.zoneHash,
-                orderParameters.orderType,
-                orderParameters.offerer,
-                orderParameters.zone
+                orderValidation.newNumerator,
+                orderValidation.newDenominator,
+                true
             );
         } else {
             (bytes32 orderHash, OrderToExecute memory orderToExecute) = _getGeneratedOrder(
@@ -165,6 +139,30 @@ contract ReferenceOrderFulfiller is
             orderValidation.orderHash = orderHash;
             orderValidation.orderToExecute = orderToExecute;
         }
+
+        // Transfer each item contained in the order.
+        _transferEach(
+            orderParameters,
+            orderValidation.orderToExecute,
+            fulfillerConduitKey,
+            recipient
+        );
+
+        // Declare bytes32 array with this order's hash
+        bytes32[] memory priorOrderHashes = new bytes32[](1);
+        priorOrderHashes[0] = orderValidation.orderHash;
+
+        // Ensure restricted orders have valid submitter or pass zone check.
+        _assertRestrictedAdvancedOrderValidity(
+            advancedOrder,
+            orderValidation.orderToExecute,
+            priorOrderHashes,
+            orderValidation.orderHash,
+            orderParameters.zoneHash,
+            orderParameters.orderType,
+            orderParameters.offerer,
+            orderParameters.zone
+        );
 
         // Emit an event signifying that the order has been fulfilled.
         emit OrderFulfilled(
