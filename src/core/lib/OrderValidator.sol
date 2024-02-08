@@ -1046,7 +1046,7 @@ contract OrderValidator is Executor, ZoneInteraction {
             _revertInvalidContractOrder(contractOrderHash);
         }
 
-        return contractOrderHash;
+        return bytes32(0);
     }
 
     /**
