@@ -737,6 +737,15 @@ library MutationFilters {
             return true;
         }
 
+        // The target failure can't be triggered if the criteria resolver is
+        // referring to a collection-level criteria item on a contract order.
+        if (
+            context.executionState.orders[criteriaResolver.orderIndex].parameters.orderType == OrderType.CONTRACT &&
+            context.executionState.orders[criteriaResolver.orderIndex].parameters.offer[criteriaResolver.index].identifierOrCriteria == 0
+        ) {
+            return true;
+        }
+
         return false;
     }
 
@@ -760,6 +769,15 @@ library MutationFilters {
         // This one handles the consideration side.  The previous one handles
         // the offer side.
         if (criteriaResolver.side != Side.CONSIDERATION) {
+            return true;
+        }
+
+        // The target failure can't be triggered if the criteria resolver is
+        // referring to a collection-level criteria item on a contract order.
+        if (
+            context.executionState.orders[criteriaResolver.orderIndex].parameters.orderType == OrderType.CONTRACT &&
+            context.executionState.orders[criteriaResolver.orderIndex].parameters.consideration[criteriaResolver.index].identifierOrCriteria == 0
+        ) {
             return true;
         }
 
