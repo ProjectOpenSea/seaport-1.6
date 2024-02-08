@@ -577,13 +577,7 @@ contract OrderValidator is Executor, ZoneInteraction {
             let identifier := mload(add(originalItem, Common_identifier_offset))
 
             // Set returned identifier for criteria-based items w/ criteria = 0
-            // (and revert if criteria != 0).
-            if gt(itemType, 3) {
-                if identifier {
-                    // TODO: replace with an "unresolved criteria" error?
-                    revert(0, 0)
-                }
-
+            if and(gt(itemType, 3), iszero(identifier)) {
                 // replace item type
                 itemType := sub(3, eq(itemType, 4))
                 identifier := mload(add(newItem, Common_identifier_offset))

@@ -177,13 +177,6 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                 OrderParameters memory orderParameters =
                     (advancedOrder.parameters);
 
-                // Skip verification that all criteria have been resolved
-                // for contract orders, as they will be checked as part
-                // of order generation.
-                if (orderParameters.orderType == OrderType.CONTRACT) {
-                    continue;
-                }
-
                 // Read consideration length from memory and place on stack.
                 uint256 totalItems = orderParameters.consideration.length;
 
@@ -195,7 +188,14 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                             orderParameters.consideration[j].itemType
                         )
                     ) {
-                        _revertUnresolvedConsiderationCriteria(i, j);
+                        // Revert unless the order is a contract order and
+                        // the identifier is 0.
+                        if (
+                            orderParameters.orderType != OrderType.CONTRACT ||
+                            orderParameters.consideration[j].identifierOrCriteria != 0
+                        ) {
+                            _revertUnresolvedConsiderationCriteria(i, j);
+                        }
                     }
                 }
 
@@ -207,7 +207,14 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                     // Ensure item type no longer indicates criteria usage.
                     if (_isItemWithCriteria(orderParameters.offer[j].itemType))
                     {
-                        _revertUnresolvedOfferCriteria(i, j);
+                        // Revert unless the order is a contract order and
+                        // the identifier is 0.
+                        if (
+                            orderParameters.orderType != OrderType.CONTRACT ||
+                            orderParameters.offer[j].identifierOrCriteria != 0
+                        ) {
+                            _revertUnresolvedOfferCriteria(i, j);
+                        }
                     }
                 }
             }
