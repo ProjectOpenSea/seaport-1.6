@@ -642,10 +642,11 @@ library MutationFilters {
                 continue;
             }
 
-            AdvancedOrder memory order =
-                context.executionState.previewedOrders[i];
+            AdvancedOrder memory order = context.executionState.orders[i];
+
             uint256 items = order.parameters.offer.length
                 + order.parameters.consideration.length;
+
             if (items != 0) {
                 locatedItem = true;
                 break;
@@ -2253,7 +2254,7 @@ contract FuzzMutations is Test, FuzzExecutor {
 
             // Grab the order at the current index.
             AdvancedOrder memory order =
-                context.executionState.previewedOrders[orderIndex];
+                context.executionState.orders[orderIndex];
 
             // If it has an offer, set the side to offer and break, otherwise
             // if it has a consideration, set the side to consideration and
