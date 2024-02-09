@@ -255,37 +255,24 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                     advancedOrder := mload(add(advancedOrders, i))
                 }
 
-                // Determine if max number orders have already been fulfilled.
-                if (maximumFulfilled == 0) {
-                    // Mark fill fraction as zero as the order will not be used.
-                    advancedOrder.numerator = 0;
-
-                    // Continue iterating through the remaining orders.
-                    continue;
-                }
-
                 // Validate it, update status, and determine fraction to fill.
                 (bytes32 orderHash, uint256 numerator, uint256 denominator) =
-                _validateOrderAndUpdateStatus(advancedOrder, revertOnInvalid);
+                _validateOrder(advancedOrder, revertOnInvalid);
+
+                advancedOrder.numerator = uint120(numerator);
 
                 // Do not track hash or adjust prices if order is not fulfilled.
                 if (numerator == 0) {
-                    // Mark fill fraction as zero if the order is not fulfilled.
-                    advancedOrder.numerator = 0;
-
                     // Continue iterating through the remaining orders.
                     continue;
                 }
+
+                advancedOrder.denominator = uint120(denominator);
 
                 // Otherwise, track the order hash in question.
                 assembly {
                     mstore(add(orderHashes, i), orderHash)
                 }
-
-                // Decrement the number of fulfilled orders.
-                // Skip underflow check as the condition before
-                // implies that maximumFulfilled > 0.
-                --maximumFulfilled;
 
                 // Place the start time for the order on the stack.
                 uint256 startTime = advancedOrder.parameters.startTime;
@@ -484,6 +471,115 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                 assembly {
                     advancedOrder := mload(add(advancedOrders, i))
                 }
+
+                // Determine if max number orders have already been fulfilled.
+                if (maximumFulfilled == 0) {
+                    assembly {
+                        mstore(add(orderHashes, i), 0)
+                    }
+
+                    advancedOrder.numerator = 0;
+
+                    // Continue iterating through the remaining orders.
+                    continue;
+                }
+
+                // Update order status as long as there is some fraction available.
+                if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
+                    // TODO: perform authorizeOrder call
+
+                    if (!_updateStatus(
+                        orderHash,
+                        advancedOrder.numerator,
+                        advancedOrder.denominator,
+                        revertOnInvalid
+                    )) {
+                        assembly {
+                            mstore(add(orderHashes, i), 0)
+                        }
+
+                        advancedOrder.numerator = 0;
+
+                        continue;
+                    }
+                } else {
+                    // Return the generated order based on the order params and the
+                    // provided extra data. If revertOnInvalid is true, the function
+                    // will revert if the input is invalid.
+                    orderHash = _getGeneratedOrder(
+                        advancedOrder.parameters, advancedOrder.extraData, revertOnInvalid
+                    );
+
+                    ////// TEMP TEMP TEMP — instead we should copy these encoded values
+                    // right from the returndata of generateOrder or something similar.
+
+                    // Iterate over each offer item on the order.
+                    for (uint256 j = 0; j < advancedOrder.parameters.offer.length; ++j) {
+                        // Retrieve the offer item.
+                        OfferItem memory offerItem = advancedOrder.parameters.offer[j];
+
+                        // Update amounts in memory to match the current amount.
+                        // Note that the end amount is used to track spent amounts.
+                        offerItem.endAmount = offerItem.startAmount;
+                    }
+
+                    // Iterate over each consideration item on the order.
+                    for (uint256 j = 0; j < advancedOrder.parameters.consideration.length; ++j) {
+                        // Retrieve the consideration item.
+                        ConsiderationItem memory considerationItem =
+                            (advancedOrder.parameters.consideration[j]);
+
+                        uint256 currentAmount = considerationItem.startAmount;
+
+                        // Utilize assembly to manually "shift" the recipient value,
+                        // then to copy the start amount to the recipient.
+                        // Note that this sets up the memory layout that is
+                        // subsequently relied upon by
+                        // _aggregateValidFulfillmentConsiderationItems.
+                        assembly {
+                            // Derive the pointer to the recipient using the item
+                            // pointer along with the offset to the recipient.
+                            let considerationItemRecipientPtr :=
+                                add(
+                                    considerationItem,
+                                    ConsiderationItem_recipient_offset // recipient
+                                )
+
+                            // Write recipient to endAmount, as endAmount is not
+                            // used from this point on and can be repurposed to fit
+                            // the layout of a ReceivedItem.
+                            mstore(
+                                add(
+                                    considerationItem,
+                                    ReceivedItem_recipient_offset // old endAmount
+                                ),
+                                mload(considerationItemRecipientPtr)
+                            )
+
+                            // Write startAmount to recipient, as recipient is not
+                            // used from this point on and can be repurposed to
+                            // track received amounts.
+                            mstore(considerationItemRecipientPtr, currentAmount)
+                        }
+                    }
+
+                    ////// END TEMP TEMP TEMP
+
+                    assembly {
+                        mstore(add(orderHashes, i), orderHash)
+                    }
+
+                    if (orderHash == bytes32(0)) {
+                        advancedOrder.numerator = 0;
+
+                        continue;
+                    }
+                }
+
+                // Decrement the number of fulfilled orders.
+                // Skip underflow check as the condition before
+                // implies that maximumFulfilled > 0.
+                --maximumFulfilled;
 
                 // Retrieve parameters for the order in question.
                 OrderParameters memory orderParameters =

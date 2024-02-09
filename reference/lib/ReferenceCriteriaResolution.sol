@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { ItemType, Side } from "seaport-types/src/lib/ConsiderationEnums.sol";
+import {
+    ItemType,
+    OrderType,
+    Side
+} from "seaport-types/src/lib/ConsiderationEnums.sol";
 
 import {
     AdvancedOrder,
@@ -41,6 +45,7 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
      *                           that no proof needs to be supplied.
      */
     function _applyCriteriaResolvers(
+        AdvancedOrder[] memory advancedOrders,
         OrderToExecute[] memory ordersToExecute,
         CriteriaResolver[] memory criteriaResolvers
     ) internal pure {
@@ -152,8 +157,12 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
         // Retrieve length of orders array and place on stack.
         arraySize = ordersToExecute.length;
 
-        // Iterate over each order to execute.
+        // Iterate over each order to execute, skipping contract orders.
         for (uint256 i = 0; i < arraySize; ++i) {
+            if (advancedOrders[i].parameters.orderType == OrderType.CONTRACT) {
+                continue;
+            }
+
             // Retrieve the order to execute.
             OrderToExecute memory orderToExecute = ordersToExecute[i];
 
@@ -306,6 +315,10 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
                 // Revert if a proof is supplied for a collection-wide item.
                 revert InvalidProof();
             }
+        }
+
+        if (advancedOrder.parameters.orderType == OrderType.CONTRACT) {
+            return;
         }
 
         // Validate Criteria on order has been resolved

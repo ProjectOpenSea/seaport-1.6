@@ -117,7 +117,7 @@ contract ReferenceOrderValidator is
     function _validateOrder(
         AdvancedOrder memory advancedOrder,
         bool revertOnInvalid
-    ) internal returns (OrderValidation memory orderValidation) {
+    ) internal view returns (OrderValidation memory orderValidation) {
         // Retrieve the parameters for the order.
         OrderParameters memory orderParameters = advancedOrder.parameters;
 
@@ -146,17 +146,8 @@ contract ReferenceOrderValidator is
                 revert BadFraction();
             }
 
-            (
-                bytes32 orderHash,
-                uint256 newNumerator,
-                uint256 newDenominator,
-                OrderToExecute memory orderToExecute
-            ) = _getGeneratedOrder(
-                orderParameters, advancedOrder.extraData, revertOnInvalid
-            );
-
             return OrderValidation(
-                orderHash, newNumerator, newDenominator, orderToExecute
+                bytes32(uint256(1)), 1, 1, _convertAdvancedToOrder(orderParameters, 1)
             );
         }
 
@@ -405,8 +396,6 @@ contract ReferenceOrderValidator is
      * @param revertOnInvalid Whether to revert on invalid input.
      *
      * @return orderHash   The order hash.
-     * @return numerator   The numerator.
-     * @return denominator The denominator.
      */
     function _getGeneratedOrder(
         OrderParameters memory orderParameters,
@@ -416,8 +405,6 @@ contract ReferenceOrderValidator is
         internal
         returns (
             bytes32 orderHash,
-            uint256 numerator,
-            uint256 denominator,
             OrderToExecute memory orderToExecute
         )
     {
@@ -553,9 +540,13 @@ contract ReferenceOrderValidator is
                 // fulfiller can pick which identifier to receive by providing a
                 // CriteriaResolver.
                 if (
-                    uint256(originalOffer.itemType) > 3 &&
-                    originalOffer.identifierOrCriteria == 0
+                    uint256(originalOffer.itemType) > 3
                 ) {
+                    if (newOffer.identifier != 0) {
+                        // TODO: better error message
+                        revert("");
+                    }
+
                     originalOffer.itemType = ItemType(
                         uint256(originalOffer.itemType) - 2
                     );
@@ -564,7 +555,6 @@ contract ReferenceOrderValidator is
 
                 // Ensure the original and generated items are compatible.
                 if (
-                    originalOffer.startAmount != originalOffer.endAmount ||
                     originalOffer.endAmount > newOffer.amount ||
                     originalOffer.itemType != newOffer.itemType ||
                     originalOffer.token != newOffer.token ||
@@ -634,8 +624,6 @@ contract ReferenceOrderValidator is
                 // for the amount (which may be reduced by the contract offerer)
                 // and the recipient if some non-zero address has been provided.
                 if (
-                    originalConsideration.startAmount !=
-                    originalConsideration.endAmount ||
                     newConsideration.amount > originalConsideration.endAmount ||
                     originalConsideration.itemType !=
                     newConsideration.itemType ||
@@ -712,7 +700,7 @@ contract ReferenceOrderValidator is
         }
 
         // Return the order hash, the numerator, and the denominator.
-        return (orderHash, 1, 1, orderToExecute);
+        return (orderHash, orderToExecute);
     }
 
     /**
@@ -913,8 +901,6 @@ contract ReferenceOrderValidator is
      * @param contractOrderHash The contract order hash.
      *
      * @return orderHash   The order hash.
-     * @return numerator   The numerator.
-     * @return denominator The denominator.
      */
     function _revertOrReturnEmpty(
         bool revertOnInvalid,
@@ -924,16 +910,14 @@ contract ReferenceOrderValidator is
         pure
         returns (
             bytes32 orderHash,
-            uint256 numerator,
-            uint256 denominator,
             OrderToExecute memory emptyOrder
         )
     {
         // If invalid input should not revert...
         if (!revertOnInvalid) {
-            // Return the contract order hash and zero values for the numerator
+            // Return no contract order hash and zero values for the numerator
             // and denominator.
-            return (contractOrderHash, 0, 0, emptyOrder);
+            return (bytes32(0), emptyOrder);
         }
 
         // Otherwise, revert.

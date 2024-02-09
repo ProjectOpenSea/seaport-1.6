@@ -403,7 +403,7 @@ contract ReferenceOrderCombiner is
         }
 
         // Apply criteria resolvers to each order as applicable.
-        _applyCriteriaResolvers(ordersToExecute, criteriaResolvers);
+        _applyCriteriaResolvers(advancedOrders, ordersToExecute, criteriaResolvers);
 
         // Emit an event for each order signifying that it has been fulfilled.
         // Iterate over each order.
@@ -415,7 +415,8 @@ contract ReferenceOrderCombiner is
 
             // Determine if max number orders have already been fulfilled.
             if (orderValidationParams.maximumFulfilled == 0) {
-                orderHashes[i] == bytes32(0);
+                orderHashes[i] = bytes32(0);
+                ordersToExecute[i].numerator = 0;
 
                 // Continue iterating through the remaining orders.
                 continue;
@@ -429,7 +430,7 @@ contract ReferenceOrderCombiner is
             // Ensure restricted orders have valid submitter or pass zone check.
             (
                 bool valid,
-                bool checked
+                /* bool checked */
             ) = _checkRestrictedAdvancedOrderAuthorization(
                 advancedOrders[i],
                 ordersToExecute[i],
@@ -444,16 +445,34 @@ contract ReferenceOrderCombiner is
             }
 
             // Update status if the order is still valid or skip if not checked
-            if (
-                !_updateStatus(
-                    orderHashes[i],
-                    storedFractions[i].storedNumerator,
-                    storedFractions[i].storedDenominator,
-                    orderValidationParams.revertOnInvalid || checked
-                )
-            ) {
-                orderHashes[i] = bytes32(0);
-                continue;
+            if (orderParameters.orderType != OrderType.CONTRACT) {
+                if (
+                    !_updateStatus(
+                        orderHashes[i],
+                        storedFractions[i].storedNumerator,
+                        storedFractions[i].storedDenominator,
+                        orderValidationParams.revertOnInvalid
+                    )
+                ) {
+                    orderHashes[i] = bytes32(0);
+                    continue;
+                }
+            } else {
+                (
+                    bytes32 orderHash,
+                    OrderToExecute memory orderToExecute
+                ) = _getGeneratedOrder(
+                    orderParameters,
+                    advancedOrders[i].extraData,
+                    orderValidationParams.revertOnInvalid
+                );
+
+                orderHashes[i] = orderHash;
+                ordersToExecute[i] = orderToExecute;
+ 
+                if (orderHashes[i] == bytes32(0)) {
+                    continue;
+                }
             }
 
             // Decrement the number of fulfilled orders.

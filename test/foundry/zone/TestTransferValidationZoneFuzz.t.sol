@@ -438,7 +438,7 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
         }
     }
 
-    function xtestFulfillAvailableAdvancedFuzz(
+    function testFulfillAvailableAdvancedFuzz(
         FulfillFuzzInputs memory fulfillArgs
     ) public {
         // Limit this value to avoid overflow issues.
@@ -587,6 +587,23 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
         if (context.fulfillArgs.shouldUseTransferValidationZone) {
             address strangerAddress = address(0xdeafbeef);
 
+            vm.expectRevert(
+                abi.encodeWithSignature(
+                    "InvalidOwner(address,address,address,uint256)",
+                    // The expected recipient is either the offer recipient or
+                    // the caller, depending on the fuzz args.
+                    context.fulfillArgs.shouldSpecifyRecipient
+                        ? context.fulfillArgs.offerRecipient
+                        : address(this),
+                    // The stranger address gets passed into the recipient field
+                    // below, so it will be the actual recipient.
+                    strangerAddress,
+                    address(test721_1),
+                    // Should revert on the first call.
+                    context.fulfillArgs.tokenId
+                )
+            );
+
             // Make the call to Seaport.
             context.seaport.fulfillAvailableAdvancedOrders{
                 value: context.fulfillArgs.excessNativeTokens
@@ -605,7 +622,7 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
                 considerationFulfillments: infra.considerationFulfillmentComponents,
                 fulfillerConduitKey: bytes32(conduitKey),
                 recipient: strangerAddress,
-                maximumFulfilled: infra.advancedOrders.length
+                maximumFulfilled: context.fulfillArgs.maximumFulfilledCount
             });
         }
 
@@ -699,7 +716,8 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
         // Check that the zone was called the expected number of times.
         if (context.fulfillArgs.shouldUseTransferValidationZone) {
             assertTrue(
-                zone.callCount() == context.fulfillArgs.maximumFulfilledCount
+                zone.callCount() == context.fulfillArgs.maximumFulfilledCount,
+                "Zone call count incorrect."
             );
         }
 
@@ -710,7 +728,8 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
                 test721_1.ownerOf(context.fulfillArgs.tokenId + i),
                 context.fulfillArgs.shouldSpecifyRecipient
                     ? context.fulfillArgs.offerRecipient
-                    : address(this)
+                    : address(this),
+                "NFT owner incorrect."
             );
         }
 
@@ -724,7 +743,11 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
                 // Edge case: If the fuzz args pick this address for the
                 // consideration recipient, then the caller's balance should not
                 // change.
-                assertEq(infra.callerBalanceAfter, infra.callerBalanceBefore);
+                assertEq(
+                    infra.callerBalanceAfter,
+                    infra.callerBalanceBefore,
+                    "Caller balance incorrect (this contract)."
+                );
             } else {
                 // Check that the consideration recipient's native balance was
                 // increased by the amount * the number of NFTs for sale.
@@ -732,7 +755,8 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
                     infra.considerationRecipientNativeBalanceAfter,
                     infra.considerationRecipientNativeBalanceBefore
                         + context.fulfillArgs.amount
-                            * context.fulfillArgs.maximumFulfilledCount
+                            * context.fulfillArgs.maximumFulfilledCount,
+                    "Consideration recipient native balance incorrect."
                 );
                 // The consideration (amount * maximumFulfilledCount) should be
                 // spent, and the excessNativeTokens should be returned.
@@ -740,7 +764,8 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
                     infra.callerBalanceAfter
                         + context.fulfillArgs.amount
                             * context.fulfillArgs.maximumFulfilledCount,
-                    infra.callerBalanceBefore
+                    infra.callerBalanceBefore,
+                    "Caller balance incorrect."
                 );
             }
         } else {
@@ -754,14 +779,16 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
                 // change.
                 assertEq(
                     infra.considerationRecipientToken1BalanceAfter,
-                    infra.considerationRecipientToken1BalanceBefore
+                    infra.considerationRecipientToken1BalanceBefore,
+                    "Consideration recipient token1 balance incorrect (this)."
                 );
             } else {
                 assertEq(
                     infra.considerationRecipientToken1BalanceAfter,
                     infra.considerationRecipientToken1BalanceBefore
                         + context.fulfillArgs.amount
-                            * context.fulfillArgs.maximumFulfilledCount
+                            * context.fulfillArgs.maximumFulfilledCount,
+                    "Consideration recipient token1 balance incorrect."
                 );
             }
 
@@ -775,14 +802,16 @@ contract TestTransferValidationZoneOffererTest is BaseOrderTest {
                     // not change.
                     assertEq(
                         infra.considerationRecipientToken2BalanceAfter,
-                        infra.considerationRecipientToken2BalanceBefore
+                        infra.considerationRecipientToken2BalanceBefore,
+                        "Consideration recipient token2 balance incorrect (this)."
                     );
                 } else {
                     assertEq(
                         infra.considerationRecipientToken2BalanceAfter,
                         infra.considerationRecipientToken2BalanceBefore
                             + context.fulfillArgs.amount
-                                * context.fulfillArgs.maximumFulfilledCount
+                                * context.fulfillArgs.maximumFulfilledCount,
+                        "Consideration recipient token2 balance incorrect."
                     );
                 }
             }

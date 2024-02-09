@@ -812,6 +812,25 @@ library FuzzHelpers {
             SpentItem[] memory maximumSpent =
                 order.parameters.consideration.toSpentItemArray();
 
+            // apply criteria resolvers before hashing
+            for (uint256 j = 0; j < context.executionState.criteriaResolvers.length; ++j) {
+                CriteriaResolver memory resolver =
+                    context.executionState.criteriaResolvers[j];
+
+                if (resolver.orderIndex != i) {
+                    continue;
+                }
+                
+                // NOTE: assumes that all provided resolvers are valid
+                if (resolver.side == Side.OFFER) {        
+                    minimumReceived[resolver.index].itemType = ItemType(uint256(minimumReceived[resolver.index].itemType) - 2);
+                    minimumReceived[resolver.index].identifier = resolver.identifier;
+                } else {
+                    maximumSpent[resolver.index].itemType = ItemType(uint256(maximumSpent[resolver.index].itemType) - 2);
+                    maximumSpent[resolver.index].identifier = resolver.identifier;
+                }
+            }
+
             // Derive the expected calldata hash for the call to generateOrder
             calldataHashes[i][0] = keccak256(
                 abi.encodeCall(

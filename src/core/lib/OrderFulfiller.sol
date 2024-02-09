@@ -97,7 +97,7 @@ contract OrderFulfiller is
 
         // Validate order, update status, and determine fraction to fill.
         (bytes32 orderHash, uint256 fillNumerator, uint256 fillDenominator) =
-            _validateOrderAndUpdateStatus(advancedOrder, true);
+            _validateOrder(advancedOrder, true);
 
         // Create an array with length 1 containing the order.
         AdvancedOrder[] memory advancedOrders = new AdvancedOrder[](1);
@@ -111,17 +111,88 @@ contract OrderFulfiller is
         // Retrieve the order parameters after applying criteria resolvers.
         OrderParameters memory orderParameters = advancedOrders[0].parameters;
 
-        // Perform each item transfer with the appropriate fractional amount.
-        _applyFractionsAndTransferEach(
+        // Derive each item transfer with the appropriate fractional amount.
+        _applyFractions(
             orderParameters,
             fillNumerator,
             fillDenominator,
-            fulfillerConduitKey,
             recipient
         );
 
+        bytes32[] memory orderHashes = new bytes32[](0);
+
+        // TODO: perform authorizeOrder call here
+
+        if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
+            _updateStatus(orderHash, fillNumerator, fillDenominator, true);
+        } else {
+            // Return the generated order based on the order params and the
+            // provided extra data.
+            orderHash = _getGeneratedOrder(
+                orderParameters, advancedOrder.extraData, true
+            );
+
+            // TEMP TEMP TEMP pull this directly from generated order
+            // or similar
+
+            // Declare a nested scope to minimize stack depth.
+            unchecked {
+                // Read offer array length from memory and place on stack.
+                uint256 totalOfferItems = orderParameters.offer.length;
+
+                // Iterate over each offer on the order.
+                // Skip overflow check as for loop is indexed starting at zero.
+                for (uint256 i = 0; i < totalOfferItems; ++i) {
+                    // Retrieve the offer item.
+                    OfferItem memory offerItem = orderParameters.offer[i];
+
+                    // Utilize assembly to set overloaded offerItem arguments.
+                    assembly {
+                        // Write recipient to endAmount.
+                        mstore(
+                            add(offerItem, ReceivedItem_recipient_offset),
+                            recipient
+                        )
+                    }
+                }
+            }
+
+            // Declare a nested scope to minimize stack depth.
+            unchecked {
+                // Read consideration array length from memory and place on stack.
+                uint256 totalConsiderationItems =
+                    orderParameters.consideration.length;
+
+                // Iterate over each consideration item on the order.
+                // Skip overflow check as for loop is indexed starting at zero.
+                for (uint256 i = 0; i < totalConsiderationItems; ++i) {
+                    // Retrieve the consideration item.
+                    ConsiderationItem memory considerationItem =
+                        (orderParameters.consideration[i]);
+
+                    // Use assembly to set overloaded considerationItem arguments.
+                    assembly {
+                        // Write original recipient to endAmount as recipient.
+                        mstore(
+                            add(considerationItem, ReceivedItem_recipient_offset),
+                            mload(
+                                add(
+                                    considerationItem,
+                                    ConsiderationItem_recipient_offset
+                                )
+                            )
+                        )
+                    }
+                }
+            }
+
+            // END TEMP TEMP TEMP
+        }
+
+        _transferEach(orderParameters, fulfillerConduitKey);
+
         // Declare empty bytes32 array and populate with the order hash.
-        bytes32[] memory orderHashes = new bytes32[](1);
+        orderHashes = new bytes32[](1);
         orderHashes[0] = orderHash;
 
         // Ensure restricted orders have a valid submitter or pass a zone check.
@@ -145,39 +216,15 @@ contract OrderFulfiller is
         return true;
     }
 
-    /**
-     * @dev Internal function to transfer each item contained in a given single
-     *      order fulfillment after applying a respective fraction to the amount
-     *      being transferred.
-     *
-     * @param orderParameters     The parameters for the fulfilled order.
-     * @param numerator           A value indicating the portion of the order
-     *                            that should be filled.
-     * @param denominator         A value indicating the total order size.
-     * @param fulfillerConduitKey A bytes32 value indicating what conduit, if
-     *                            any, to source the fulfiller's token approvals
-     *                            from. The zero hash signifies that no conduit
-     *                            should be used, with direct approvals set on
-     *                            Consideration.
-     * @param recipient           The intended recipient for all received items.
-     */
-    function _applyFractionsAndTransferEach(
+    function _applyFractions(
         OrderParameters memory orderParameters,
         uint256 numerator,
         uint256 denominator,
-        bytes32 fulfillerConduitKey,
         address recipient
-    ) internal {
+    ) internal view {
         // Read start time & end time from order parameters and place on stack.
         uint256 startTime = orderParameters.startTime;
         uint256 endTime = orderParameters.endTime;
-
-        // Initialize an accumulator array. From this point forward, no new
-        // memory regions can be safely allocated until the accumulator is no
-        // longer being utilized, as the accumulator operates in an open-ended
-        // fashion from this memory pointer; existing memory may still be
-        // accessed and modified, however.
-        bytes memory accumulator = new bytes(AccumulatorDisarmed);
 
         // As of solidity 0.6.0, inline assembly cannot directly access function
         // definitions, but can still access locally scoped function variables.
@@ -250,14 +297,6 @@ contract OrderFulfiller is
                         )
                     }
                 }
-
-                // Transfer the item from the offerer to the recipient.
-                _toOfferItemInput(_transfer)(
-                    offerItem,
-                    orderParameters.offerer,
-                    orderParameters.conduitKey,
-                    accumulator
-                );
             }
 
             // If a non-contract order has native offer items, throw with an
@@ -280,9 +319,6 @@ contract OrderFulfiller is
                 }
             }
         }
-
-        // Declare a variable for the available native token balance.
-        uint256 nativeTokenBalance;
 
         /**
          * Repurpose existing ConsiderationItem memory regions on the
@@ -342,6 +378,89 @@ contract OrderFulfiller is
                         )
                     )
                 }
+            }
+        }
+    }
+
+    function _transferEach(
+        OrderParameters memory orderParameters,
+        bytes32 fulfillerConduitKey
+    ) internal {
+        // Initialize an accumulator array. From this point forward, no new
+        // memory regions can be safely allocated until the accumulator is no
+        // longer being utilized, as the accumulator operates in an open-ended
+        // fashion from this memory pointer; existing memory may still be
+        // accessed and modified, however.
+        bytes memory accumulator = new bytes(AccumulatorDisarmed);
+
+        // As of solidity 0.6.0, inline assembly cannot directly access function
+        // definitions, but can still access locally scoped function variables.
+        // This means that a local variable to reference the internal function
+        // definition (using the same type), along with a local variable with
+        // the desired type, must first be created. Then, the original function
+        // pointer can be recast to the desired type.
+
+        /**
+         * Repurpose existing OfferItem memory regions on the offer array for
+         * the order by overriding the _transfer function pointer to accept a
+         * modified OfferItem argument in place of the usual ReceivedItem:
+         *
+         *   ========= OfferItem ==========   ====== ReceivedItem ======
+         *   ItemType itemType; ------------> ItemType itemType;
+         *   address token; ----------------> address token;
+         *   uint256 identifierOrCriteria; -> uint256 identifier;
+         *   uint256 startAmount; ----------> uint256 amount;
+         *   uint256 endAmount; ------------> address recipient;
+         */
+
+        // Declare a nested scope to minimize stack depth.
+        unchecked {
+            // Read offer array length from memory and place on stack.
+            uint256 totalOfferItems = orderParameters.offer.length;
+
+            // Iterate over each offer on the order.
+            // Skip overflow check as for loop is indexed starting at zero.
+            for (uint256 i = 0; i < totalOfferItems; ++i) {
+                // Transfer the item from the offerer to the recipient.
+                _toOfferItemInput(_transfer)(
+                    orderParameters.offer[i],
+                    orderParameters.offerer,
+                    orderParameters.conduitKey,
+                    accumulator
+                );
+            }
+        }
+
+        // Declare a variable for the available native token balance.
+        uint256 nativeTokenBalance;
+
+        /**
+         * Repurpose existing ConsiderationItem memory regions on the
+         * consideration array for the order by overriding the _transfer
+         * function pointer to accept a modified ConsiderationItem argument in
+         * place of the usual ReceivedItem:
+         *
+         *   ====== ConsiderationItem =====   ====== ReceivedItem ======
+         *   ItemType itemType; ------------> ItemType itemType;
+         *   address token; ----------------> address token;
+         *   uint256 identifierOrCriteria;--> uint256 identifier;
+         *   uint256 startAmount; ----------> uint256 amount;
+         *   uint256 endAmount;        /----> address recipient;
+         *   address recipient; ------/
+         */
+
+        // Declare a nested scope to minimize stack depth.
+        unchecked {
+            // Read consideration array length from memory and place on stack.
+            uint256 totalConsiderationItems =
+                orderParameters.consideration.length;
+
+            // Iterate over each consideration item on the order.
+            // Skip overflow check as for loop is indexed starting at zero.
+            for (uint256 i = 0; i < totalConsiderationItems; ++i) {
+                // Retrieve the consideration item.
+                ConsiderationItem memory considerationItem =
+                    (orderParameters.consideration[i]);
 
                 if (considerationItem.itemType == ItemType.NATIVE) {
                     // Get the current available balance of native tokens.
@@ -350,7 +469,7 @@ contract OrderFulfiller is
                     }
 
                     // Ensure that sufficient native tokens are still available.
-                    if (amount > nativeTokenBalance) {
+                    if (considerationItem.startAmount > nativeTokenBalance) {
                         _revertInsufficientNativeTokensSupplied();
                     }
                 }

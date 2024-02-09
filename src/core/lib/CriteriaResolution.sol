@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import { ItemType, Side } from "seaport-types/src/lib/ConsiderationEnums.sol";
+import {
+    ItemType,
+    OrderType,
+    Side
+} from "seaport-types/src/lib/ConsiderationEnums.sol";
 
 import {
     AdvancedOrder,
@@ -184,7 +188,14 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                             orderParameters.consideration[j].itemType
                         )
                     ) {
-                        _revertUnresolvedConsiderationCriteria(i, j);
+                        // Revert unless the order is a contract order and
+                        // the identifier is 0.
+                        if (
+                            orderParameters.orderType != OrderType.CONTRACT ||
+                            orderParameters.consideration[j].identifierOrCriteria != 0
+                        ) {
+                            _revertUnresolvedConsiderationCriteria(i, j);
+                        }
                     }
                 }
 
@@ -196,7 +207,14 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                     // Ensure item type no longer indicates criteria usage.
                     if (_isItemWithCriteria(orderParameters.offer[j].itemType))
                     {
-                        _revertUnresolvedOfferCriteria(i, j);
+                        // Revert unless the order is a contract order and
+                        // the identifier is 0.
+                        if (
+                            orderParameters.orderType != OrderType.CONTRACT ||
+                            orderParameters.offer[j].identifierOrCriteria != 0
+                        ) {
+                            _revertUnresolvedOfferCriteria(i, j);
+                        }
                     }
                 }
             }

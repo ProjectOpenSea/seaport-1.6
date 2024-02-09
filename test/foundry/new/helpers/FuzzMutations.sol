@@ -642,10 +642,11 @@ library MutationFilters {
                 continue;
             }
 
-            AdvancedOrder memory order =
-                context.executionState.previewedOrders[i];
+            AdvancedOrder memory order = context.executionState.orders[i];
+
             uint256 items = order.parameters.offer.length
                 + order.parameters.consideration.length;
+
             if (items != 0) {
                 locatedItem = true;
                 break;
@@ -737,6 +738,15 @@ library MutationFilters {
             return true;
         }
 
+        // The target failure can't be triggered if the criteria resolver is
+        // referring to a collection-level criteria item on a contract order.
+        if (
+            context.executionState.orders[criteriaResolver.orderIndex].parameters.orderType == OrderType.CONTRACT &&
+            context.executionState.orders[criteriaResolver.orderIndex].parameters.offer[criteriaResolver.index].identifierOrCriteria == 0
+        ) {
+            return true;
+        }
+
         return false;
     }
 
@@ -760,6 +770,15 @@ library MutationFilters {
         // This one handles the consideration side.  The previous one handles
         // the offer side.
         if (criteriaResolver.side != Side.CONSIDERATION) {
+            return true;
+        }
+
+        // The target failure can't be triggered if the criteria resolver is
+        // referring to a collection-level criteria item on a contract order.
+        if (
+            context.executionState.orders[criteriaResolver.orderIndex].parameters.orderType == OrderType.CONTRACT &&
+            context.executionState.orders[criteriaResolver.orderIndex].parameters.consideration[criteriaResolver.index].identifierOrCriteria == 0
+        ) {
             return true;
         }
 
@@ -2235,7 +2254,7 @@ contract FuzzMutations is Test, FuzzExecutor {
 
             // Grab the order at the current index.
             AdvancedOrder memory order =
-                context.executionState.previewedOrders[orderIndex];
+                context.executionState.orders[orderIndex];
 
             // If it has an offer, set the side to offer and break, otherwise
             // if it has a consideration, set the side to consideration and
@@ -2916,9 +2935,9 @@ contract FuzzMutations is Test, FuzzExecutor {
         CriteriaResolver memory resolver =
             context.executionState.criteriaResolvers[criteriaResolverIndex];
 
-        OrderDetails memory order =
-            context.executionState.orderDetails[resolver.orderIndex];
-        resolver.index = order.consideration.length;
+        AdvancedOrder memory order =
+            context.executionState.orders[resolver.orderIndex];
+        resolver.index = order.parameters.consideration.length;
 
         exec(context);
     }
