@@ -2,8 +2,13 @@
 pragma solidity ^0.8.17;
 
 import {
+    authorizeOrder_head_offset,
+    authorizeOrder_selector_offset,
+    authorizeOrder_selector,
+    authorizeOrder_zoneParameters_offset,
     BasicOrder_additionalRecipients_length_cdPtr,
     BasicOrder_common_params_size,
+    BasicOrder_offerer_cdPtr,
     BasicOrder_startTime_cdPtr,
     BasicOrder_startTimeThroughZoneHash_size,
     Common_amount_offset,
@@ -39,10 +44,7 @@ import {
     SixtyThreeBytes,
     SpentItem_size_shift,
     SpentItem_size,
-    validateOrder_head_offset,
-    validateOrder_selector_offset,
     validateOrder_selector,
-    validateOrder_zoneParameters_offset,
     ZoneParameters_base_tail_offset,
     ZoneParameters_basicOrderFixedElements_length,
     ZoneParameters_consideration_head_offset,
@@ -65,7 +67,9 @@ import {
 import {
     CalldataPointer,
     getFreeMemoryPointer,
-    MemoryPointer
+    setFreeMemoryPointer,
+    MemoryPointer,
+    OffsetOrLengthMask
 } from "seaport-types/src/helpers/PointerLibraries.sol";
 
 contract ConsiderationEncoder {
@@ -338,7 +342,7 @@ contract ConsiderationEncoder {
     /**
      * @dev Takes an order hash, OrderParameters struct, extraData bytes array,
      *      and array of order hashes for each order included as part of the
-     *      current fulfillment and encodes it as `validateOrder` calldata.
+     *      current fulfillment and encodes it as `authorizeOrder` calldata.
      *      Note that future, new versions of this contract may end up writing
      *      to a memory region that might have been potentially dirtied by the
      *      accumulator. Since the book-keeping for the accumulator does not
@@ -348,39 +352,41 @@ contract ConsiderationEncoder {
      *
      * @param orderHash       The order hash.
      * @param orderParameters The OrderParameters struct used to construct the
-     *                        encoded `validateOrder` calldata.
+     *                        encoded `authorizeOrder` calldata.
      * @param extraData       The extraData bytes array used to construct the
-     *                        encoded `validateOrder` calldata.
+     *                        encoded `authorizeOrder` calldata.
      * @param orderHashes     An array of bytes32 values representing the order
      *                        hashes of all orders included as part of the
      *                        current fulfillment.
      *
-     * @return dst  A memory pointer referencing the encoded `validateOrder`
+     * @return dst  A memory pointer referencing the encoded `authorizeOrder`
      *              calldata.
      * @return size The size of the bytes array.
      */
-    function _encodeValidateOrder(
+    function _encodeAuthorizeOrder(
         bytes32 orderHash,
         OrderParameters memory orderParameters,
         bytes memory extraData,
-        bytes32[] memory orderHashes
+        bytes32[] memory orderHashes,
+        uint256 orderIndex
     ) internal view returns (MemoryPointer dst, uint256 size) {
-        // Get free memory pointer to write calldata to. This isn't allocated as
-        // it is only used for a single function call.
-        dst = getFreeMemoryPointer();
+        // Get free memory pointer to write calldata to.
+        MemoryPointer ptr = getFreeMemoryPointer();
 
-        // Write validateOrder selector and get pointer to start of calldata.
-        dst.write(validateOrder_selector);
-        dst = dst.offset(validateOrder_selector_offset);
+        dst = ptr;
+
+        // Write authorizeOrder selector and get pointer to start of calldata.
+        dst.write(authorizeOrder_selector);
+        dst = dst.offset(authorizeOrder_selector_offset);
 
         // Get pointer to the beginning of the encoded data.
-        MemoryPointer dstHead = dst.offset(validateOrder_head_offset);
+        MemoryPointer dstHead = dst.offset(authorizeOrder_head_offset);
 
         // Write offset to zoneParameters to start of calldata.
-        dstHead.write(validateOrder_zoneParameters_offset);
+        dstHead.write(authorizeOrder_zoneParameters_offset);
 
         // Reuse `dstHead` as pointer to zoneParameters.
-        dstHead = dstHead.offset(validateOrder_zoneParameters_offset);
+        dstHead = dstHead.offset(authorizeOrder_zoneParameters_offset);
 
         // Write orderHash and fulfiller to zoneParameters.
         dstHead.writeBytes32(orderHash);
@@ -442,11 +448,12 @@ contract ConsiderationEncoder {
 
         // Write offset to extraData.
         dstHead.offset(ZoneParameters_extraData_head_offset).write(tailOffset);
-        // Copy extraData.
-        uint256 extraDataSize =
-            _encodeBytes(toMemoryPointer(extraData), dstHead.offset(tailOffset));
 
         unchecked {
+            // Copy extraData.
+            uint256 extraDataSize =
+                _encodeBytes(toMemoryPointer(extraData), dstHead.offset(tailOffset));
+
             // Increment tail offset, now used to populate orderHashes array.
             tailOffset += extraDataSize;
         }
@@ -455,56 +462,119 @@ contract ConsiderationEncoder {
         dstHead.offset(ZoneParameters_orderHashes_head_offset).write(tailOffset);
 
         // Encode the order hashes array.
-        uint256 orderHashesSize = _encodeOrderHashes(
-            toMemoryPointer(orderHashes), dstHead.offset(tailOffset)
-        );
+        MemoryPointer orderHashesLengthLocation = dstHead.offset(tailOffset);
 
         unchecked {
+            uint256 orderHashesSize = _encodeOrderHashes(
+                toMemoryPointer(orderHashes), orderHashesLengthLocation
+            );
+
             // Increment the tail offset, now used to determine final size.
             tailOffset += orderHashesSize;
 
             // Derive final size including selector and ZoneParameters pointer.
             size = ZoneParameters_selectorAndPointer_length + tailOffset;
         }
+
+        // Update the free memory pointer.
+        setFreeMemoryPointer(ptr.offset(size));
+
+        // Track the pointer, size (when performing validateOrder) and pointer
+        // to orderHashes length by overriding the salt value on the order.
+        orderParameters.salt = (
+            (ptr.readMaskedUint256() << 128) &
+            (size << 64) &
+            orderHashesLengthLocation.readMaskedUint256()
+        );
+
+        // Write the shorted orderHashes array length.
+        orderHashesLengthLocation.write(orderIndex);
+
+        // Modify encoding size to account for the shorter orderHashes array.
+        size -= (1 + orderHashes.length - orderIndex) * OneWord;
     }
 
     /**
-     * @dev Takes an order hash and BasicOrderParameters struct (from calldata)
-     *      and encodes it as `validateOrder` calldata.
+     * @dev Takes an order hash, OrderParameters struct, extraData bytes array,
+     *      and array of order hashes for each order included as part of the
+     *      current fulfillment and encodes it as `validateOrder` calldata.
+     *      Note that future, new versions of this contract may end up writing
+     *      to a memory region that might have been potentially dirtied by the
+     *      accumulator. Since the book-keeping for the accumulator does not
+     *      update the free memory pointer, it will be necessary to ensure that
+     *      all bytes in the memory in the range [dst, dst+size) are fully
+     *      updated/written to in this function.
      *
-     * @param orderHash  The order hash.
-     * @param parameters The BasicOrderParameters struct used to construct the
-     *                   encoded `validateOrder` calldata.
+     * @param salt            The salt on the order, which has been repurposed
+     *                        to contain relevant pointers and encoding size.
+     * @param orderHashes     An array of bytes32 values representing the order
+     *                        hashes of all orders included as part of the
+     *                        current fulfillment.
      *
      * @return dst  A memory pointer referencing the encoded `validateOrder`
      *              calldata.
      * @return size The size of the bytes array.
      */
-    function _encodeValidateBasicOrder(
-        bytes32 orderHash,
-        BasicOrderParameters calldata parameters
+    function _encodeValidateOrder(
+        uint256 salt,
+        bytes32[] memory orderHashes
     ) internal view returns (MemoryPointer dst, uint256 size) {
-        // Get free memory pointer to write calldata to. This isn't allocated as
-        // it is only used for a single function call.
-        dst = getFreeMemoryPointer();
+        dst = MemoryPointer.wrap(salt >> 128);
+        size = (salt >> 64) & OffsetOrLengthMask;
+        MemoryPointer orderHashesLengthLocation = MemoryPointer.wrap(salt & OffsetOrLengthMask);
+
+        // Write validateOrder selector.
+        dst.write(validateOrder_selector);
+
+        // Encode the order hashes array. Note that this currently modifies
+        // order hashes that are known to be properly encoded already and could
+        // therefore be skipped.
+        _encodeOrderHashes(
+            toMemoryPointer(orderHashes), orderHashesLengthLocation
+        );
+    }
+
+    /**
+     * @dev Takes an order hash and BasicOrderParameters struct (from calldata)
+     *      and encodes it as `authorizeOrder` calldata.
+     *
+     * @param orderHash  The order hash.
+     *
+     * @return dst  A memory pointer referencing the encoded `authorizeOrder`
+     *              calldata.
+     * @return size The size of the bytes array.
+     */
+    function _encodeAuthorizeBasicOrder(
+        bytes32 orderHash
+    ) internal view returns (
+        MemoryPointer dst,
+        uint256 size,
+        uint256 memoryLocationForOrderHashes
+    ) {
+        // Get free memory pointer to write calldata to.
+        MemoryPointer ptr = getFreeMemoryPointer();
+
+        dst = ptr;
 
         // Write validateOrder selector and get pointer to start of calldata.
-        dst.write(validateOrder_selector);
-        dst = dst.offset(validateOrder_selector_offset);
+        dst.write(authorizeOrder_selector);
+        dst = dst.offset(authorizeOrder_selector_offset);
 
         // Get pointer to the beginning of the encoded data.
-        MemoryPointer dstHead = dst.offset(validateOrder_head_offset);
+        MemoryPointer dstHead = dst.offset(authorizeOrder_head_offset);
 
         // Write offset to zoneParameters to start of calldata.
-        dstHead.write(validateOrder_zoneParameters_offset);
+        dstHead.write(authorizeOrder_zoneParameters_offset);
 
         // Reuse `dstHead` as pointer to zoneParameters.
-        dstHead = dstHead.offset(validateOrder_zoneParameters_offset);
+        dstHead = dstHead.offset(authorizeOrder_zoneParameters_offset);
 
         // Write offerer, orderHash and fulfiller to zoneParameters.
         dstHead.writeBytes32(orderHash);
         dstHead.offset(ZoneParameters_fulfiller_offset).write(msg.sender);
-        dstHead.offset(ZoneParameters_offerer_offset).write(parameters.offerer);
+        dstHead.offset(ZoneParameters_offerer_offset).write(
+            CalldataPointer.wrap(BasicOrder_offerer_cdPtr).readAddress()
+        );
 
         // Copy startTime, endTime and zoneHash to zoneParameters.
         CalldataPointer.wrap(BasicOrder_startTime_cdPtr).copy(
@@ -559,8 +629,10 @@ contract ConsiderationEncoder {
         // Write offset to orderHashes.
         dstHead.offset(ZoneParameters_orderHashes_head_offset).write(tailOffset);
 
-        // Write length = 1 to the orderHashes array.
-        dstHead.offset(tailOffset).write(1);
+        memoryLocationForOrderHashes = dstHead.offset(tailOffset).readMaskedUint256();
+
+        // Write length = 0 to the orderHashes array.
+        dstHead.offset(tailOffset).write(0);
 
         unchecked {
             // Write the single order hash to the orderHashes array.
@@ -568,7 +640,31 @@ contract ConsiderationEncoder {
 
             // Final size: selector, ZoneParameters pointer, orderHashes & tail.
             size = ZoneParameters_basicOrderFixedElements_length + tailOffset;
+
+            // Update the free memory pointer.
+            setFreeMemoryPointer(ptr.offset(size + OneWord));
         }
+    }
+
+    /**
+     * @dev Takes pointers to already-encoded data and modifies it so that
+     *      it is properly formatted for a `validateOrder` call.
+     *
+     * @param dst                          A memory pointer referencing the
+     *                                     encoded `validateOrder` calldata.
+     * @param memoryLocationForOrderHashes A memory pointer referencing where
+     *                                     to encode orderHashes length of 1.
+     */
+    function _encodeValidateBasicOrder(
+        MemoryPointer dst,
+        uint256 memoryLocationForOrderHashes
+    ) internal pure {
+        // Write validateOrder selector and get pointer to start of calldata.
+        dst.write(validateOrder_selector);
+
+        // Write length = 1 to the orderHashes array. Note that size should now
+        // be one word larger than the provided size.
+        MemoryPointer.wrap(memoryLocationForOrderHashes).write(1);
     }
 
     /**

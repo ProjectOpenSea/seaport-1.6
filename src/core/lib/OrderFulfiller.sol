@@ -121,9 +121,11 @@ contract OrderFulfiller is
 
         bytes32[] memory orderHashes = new bytes32[](0);
 
-        // TODO: perform authorizeOrder call here
-
         if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
+            _assertRestrictedAdvancedOrderAuthorization(
+                advancedOrder, orderHashes, orderHash, 0
+            );
+
             _updateStatus(orderHash, fillNumerator, fillDenominator, true);
         } else {
             // Return the generated order based on the order params and the

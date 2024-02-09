@@ -76,7 +76,7 @@ contract OrderValidator is Executor, ZoneInteraction {
     constructor(address conduitController) Executor(conduitController) { }
 
     /**
-     * @dev Internal function to verify and update the status of a basic order.
+     * @dev Internal function to verify the status of a basic order.
      *      Note that this function may only be safely called as part of basic
      *      orders, as it assumes a specific calldata encoding structure that
      *      must first be validated.
@@ -85,10 +85,10 @@ contract OrderValidator is Executor, ZoneInteraction {
      * @param signature A signature from the offerer indicating that the order
      *                  has been approved.
      */
-    function _validateBasicOrderAndUpdateStatus(               
+    function _validateBasicOrder(               
         bytes32 orderHash,
-        bytes calldata signature
-    ) internal {
+        bytes memory signature
+    ) internal view returns (OrderStatus storage orderStatus) {
         // Retrieve offerer directly using fixed calldata offset based on strict
         // basic parameter encoding.
         address offerer;
@@ -97,7 +97,7 @@ contract OrderValidator is Executor, ZoneInteraction {
         }
 
         // Retrieve the order status for the given order hash.
-        OrderStatus storage orderStatus = _orderStatus[orderHash];
+        orderStatus = _orderStatus[orderHash];
 
         // Ensure order is fillable and is not cancelled.
         _verifyOrderStatus(
@@ -111,14 +111,14 @@ contract OrderValidator is Executor, ZoneInteraction {
         if (!orderStatus.isValidated) {
             _verifySignature(offerer, orderHash, signature);
         }
+    }
 
-        // TODO: perform authorizeOrder call here
-
+    function _updateBasicOrderStatus(OrderStatus storage orderStatus) internal {
         // Update order status as fully filled, packing struct values.
         orderStatus.isValidated = true;
         orderStatus.isCancelled = false;
         orderStatus.numerator = 1;
-        orderStatus.denominator = 1;
+        orderStatus.denominator = 1;     
     }
 
     /**

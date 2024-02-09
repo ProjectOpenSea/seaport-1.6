@@ -7,7 +7,7 @@ import {
     OrderType
 } from "seaport-types/src/lib/ConsiderationEnums.sol";
 
-import { BasicOrderParameters } from
+import { BasicOrderParameters, OrderStatus } from
     "seaport-types/src/lib/ConsiderationStructs.sol";
 
 import { OrderValidator } from "./OrderValidator.sol";
@@ -57,6 +57,7 @@ import {
     BasicOrder_order_startTime_ptr,
     BasicOrder_order_typeHash_ptr,
     BasicOrder_receivedItemByteMap,
+    BasicOrder_signature_cdPtr,
     BasicOrder_startTime_cdPtr,
     BasicOrder_totalOriginalAdditionalRecipients_cdPtr,
     BasicOrder_zone_cdPtr,
@@ -114,6 +115,10 @@ import {
     UnusedItemParameters_error_selector
 } from "seaport-types/src/lib/ConsiderationErrorConstants.sol";
 
+import {
+    CalldataPointer
+} from "seaport-types/src/helpers/PointerLibraries.sol";
+
 /**
  * @title BasicOrderFulfiller
  * @author 0age
@@ -147,19 +152,9 @@ contract BasicOrderFulfiller is OrderValidator {
      *      Refer to the documentation for a more comprehensive summary of how
      *      to utilize this method and what orders are compatible with it.
      *
-     * @param parameters Additional information on the fulfilled order. Note
-     *                   that the offerer and the fulfiller must first approve
-     *                   this contract (or their chosen conduit if indicated)
-     *                   before any tokens can be transferred. Also note that
-     *                   contract recipients of ERC1155 consideration items must
-     *                   implement `onERC1155Received` in order to receive those
-     *                   items.
-     *
      * @return A boolean indicating whether the order has been fulfilled.
      */
-    function _validateAndFulfillBasicOrder(
-        BasicOrderParameters calldata parameters
-    ) internal returns (bool) {
+    function _validateAndFulfillBasicOrder() internal returns (bool) {
         // Declare enums for order type & route to extract from basicOrderType.
         BasicOrderRouteType route;
         OrderType orderType;
@@ -207,6 +202,7 @@ contract BasicOrderFulfiller is OrderValidator {
         address additionalRecipientsToken;
         ItemType offeredItemType;
         bool offerTypeIsAdditionalRecipientsType;
+        uint256 callDataPointer;
 
         // Declare scope for received item type to manage stack pressure.
         {
@@ -240,8 +236,7 @@ contract BasicOrderFulfiller is OrderValidator {
             }
 
             // Derive & validate order using parameters and update order status.
-            orderHash = _prepareBasicFulfillmentFromCalldata(
-                parameters,
+            (orderHash, callDataPointer) = _prepareBasicFulfillmentFromCalldata(
                 orderType,
                 receivedItemType,
                 additionalRecipientsItemType,
@@ -303,33 +298,33 @@ contract BasicOrderFulfiller is OrderValidator {
             if (route == BasicOrderRouteType.ERC20_TO_ERC721) {
                 // Transfer ERC721 to caller using offerer's conduit preference.
                 _transferERC721(
-                    parameters.offerToken,
-                    parameters.offerer,
+                    CalldataPointer.wrap(BasicOrder_offerToken_cdPtr).readAddress(),
+                    CalldataPointer.wrap(BasicOrder_offerer_cdPtr).readAddress(),
                     msg.sender,
-                    parameters.offerIdentifier,
-                    parameters.offerAmount,
+                    CalldataPointer.wrap(BasicOrder_offerIdentifier_cdPtr).readUint256(),
+                    CalldataPointer.wrap(BasicOrder_offerAmount_cdPtr).readUint256(),
                     conduitKey,
                     accumulator
                 );
             } else if (route == BasicOrderRouteType.ERC20_TO_ERC1155) {
                 // Transfer ERC1155 to caller with offerer's conduit preference.
                 _transferERC1155(
-                    parameters.offerToken,
-                    parameters.offerer,
+                    CalldataPointer.wrap(BasicOrder_offerToken_cdPtr).readAddress(),
+                    CalldataPointer.wrap(BasicOrder_offerer_cdPtr).readAddress(),
                     msg.sender,
-                    parameters.offerIdentifier,
-                    parameters.offerAmount,
+                    CalldataPointer.wrap(BasicOrder_offerIdentifier_cdPtr).readUint256(),
+                    CalldataPointer.wrap(BasicOrder_offerAmount_cdPtr).readUint256(),
                     conduitKey,
                     accumulator
                 );
             } else if (route == BasicOrderRouteType.ERC721_TO_ERC20) {
                 // Transfer ERC721 to offerer using caller's conduit preference.
                 _transferERC721(
-                    parameters.considerationToken,
+                    CalldataPointer.wrap(BasicOrder_considerationToken_cdPtr).readAddress(),
                     msg.sender,
-                    parameters.offerer,
-                    parameters.considerationIdentifier,
-                    parameters.considerationAmount,
+                    CalldataPointer.wrap(BasicOrder_offerer_cdPtr).readAddress(),
+                    CalldataPointer.wrap(BasicOrder_considerationIdentifier_cdPtr).readUint256(),
+                    CalldataPointer.wrap(BasicOrder_considerationAmount_cdPtr).readUint256(),
                     conduitKey,
                     accumulator
                 );
@@ -338,11 +333,11 @@ contract BasicOrderFulfiller is OrderValidator {
 
                 // Transfer ERC1155 to offerer with caller's conduit preference.
                 _transferERC1155(
-                    parameters.considerationToken,
+                    CalldataPointer.wrap(BasicOrder_considerationToken_cdPtr).readAddress(),
                     msg.sender,
-                    parameters.offerer,
-                    parameters.considerationIdentifier,
-                    parameters.considerationAmount,
+                    CalldataPointer.wrap(BasicOrder_offerer_cdPtr).readAddress(),
+                    CalldataPointer.wrap(BasicOrder_considerationIdentifier_cdPtr).readUint256(),
+                    CalldataPointer.wrap(BasicOrder_considerationAmount_cdPtr).readUint256(),
                     conduitKey,
                     accumulator
                 );
@@ -358,7 +353,7 @@ contract BasicOrderFulfiller is OrderValidator {
         }
 
         // Determine whether order is restricted and, if so, that it is valid.
-        _assertRestrictedBasicOrderValidity(orderHash, orderType, parameters);
+        _assertRestrictedBasicOrderValidity(orderHash, orderType, callDataPointer);
 
         // Clear the reentrancy guard.
         _clearReentrancyGuard();
@@ -379,7 +374,6 @@ contract BasicOrderFulfiller is OrderValidator {
      *      same data as the order hash is derived from. Also note that this
      *      function accesses memory directly.
      *
-     * @param parameters                   The parameters of the basic order.
      * @param orderType                    The order type.
      * @param receivedItemType             The item type of the initial
      *                                     consideration item on the order.
@@ -393,13 +387,12 @@ contract BasicOrderFulfiller is OrderValidator {
      * @return orderHash The calculated order hash.
      */
     function _prepareBasicFulfillmentFromCalldata(
-        BasicOrderParameters calldata parameters,
         OrderType orderType,
         ItemType receivedItemType,
         ItemType additionalRecipientsItemType,
         address additionalRecipientsToken,
         ItemType offeredItemType
-    ) internal returns (bytes32 orderHash) {
+    ) internal returns (bytes32 orderHash, uint256 callDataPointer) {
         // Ensure this function cannot be triggered during a reentrant call.
         _setReentrancyGuard(false); // Native tokens rejected during execution.
 
@@ -1026,10 +1019,21 @@ contract BasicOrderFulfiller is OrderValidator {
         }
 
         // Verify and update the status of the derived order.
-        _validateBasicOrderAndUpdateStatus(orderHash, parameters.signature);
+        OrderStatus storage orderStatus = _validateBasicOrder(
+            orderHash,
+            _toBytesReturnType(_decodeBytes)(
+                CalldataPointer.wrap(BasicOrder_signature_cdPtr)
+            )
+        );
+
+        // Determine whether order is restricted and, if so, that it is valid.
+        callDataPointer = _assertRestrictedBasicOrderAuthorization(orderHash, orderType);
+
+        // Update the status of the order and mark as fully filled.
+        _updateBasicOrderStatus(orderStatus);
 
         // Return the derived order hash.
-        return orderHash;
+        return (orderHash, callDataPointer);
     }
 
     /**
