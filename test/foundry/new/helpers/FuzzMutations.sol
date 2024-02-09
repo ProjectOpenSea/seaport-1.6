@@ -2935,9 +2935,9 @@ contract FuzzMutations is Test, FuzzExecutor {
         CriteriaResolver memory resolver =
             context.executionState.criteriaResolvers[criteriaResolverIndex];
 
-        OrderDetails memory order =
-            context.executionState.orderDetails[resolver.orderIndex];
-        resolver.index = order.consideration.length;
+        AdvancedOrder memory order =
+            context.executionState.orders[resolver.orderIndex];
+        resolver.index = order.parameters.consideration.length;
 
         exec(context);
     }
