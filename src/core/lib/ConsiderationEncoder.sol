@@ -543,21 +543,21 @@ contract ConsiderationEncoder {
      *
      * @param orderHash  The order hash.
      *
-     * @return dst  A memory pointer referencing the encoded `authorizeOrder`
-     *              calldata.
+     * @return ptr  A memory pointer referencing the encoded `authorizeOrder`
+     *              calldata with extra padding at the start to word align.
      * @return size The size of the bytes array.
      */
     function _encodeAuthorizeBasicOrder(
         bytes32 orderHash
     ) internal view returns (
-        MemoryPointer dst,
+        MemoryPointer ptr,
         uint256 size,
         uint256 memoryLocationForOrderHashes
     ) {
         // Get free memory pointer to write calldata to.
-        MemoryPointer ptr = getFreeMemoryPointer();
+        ptr = getFreeMemoryPointer();
 
-        dst = ptr;
+        MemoryPointer dst = ptr;
 
         // Write validateOrder selector and get pointer to start of calldata.
         dst.write(authorizeOrder_selector);
@@ -632,7 +632,7 @@ contract ConsiderationEncoder {
         // Write offset to orderHashes.
         dstHead.offset(ZoneParameters_orderHashes_head_offset).write(tailOffset);
 
-        memoryLocationForOrderHashes = dstHead.offset(tailOffset).readMaskedUint256();
+        memoryLocationForOrderHashes = MemoryPointer.unwrap(dstHead.offset(tailOffset));
 
         // Write length = 0 to the orderHashes array.
         dstHead.offset(tailOffset).write(0);
@@ -645,7 +645,7 @@ contract ConsiderationEncoder {
             size = ZoneParameters_basicOrderFixedElements_length + tailOffset;
 
             // Update the free memory pointer.
-            setFreeMemoryPointer(ptr.offset(size + OneWord));
+            setFreeMemoryPointer(dst.offset(size + OneWord));
         }
     }
 

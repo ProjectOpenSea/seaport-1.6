@@ -19,12 +19,14 @@ import { ConsiderationEncoder } from "./ConsiderationEncoder.sol";
 import { CalldataPointer, MemoryPointer, OffsetOrLengthMask } from "seaport-types/src/helpers/PointerLibraries.sol";
 
 import {
+    authorizeOrder_selector_offset,
     BasicOrder_zone_cdPtr,
     ContractOrder_orderHash_offerer_shift,
     MaskOverFirstFourBytes,
     OneWord,
     OrderParameters_salt_offset,
-    OrderParameters_zone_offset
+    OrderParameters_zone_offset,
+    validateOrder_selector_offset
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
 import {
@@ -72,15 +74,15 @@ contract ZoneInteraction is
             _callAndCheckStatus(
                 CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress(),
                 orderHash,
-                callData,
+                callData.offset(authorizeOrder_selector_offset),
                 size,
                 InvalidRestrictedOrder_error_selector
             );
 
-            callDataPointer = callData.readMaskedUint256();
+            callDataPointer = MemoryPointer.unwrap(callData);
         
             unchecked {
-                callData.write((size + OneWord) << 128 & memoryLocationForOrderHashes);
+                callData.write((size + OneWord) << 128 | memoryLocationForOrderHashes);
             }
         }
     }
@@ -115,6 +117,8 @@ contract ZoneInteraction is
 
             // Encode the `validateOrder` call in memory.
             _encodeValidateBasicOrder(callData, memoryLocationForOrderHashes);
+
+            callData = callData.offset(validateOrder_selector_offset);
 
             // Perform `validateOrder` call and ensure magic value was returned.
             _callAndCheckStatus(
