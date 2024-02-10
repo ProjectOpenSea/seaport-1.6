@@ -108,7 +108,7 @@ uint256 constant OrderParameters_consideration_head_offset = 0x60;
 uint256 constant OrderParameters_startTime_offset = 0xa0;
 uint256 constant OrderParameters_endTime_offset = 0xc0;
 uint256 constant OrderParameters_zoneHash_offset = 0xe0;
-// uint256 constant OrderParameters_salt_offset = 0x100;
+uint256 constant OrderParameters_salt_offset = 0x100;
 uint256 constant OrderParameters_conduit_offset = 0x120;
 uint256 constant OrderParameters_counter_offset = 0x140;
 
@@ -524,7 +524,7 @@ uint256 constant ZoneParameters_endTime_offset = 0x100;
 uint256 constant ZoneParameters_zoneHash_offset = 0x120;
 uint256 constant ZoneParameters_base_tail_offset = 0x140;
 uint256 constant ZoneParameters_selectorAndPointer_length = 0x24;
-uint256 constant ZoneParameters_basicOrderFixedElements_length = 0x64;
+uint256 constant ZoneParameters_basicOrderFixedElements_length = 0x44;
 
 // ConsiderationDecoder Constants
 uint256 constant OrderParameters_head_size = 0x0160;
