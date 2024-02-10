@@ -121,7 +121,6 @@ contract OrderFulfiller is
 
         // Declare empty bytes32 array and populate with the order hash.
         bytes32[] memory orderHashes = new bytes32[](1);
-        orderHashes[0] = orderHash;
 
         if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
             _assertRestrictedAdvancedOrderAuthorization(
@@ -194,6 +193,8 @@ contract OrderFulfiller is
         }
 
         _transferEach(orderParameters, fulfillerConduitKey);
+
+        orderHashes[0] = orderHash;
 
         // Ensure restricted orders have a valid submitter or pass a zone check.
         _assertRestrictedAdvancedOrderValidity(
