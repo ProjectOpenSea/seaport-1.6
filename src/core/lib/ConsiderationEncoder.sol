@@ -45,6 +45,7 @@ import {
     SpentItem_size_shift,
     SpentItem_size,
     validateOrder_selector,
+    validateOrder_selector_offset,
     ZoneParameters_base_tail_offset,
     ZoneParameters_basicOrderFixedElements_length,
     ZoneParameters_consideration_head_offset,
@@ -477,7 +478,7 @@ contract ConsiderationEncoder {
         }
 
         // Update the free memory pointer.
-        setFreeMemoryPointer(ptr.offset(size));
+        setFreeMemoryPointer(dst.offset(size));
 
         // Track the pointer, size (when performing validateOrder) and pointer
         // to orderHashes length by overriding the salt value on the order.
@@ -525,6 +526,8 @@ contract ConsiderationEncoder {
 
         // Write validateOrder selector.
         dst.write(validateOrder_selector);
+
+        dst = dst.offset(validateOrder_selector_offset);
 
         // Encode the order hashes array. Note that this currently modifies
         // order hashes that are known to be properly encoded already and could
