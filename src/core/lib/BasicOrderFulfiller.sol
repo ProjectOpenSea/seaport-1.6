@@ -1022,7 +1022,10 @@ contract BasicOrderFulfiller is OrderValidator {
         OrderStatus storage orderStatus = _validateBasicOrder(
             orderHash,
             _toBytesReturnType(_decodeBytes)(
-                CalldataPointer.wrap(CalldataPointer.wrap(BasicOrder_signature_cdPtr).readMaskedUint256())
+                CalldataPointer.wrap(
+                    CalldataPointer.wrap(BasicOrder_signature_cdPtr)
+                        .readMaskedUint256() + 0x24
+                )
             )
         );
 
