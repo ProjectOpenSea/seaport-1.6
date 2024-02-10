@@ -482,9 +482,9 @@ contract ConsiderationEncoder {
         // Track the pointer, size (when performing validateOrder) and pointer
         // to orderHashes length by overriding the salt value on the order.
         orderParameters.salt = (
-            (ptr.readMaskedUint256() << 128) &
-            (size << 64) &
-            orderHashesLengthLocation.readMaskedUint256()
+            (MemoryPointer.unwrap(ptr) << 128) |
+            (size << 64) |
+            MemoryPointer.unwrap(orderHashesLengthLocation)
         );
 
         // Write the shorted orderHashes array length.
