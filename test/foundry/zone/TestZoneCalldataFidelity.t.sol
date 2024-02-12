@@ -78,13 +78,13 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
     }
 
     function testCalldataEquivalence(TestCase memory testCase) public {
-        // test(
-        //     this.execCalldataEquivalence,
-        //     Context({
-        //         consideration: consideration,
-        //         testCase: testCase
-        //     })
-        // );
+        test(
+            this.execCalldataEquivalence,
+            Context({
+                consideration: consideration,
+                testCase: testCase
+            })
+        );
         test(
             this.execCalldataEquivalence,
             Context({
