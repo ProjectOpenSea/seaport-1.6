@@ -1134,6 +1134,32 @@ contract ConsiderationDecoder {
     /**
      * @dev Converts a function taking a calldata pointer and returning a memory
      *      pointer into a function taking that calldata pointer and returning
+     *      a bytes type.
+     *
+     * @param inFn The input function, taking an arbitrary calldata pointer and
+     *             returning an arbitrary memory pointer.
+     *
+     * @return outFn The output function, taking an arbitrary calldata pointer
+     *               and returning a bytes type.
+     */
+    function _toBytesReturnType(
+        function(CalldataPointer) internal pure returns (MemoryPointer) inFn
+    )
+        internal
+        pure
+        returns (
+            function(CalldataPointer) internal pure returns (bytes memory)
+                outFn
+        )
+    {
+        assembly {
+            outFn := inFn
+        }
+    }
+
+    /**
+     * @dev Converts a function taking a calldata pointer and returning a memory
+     *      pointer into a function taking that calldata pointer and returning
      *      an OrderParameters type.
      *
      * @param inFn The input function, taking an arbitrary calldata pointer and

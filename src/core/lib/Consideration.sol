@@ -87,7 +87,7 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
      *         to the documentation for a more comprehensive summary of how to
      *         utilize this method and what orders are compatible with it.
      *
-     * @param parameters Additional information on the fulfilled order. Note
+     * @custom:param parameters Additional information on the fulfilled order. Note
      *                   that the offerer and the fulfiller must first approve
      *                   this contract (or their chosen conduit if indicated)
      *                   before any tokens can be transferred. Also note that
@@ -97,14 +97,19 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
      * @return fulfilled A boolean indicating whether the order has been
      *                   successfully fulfilled.
      */
-    function fulfillBasicOrder(BasicOrderParameters calldata parameters)
+    function fulfillBasicOrder(
+        /**
+         * @custom:name parameters
+         */
+        BasicOrderParameters calldata
+    )
         external
         payable
         override
         returns (bool fulfilled)
     {
         // Validate and fulfill the basic order.
-        fulfilled = _validateAndFulfillBasicOrder(parameters);
+        fulfilled = _validateAndFulfillBasicOrder();
     }
 
     /**
@@ -125,7 +130,7 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
      *         the zero bytes in the function selector (0x00000000) which also
      *         results in earlier function dispatch.
      *
-     * @param parameters Additional information on the fulfilled order. Note
+     * @custom:param parameters Additional information on the fulfilled order. Note
      *                   that the offerer and the fulfiller must first approve
      *                   this contract (or their chosen conduit if indicated)
      *                   before any tokens can be transferred. Also note that
@@ -136,10 +141,13 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
      *                   successfully fulfilled.
      */
     function fulfillBasicOrder_efficient_6GL6yc(
-        BasicOrderParameters calldata parameters
+        /**
+         * @custom:name parameters
+         */
+        BasicOrderParameters calldata
     ) external payable override returns (bool fulfilled) {
         // Validate and fulfill the basic order.
-        fulfilled = _validateAndFulfillBasicOrder(parameters);
+        fulfilled = _validateAndFulfillBasicOrder();
     }
 
     /**

@@ -16,13 +16,17 @@ import { LowLevelHelpers } from "./LowLevelHelpers.sol";
 
 import { ConsiderationEncoder } from "./ConsiderationEncoder.sol";
 
-import { MemoryPointer } from "seaport-types/src/helpers/PointerLibraries.sol";
+import { CalldataPointer, MemoryPointer, OffsetOrLengthMask } from "seaport-types/src/helpers/PointerLibraries.sol";
 
 import {
+    authorizeOrder_selector_offset,
+    BasicOrder_zone_cdPtr,
     ContractOrder_orderHash_offerer_shift,
     MaskOverFirstFourBytes,
     OneWord,
-    OrderParameters_zone_offset
+    OrderParameters_salt_offset,
+    OrderParameters_zone_offset,
+    validateOrder_selector_offset
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
 import {
@@ -52,29 +56,105 @@ contract ZoneInteraction is
      *
      * @param orderHash  The hash of the order.
      * @param orderType  The order type.
-     * @param parameters The parameters of the basic order.
+     */
+    function _assertRestrictedBasicOrderAuthorization(
+        bytes32 orderHash,
+        OrderType orderType
+    ) internal returns (uint256 callDataPointer) {
+        // Order type 2-3 require zone be caller or zone to approve.
+        // Note that in cases where fulfiller == zone, the restricted order
+        // validation will be skipped.
+        if (_isRestrictedAndCallerNotZone(orderType, CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress())) {
+            // Encode the `authorizeOrder` call in memory.
+
+            (MemoryPointer callData, uint256 size, uint256 memoryLocationForOrderHashes) =
+                _encodeAuthorizeBasicOrder(orderHash);
+
+            // Perform `authorizeOrder` call and ensure magic value was returned.
+            _callAndCheckStatus(
+                CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress(),
+                orderHash,
+                callData.offset(authorizeOrder_selector_offset),
+                size,
+                InvalidRestrictedOrder_error_selector
+            );
+
+            callDataPointer = MemoryPointer.unwrap(callData);
+        
+            unchecked {
+                callData.write((size + OneWord) << 128 | memoryLocationForOrderHashes);
+            }
+        }
+    }
+
+    /**
+     * @dev Internal function to determine if an order has a restricted order
+     *      type and, if so, to ensure that either the zone is the caller or
+     *      that a call to `validateOrder` on the zone returns a magic value
+     *      indicating that the order is currently valid. Note that contract
+     *      orders are not accessible via the basic fulfillment method.
+     *
+     * @param orderHash   The hash of the order.
+     * @param orderType   The order type.
+     * @param callDataPtr The pointer to the call data for the basic order.
+     *                    Note that the initial value will contain the size
+     *                    and the memory location for order hashes length.
      */
     function _assertRestrictedBasicOrderValidity(
         bytes32 orderHash,
         OrderType orderType,
-        BasicOrderParameters calldata parameters
+        uint256 callDataPtr
     ) internal {
         // Order type 2-3 require zone be caller or zone to approve.
         // Note that in cases where fulfiller == zone, the restricted order
         // validation will be skipped.
-        if (_isRestrictedAndCallerNotZone(orderType, parameters.zone)) {
+        if (_isRestrictedAndCallerNotZone(orderType, CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress())) {
+            MemoryPointer callData = MemoryPointer.wrap(callDataPtr);
+            uint256 sizeAndMemoryLocationForOrderHashes = callData.readUint256();
+
+            uint256 size = sizeAndMemoryLocationForOrderHashes >> 128;
+            uint256 memoryLocationForOrderHashes = sizeAndMemoryLocationForOrderHashes & OffsetOrLengthMask;
+
             // Encode the `validateOrder` call in memory.
-            (MemoryPointer callData, uint256 size) =
-                _encodeValidateBasicOrder(orderHash, parameters);
+            _encodeValidateBasicOrder(callData, memoryLocationForOrderHashes);
+
+            callData = callData.offset(validateOrder_selector_offset);
 
             // Perform `validateOrder` call and ensure magic value was returned.
             _callAndCheckStatus(
-                parameters.zone,
+                CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress(),
                 orderHash,
                 callData,
                 size,
                 InvalidRestrictedOrder_error_selector
             );
+        }
+    }
+
+    function _assertRestrictedAdvancedOrderAuthorization(
+        AdvancedOrder memory advancedOrder,
+        bytes32[] memory orderHashes,
+        bytes32 orderHash,
+        uint256 orderIndex
+    ) internal {
+        // Retrieve the parameters of the order in question.
+        OrderParameters memory parameters = advancedOrder.parameters;
+
+        // OrderType 2-3 require zone to be caller or approve via validateOrder.
+        if (
+            _isRestrictedAndCallerNotZone(parameters.orderType, parameters.zone)
+        ) {
+            // Encode the `validateOrder` call in memory.
+            (MemoryPointer callData, uint256 size) = _encodeAuthorizeOrder(
+                orderHash,
+                parameters,
+                advancedOrder.extraData,
+                orderHashes,
+                orderIndex
+            );
+
+            // Perform call and ensure a corresponding magic value was returned.
+            _callAndCheckStatus(parameters.zone, orderHash, callData, size, InvalidRestrictedOrder_error_selector);
         }
     }
 
@@ -110,7 +190,9 @@ contract ZoneInteraction is
         ) {
             // Encode the `validateOrder` call in memory.
             (callData, size) = _encodeValidateOrder(
-                orderHash, parameters, advancedOrder.extraData, orderHashes
+                parameters.toMemoryPointer().offset(OrderParameters_salt_offset)
+                    .readUint256(),
+                orderHashes
             );
 
             // Set the target to the zone.
