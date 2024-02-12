@@ -194,19 +194,19 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
             .saveDefault(STD_RESTRICTED);
     }
 
-    function testBaselineFunctionality(MatchFuzzInputs memory _matchArgs) public {
+    function testMatch(MatchFuzzInputs memory _matchArgs) public {
         _matchArgs = _boundMatchArgs(_matchArgs);
 
-        // test(
-        //     this.execBaselineFunctionality,
-        //     Context({
-        //         seaport: consideration,
-        //         matchArgs: _matchArgs,
-        //         fulfillArgs: emptyFulfill
-        //     })
-        // );
         test(
-            this.execBaselineFunctionality,
+            this.execMatch,
+            Context({
+                seaport: consideration,
+                matchArgs: _matchArgs,
+                fulfillArgs: emptyFulfill
+            })
+        );
+        test(
+            this.execMatch,
             Context({
                 seaport: referenceConsideration,
                 matchArgs: _matchArgs,
@@ -215,7 +215,7 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
         );
     }
 
-    function execBaselineFunctionality(Context memory context) public stateless {
+    function execMatch(Context memory context) public stateless {
         console.log("context.matchArgs.shouldRevert");
         console.log(context.matchArgs.shouldRevert);
 
