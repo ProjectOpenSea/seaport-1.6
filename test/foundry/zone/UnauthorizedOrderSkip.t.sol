@@ -1,0 +1,920 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import {
+    ConsiderationItemLib,
+    FulfillmentComponentLib,
+    FulfillmentLib,
+    OfferItemLib,
+    OrderComponentsLib,
+    OrderLib,
+    OrderParametersLib,
+    SeaportArrays
+} from "seaport-sol/src/lib/SeaportStructLib.sol";
+
+import { UnavailableReason } from "seaport-sol/src/SpaceEnums.sol";
+
+import { BaseOrderTest } from "../utils/BaseOrderTest.sol";
+
+import { VerboseAuthZone } from
+    "./impl/VerboseAuthZone.sol";
+
+import {
+    AdvancedOrder,
+    BasicOrderParameters,
+    ConsiderationItem,
+    CriteriaResolver,
+    Fulfillment,
+    FulfillmentComponent,
+    ItemType,
+    OfferItem,
+    Order,
+    OrderComponents,
+    OrderParameters
+} from "seaport-types/src/lib/ConsiderationStructs.sol";
+
+import {
+    BasicOrderType,
+    OrderType,
+    Side
+} from "seaport-types/src/lib/ConsiderationEnums.sol";
+
+import { ConsiderationInterface } from
+    "seaport-types/src/interfaces/ConsiderationInterface.sol";
+
+import { FulfillAvailableHelper } from
+    "seaport-sol/src/fulfillments/available/FulfillAvailableHelper.sol";
+
+import { MatchFulfillmentHelper } from
+    "seaport-sol/src/fulfillments/match/MatchFulfillmentHelper.sol";
+
+import "forge-std/console.sol";
+
+contract UnauthorizedOrderSkipTest is BaseOrderTest {
+    using FulfillmentLib for Fulfillment;
+    using FulfillmentComponentLib for FulfillmentComponent;
+    using FulfillmentComponentLib for FulfillmentComponent[];
+    using OfferItemLib for OfferItem;
+    using OfferItemLib for OfferItem[];
+    using ConsiderationItemLib for ConsiderationItem;
+    using ConsiderationItemLib for ConsiderationItem[];
+    using OrderComponentsLib for OrderComponents;
+    using OrderParametersLib for OrderParameters;
+    using OrderLib for Order;
+    using OrderLib for Order[];
+
+    MatchFulfillmentHelper matchFulfillmentHelper;
+    FulfillAvailableHelper fulfillAvailableFulfillmentHelper;
+
+    struct Context {
+        ConsiderationInterface seaport;
+        FulfillFuzzInputs fulfillArgs;
+        MatchFuzzInputs matchArgs;
+    }
+
+    struct FulfillFuzzInputs {
+        uint256 tokenId;
+        uint128 amount;
+        uint128 excessNativeTokens;
+        uint256 orderCount;
+        uint256 considerationItemsPerOrderCount;
+        uint256 maximumFulfilledCount;
+        address offerRecipient;
+        address considerationRecipient;
+        bytes32 zoneHash;
+        uint256 salt;
+        bool shouldAggregateFulfillmentComponents;
+        bool shouldUseConduit;
+        bool shouldIncludeNativeConsideration;
+        bool shouldIncludeExcessOfferItems;
+        bool shouldSpecifyRecipient;
+        bool shouldIncludeJunkDataInAdvancedOrder;
+    }
+
+    struct MatchFuzzInputs {
+        uint256 tokenId;
+        uint128 amount;
+        uint128 excessNativeTokens;
+        uint256 orderPairCount;
+        uint256 considerationItemsPerPrimeOrderCount;
+        // This is currently used only as the unspent prime offer item recipient
+        // but would also set the recipient for unspent mirror offer items if
+        // any were added in the test in the future.
+        address unspentPrimeOfferItemRecipient;
+        string primeOfferer;
+        string mirrorOfferer;
+        bytes32 zoneHash;
+        uint256 salt;
+        bool shouldReturnInvalidMagicValue;
+        bool shouldRevert;
+        bool shouldUseConduit;
+        bool shouldIncludeNativeConsideration;
+        bool shouldIncludeExcessOfferItems;
+        bool shouldSpecifyUnspentOfferItemRecipient;
+        bool shouldIncludeJunkDataInAdvancedOrder;
+    }
+
+    // Used for stack depth management.
+    struct MatchAdvancedOrdersInfra {
+        Order[] orders;
+        Fulfillment[] fulfillments;
+        AdvancedOrder[] advancedOrders;
+        CriteriaResolver[] criteriaResolvers;
+        uint256 callerBalanceBefore;
+        uint256 callerBalanceAfter;
+        uint256 primeOffererBalanceBefore;
+        uint256 primeOffererBalanceAfter;
+    }
+
+    FulfillFuzzInputs emptyFulfill;
+    MatchFuzzInputs emptyMatch;
+
+    Account fuzzPrimeOfferer;
+    Account fuzzMirrorOfferer;
+
+    string constant SINGLE_721 = "single 721";
+    string constant STD_RESTRICTED = "validation zone";
+
+    // Used for stack depth management.
+    struct OrderAndFulfillmentInfra {
+        OfferItem[] offerItemArray;
+        ConsiderationItem[] considerationItemArray;
+        OrderComponents orderComponents;
+        Order[] orders;
+        Fulfillment fulfillment;
+        Fulfillment[] fulfillments;
+    }
+
+    // Used for stack depth management.
+    struct OrderComponentInfra {
+        OrderComponents orderComponents;
+        OrderComponents[] orderComponentsArray;
+        OfferItem[][] offerItemArray;
+        ConsiderationItem[][] considerationItemArray;
+        ConsiderationItem nativeConsiderationItem;
+        ConsiderationItem erc20ConsiderationItemOne;
+        ConsiderationItem erc20ConsiderationItemTwo;
+    }
+
+    function test(function(Context memory) external fn, Context memory context)
+        internal
+    {
+        try fn(context) {
+            fail();
+        } catch (bytes memory reason) {
+            assertPass(reason);
+        }
+    }
+
+    function setUp() public override {
+        super.setUp();
+        matchFulfillmentHelper = new MatchFulfillmentHelper();
+        fulfillAvailableFulfillmentHelper = new FulfillAvailableHelper();
+        conduitController.updateChannel(address(conduit), address(this), true);
+        referenceConduitController.updateChannel(
+            address(referenceConduit), address(this), true
+        );
+
+        // create a default consideration for a single 721;
+        // note that it does not have recipient, token or
+        // identifier set
+        ConsiderationItemLib.empty().withItemType(ItemType.ERC721)
+            .withStartAmount(1).withEndAmount(1).saveDefault(SINGLE_721);
+
+        // create a default offerItem for a single 721;
+        // note that it does not have token or identifier set
+        OfferItemLib.empty().withItemType(ItemType.ERC721).withStartAmount(1)
+            .withEndAmount(1).saveDefault(SINGLE_721);
+
+        OrderComponentsLib.empty().withOfferer(offerer1.addr)
+        .withOrderType(OrderType.FULL_RESTRICTED).withStartTime(
+            block.timestamp
+        ).withEndTime(block.timestamp + 1).withZoneHash(bytes32(0)).withSalt(0)
+            .withConduitKey(conduitKeyOne)
+            .saveDefault(STD_RESTRICTED);
+    }
+
+    function testBaselineFunctionality(MatchFuzzInputs memory _matchArgs) public {
+        _matchArgs = _boundMatchArgs(_matchArgs);
+
+        // test(
+        //     this.execBaselineFunctionality,
+        //     Context({
+        //         seaport: consideration,
+        //         matchArgs: _matchArgs,
+        //         fulfillArgs: emptyFulfill
+        //     })
+        // );
+        test(
+            this.execBaselineFunctionality,
+            Context({
+                seaport: referenceConsideration,
+                matchArgs: _matchArgs,
+                fulfillArgs: emptyFulfill
+            })
+        );
+    }
+
+    function execBaselineFunctionality(Context memory context) public stateless {
+        console.log("context.matchArgs.shouldRevert");
+        console.log(context.matchArgs.shouldRevert);
+
+        console.log("context.matchArgs.shouldReturnInvalidMagicValue");
+        console.log(context.matchArgs.shouldReturnInvalidMagicValue);
+
+        // Set up the zone.
+        VerboseAuthZone verboseZone =
+            new VerboseAuthZone(context.matchArgs.shouldReturnInvalidMagicValue, context.matchArgs.shouldRevert);
+
+        vm.label(address(verboseZone), "VerboseZone");
+
+         // Set up the infrastructure for this function in a struct to avoid
+        // stack depth issues.
+        MatchAdvancedOrdersInfra memory infra = MatchAdvancedOrdersInfra({
+            orders: new Order[](context.matchArgs.orderPairCount),
+            fulfillments: new Fulfillment[](context.matchArgs.orderPairCount),
+            advancedOrders: new AdvancedOrder[](context.matchArgs.orderPairCount),
+            criteriaResolvers: new CriteriaResolver[](0),
+            callerBalanceBefore: 0,
+            callerBalanceAfter: 0,
+            primeOffererBalanceBefore: 0,
+            primeOffererBalanceAfter: 0
+        });
+
+        // TODO: (Someday) See if the stack can tolerate fuzzing criteria
+        // resolvers.
+
+        // The prime offerer is offering NFTs and considering ERC20/Native.
+        fuzzPrimeOfferer =
+            makeAndAllocateAccount(context.matchArgs.primeOfferer);
+        // The mirror offerer is offering ERC20/Native and considering NFTs.
+        fuzzMirrorOfferer =
+            makeAndAllocateAccount(context.matchArgs.mirrorOfferer);
+
+        // Create the orders and fulfuillments.
+        (infra.orders, infra.fulfillments) =
+            _buildOrdersAndFulfillmentsMirrorOrdersFromFuzzArgs(
+                context,
+                address(verboseZone)
+            );
+
+        // Set up the advanced orders array.
+        infra.advancedOrders = new AdvancedOrder[](infra.orders.length);
+
+        // Convert the orders to advanced orders.
+        for (uint256 i = 0; i < infra.orders.length; i++) {
+            infra.advancedOrders[i] = infra.orders[i].toAdvancedOrder(
+                1,
+                1,
+                context.matchArgs.shouldIncludeJunkDataInAdvancedOrder
+                    ? bytes(abi.encodePacked(context.matchArgs.salt))
+                    : bytes("")
+            );
+        }
+
+        // Store the native token balances before the call for later reference.
+        infra.callerBalanceBefore = address(this).balance;
+        infra.primeOffererBalanceBefore = address(fuzzPrimeOfferer.addr).balance;
+
+        // Set up expectations for the call.
+        uint256 offererCounter =
+        context.seaport.getCounter(infra.orders[0].parameters.offerer);
+
+        // Set up the orderHash.
+        bytes32 orderHash = context.seaport.getOrderHash(infra.orders[0].parameters.toOrderComponents(offererCounter));
+
+        console.log("context.matchArgs.shouldRevert");
+        console.log(context.matchArgs.shouldRevert);
+
+        if (context.matchArgs.shouldReturnInvalidMagicValue || context.matchArgs.shouldRevert) {
+            vm.expectRevert(abi.encodeWithSignature("InvalidRestrictedOrder(bytes32)", orderHash));
+        } else if (
+            fuzzPrimeOfferer
+                // If the fuzzPrimeOfferer and fuzzMirrorOfferer are the same
+                // address, then the ERC20 transfers will be filtered.
+                .addr != fuzzMirrorOfferer.addr
+        ) {
+            if (
+                // When shouldIncludeNativeConsideration is false, there will be
+                // exactly one token1 consideration item per orderPairCount. And
+                // they'll all get aggregated into a single transfer.
+                !context.matchArgs.shouldIncludeNativeConsideration
+            ) {
+                // This checks that the ERC20 transfers were all aggregated into
+                // a single transfer.
+                vm.expectEmit(true, true, false, true, address(token1));
+                emit Transfer(
+                    address(fuzzMirrorOfferer.addr), // from
+                    address(fuzzPrimeOfferer.addr), // to
+                    context.matchArgs.amount * context.matchArgs.orderPairCount
+                );
+            }
+
+            if (
+                context
+                    .matchArgs
+                    // When considerationItemsPerPrimeOrderCount is 3, there will be
+                    // exactly one token2 consideration item per orderPairCount.
+                    // And they'll all get aggregated into a single transfer.
+                    .considerationItemsPerPrimeOrderCount >= 3
+            ) {
+                vm.expectEmit(true, true, false, true, address(token2));
+                emit Transfer(
+                    address(fuzzMirrorOfferer.addr), // from
+                    address(fuzzPrimeOfferer.addr), // to
+                    context.matchArgs.amount * context.matchArgs.orderPairCount
+                );
+            }
+        }
+
+        // Make the call to Seaport.
+        context.seaport.matchAdvancedOrders{
+            value: (context.matchArgs.amount * context.matchArgs.orderPairCount)
+                + context.matchArgs.excessNativeTokens
+        }(
+            infra.advancedOrders,
+            infra.criteriaResolvers,
+            infra.fulfillments,
+            // If shouldSpecifyUnspentOfferItemRecipient is true, send the
+            // unspent offer items to the recipient specified by the fuzz args.
+            // Otherwise, pass in the zero address, which will result in the
+            // unspent offer items being sent to the caller.
+            context.matchArgs.shouldSpecifyUnspentOfferItemRecipient
+                ? address(context.matchArgs.unspentPrimeOfferItemRecipient)
+                : address(0)
+        );
+
+        // If the call should return an invalid magic value or revert, return
+        // early.
+        if (context.matchArgs.shouldReturnInvalidMagicValue || context.matchArgs.shouldRevert) {
+            return;
+        }
+
+        // Note the native token balances after the call for later checks.
+        infra.callerBalanceAfter = address(this).balance;
+        infra.primeOffererBalanceAfter = address(fuzzPrimeOfferer.addr).balance;
+
+        // Check that the NFTs were transferred to the expected recipient.
+        for (uint256 i = 0; i < context.matchArgs.orderPairCount; i++) {
+            assertEq(
+                test721_1.ownerOf(context.matchArgs.tokenId + i),
+                fuzzMirrorOfferer.addr
+            );
+        }
+
+        if (context.matchArgs.shouldIncludeExcessOfferItems) {
+            // Check that the excess offer NFTs were transferred to the expected
+            // recipient.
+            for (uint256 i = 0; i < context.matchArgs.orderPairCount; i++) {
+                assertEq(
+                    test721_1.ownerOf((context.matchArgs.tokenId + i) * 2),
+                    context.matchArgs.shouldSpecifyUnspentOfferItemRecipient
+                        ? context.matchArgs.unspentPrimeOfferItemRecipient
+                        : address(this)
+                );
+            }
+        }
+
+        if (context.matchArgs.shouldIncludeNativeConsideration) {
+            // Check that ETH is moving from the caller to the prime offerer.
+            // This also checks that excess native tokens are being swept back
+            // to the caller.
+            assertEq(
+                infra.callerBalanceBefore
+                    - context.matchArgs.amount * context.matchArgs.orderPairCount,
+                infra.callerBalanceAfter
+            );
+            assertEq(
+                infra.primeOffererBalanceBefore
+                    + context.matchArgs.amount * context.matchArgs.orderPairCount,
+                infra.primeOffererBalanceAfter
+            );
+        } else {
+            assertEq(infra.callerBalanceBefore, infra.callerBalanceAfter);
+        }
+        
+    }
+
+    function _buildOrdersAndFulfillmentsMirrorOrdersFromFuzzArgs(
+        Context memory context,
+        address verboseZoneAddress
+    ) internal returns (Order[] memory, Fulfillment[] memory) {
+        uint256 i;
+
+        // Set up the OrderAndFulfillmentInfra struct.
+        OrderAndFulfillmentInfra memory infra = OrderAndFulfillmentInfra(
+            new OfferItem[](context.matchArgs.orderPairCount),
+            new ConsiderationItem[](context.matchArgs.orderPairCount),
+            OrderComponentsLib.empty(),
+            new Order[](context.matchArgs.orderPairCount * 2),
+            FulfillmentLib.empty(),
+            new Fulfillment[](context.matchArgs.orderPairCount * 2)
+        );
+
+        // Iterate once for each orderPairCount, which is
+        // used as the number of order pairs to make here.
+        for (i = 0; i < context.matchArgs.orderPairCount; i++) {
+            // Mint the NFTs for the prime offerer to sell.
+            test721_1.mint(fuzzPrimeOfferer.addr, context.matchArgs.tokenId + i);
+            test721_1.mint(
+                fuzzPrimeOfferer.addr, (context.matchArgs.tokenId + i) * 2
+            );
+
+            // Build the OfferItem array for the prime offerer's order.
+            infra.offerItemArray = _buildPrimeOfferItemArray(context, i);
+            // Build the ConsiderationItem array for the prime offerer's order.
+            infra.considerationItemArray =
+                _buildPrimeConsiderationItemArray(context);
+
+            // Build the OrderComponents for the prime offerer's order.
+            infra.orderComponents = _buildOrderComponents(
+                context,
+                infra.offerItemArray,
+                infra.considerationItemArray,
+                fuzzPrimeOfferer.addr,
+                address(verboseZoneAddress)
+            );
+
+            // Add the order to the orders array.
+            infra.orders[i] = _toOrder(
+                context.seaport, infra.orderComponents, fuzzPrimeOfferer.key
+            );
+
+            // Build the offerItemArray for the mirror offerer's order.
+            infra.offerItemArray = _buildMirrorOfferItemArray(context);
+
+            // Build the considerationItemArray for the mirror offerer's order.
+            // Note that the consideration on the mirror is always just one NFT,
+            // even if the prime order has an excess item.
+            infra.considerationItemArray =
+                buildMirrorConsiderationItemArray(context, i);
+
+            // Build the OrderComponents for the mirror offerer's order.
+            infra.orderComponents = _buildOrderComponents(
+                context,
+                infra.offerItemArray,
+                infra.considerationItemArray,
+                fuzzMirrorOfferer.addr,
+                address(verboseZoneAddress)
+            );
+
+            // Create the order and add the order to the orders array.
+            infra.orders[i + context.matchArgs.orderPairCount] = _toOrder(
+                context.seaport, infra.orderComponents, fuzzMirrorOfferer.key
+            );
+        }
+
+        bytes32[] memory orderHashes = new bytes32[](
+            context.matchArgs.orderPairCount * 2
+        );
+
+        UnavailableReason[] memory unavailableReasons = new UnavailableReason[](
+            context.matchArgs.orderPairCount * 2
+        );
+
+        // Build fulfillments.
+        (infra.fulfillments,,) = matchFulfillmentHelper.getMatchedFulfillments(
+            infra.orders, orderHashes, unavailableReasons
+        );
+
+        return (infra.orders, infra.fulfillments);
+    }
+
+    function _buildPrimeOfferItemArray(Context memory context, uint256 i)
+        internal
+        view
+        returns (OfferItem[] memory _offerItemArray)
+    {
+        // Set up the OfferItem array.
+        OfferItem[] memory offerItemArray = new OfferItem[](
+            context.matchArgs.shouldIncludeExcessOfferItems ? 2 : 1
+        );
+
+        // If the fuzz args call for an excess offer item...
+        if (context.matchArgs.shouldIncludeExcessOfferItems) {
+            // Create the OfferItem array containing the offered item and the
+            // excess item.
+            offerItemArray = SeaportArrays.OfferItems(
+                OfferItemLib.fromDefault(SINGLE_721).withToken(
+                    address(test721_1)
+                ).withIdentifierOrCriteria(context.matchArgs.tokenId + i),
+                OfferItemLib.fromDefault(SINGLE_721).withToken(
+                    address(test721_1)
+                ).withIdentifierOrCriteria((context.matchArgs.tokenId + i) * 2)
+            );
+        } else {
+            // Otherwise, create the OfferItem array containing the one offered
+            // item.
+            offerItemArray = SeaportArrays.OfferItems(
+                OfferItemLib.fromDefault(SINGLE_721).withToken(
+                    address(test721_1)
+                ).withIdentifierOrCriteria(context.matchArgs.tokenId + i)
+            );
+        }
+
+        return offerItemArray;
+    }
+
+    function _buildPrimeConsiderationItemArray(Context memory context)
+        internal
+        view
+        returns (ConsiderationItem[] memory _considerationItemArray)
+    {
+        // Set up the ConsiderationItem array.
+        ConsiderationItem[] memory considerationItemArray =
+        new ConsiderationItem[](
+                context.matchArgs.considerationItemsPerPrimeOrderCount
+            );
+
+        // Create the consideration items.
+        (
+            ConsiderationItem memory nativeConsiderationItem,
+            ConsiderationItem memory erc20ConsiderationItemOne,
+            ConsiderationItem memory erc20ConsiderationItemTwo
+        ) = _createReusableConsiderationItems(
+            context.matchArgs.amount, fuzzPrimeOfferer.addr
+        );
+
+        if (context.matchArgs.considerationItemsPerPrimeOrderCount == 1) {
+            // If the fuzz args call for native consideration...
+            if (context.matchArgs.shouldIncludeNativeConsideration) {
+                // ...add a native consideration item...
+                considerationItemArray =
+                    SeaportArrays.ConsiderationItems(nativeConsiderationItem);
+            } else {
+                // ...otherwise, add an ERC20 consideration item.
+                considerationItemArray =
+                    SeaportArrays.ConsiderationItems(erc20ConsiderationItemOne);
+            }
+        } else if (context.matchArgs.considerationItemsPerPrimeOrderCount == 2)
+        {
+            // If the fuzz args call for native consideration...
+            if (context.matchArgs.shouldIncludeNativeConsideration) {
+                // ...add a native consideration item and an ERC20
+                // consideration item...
+                considerationItemArray = SeaportArrays.ConsiderationItems(
+                    nativeConsiderationItem, erc20ConsiderationItemOne
+                );
+            } else {
+                // ...otherwise, add two ERC20 consideration items.
+                considerationItemArray = SeaportArrays.ConsiderationItems(
+                    erc20ConsiderationItemOne, erc20ConsiderationItemTwo
+                );
+            }
+        } else {
+            // If the fuzz args call for three consideration items per prime
+            // order, add all three consideration items.
+            considerationItemArray = SeaportArrays.ConsiderationItems(
+                nativeConsiderationItem,
+                erc20ConsiderationItemOne,
+                erc20ConsiderationItemTwo
+            );
+        }
+
+        return considerationItemArray;
+    }
+
+    function _buildOrderComponentsArrayFromFuzzArgs(
+        Context memory context,
+        address verboseZoneAddress
+    )
+        internal
+        view
+        returns (OrderComponents[] memory _orderComponentsArray)
+    {
+        // Set up the OrderComponentInfra struct.
+        OrderComponentInfra memory orderComponentInfra = OrderComponentInfra(
+            OrderComponentsLib.empty(),
+            new OrderComponents[](context.fulfillArgs.orderCount),
+            new OfferItem[][](context.fulfillArgs.orderCount),
+            new ConsiderationItem[][](context.fulfillArgs.orderCount),
+            ConsiderationItemLib.empty(),
+            ConsiderationItemLib.empty(),
+            ConsiderationItemLib.empty()
+        );
+
+        // Create three different consideration items.
+        (
+            orderComponentInfra.nativeConsiderationItem,
+            orderComponentInfra.erc20ConsiderationItemOne,
+            orderComponentInfra.erc20ConsiderationItemTwo
+        ) = _createReusableConsiderationItems(
+            context.fulfillArgs.amount,
+            context.fulfillArgs.considerationRecipient
+        );
+
+        // Iterate once for each order and create the OfferItems[] and
+        // ConsiderationItems[] for each order.
+        for (uint256 i; i < context.fulfillArgs.orderCount; i++) {
+            // Add a one-element OfferItems[] to the OfferItems[][].
+            orderComponentInfra.offerItemArray[i] = SeaportArrays.OfferItems(
+                OfferItemLib.fromDefault(SINGLE_721).withToken(
+                    address(test721_1)
+                ).withIdentifierOrCriteria(context.fulfillArgs.tokenId + i)
+            );
+
+            if (context.fulfillArgs.considerationItemsPerOrderCount == 1) {
+                // If the fuzz args call for native consideration...
+                if (context.fulfillArgs.shouldIncludeNativeConsideration) {
+                    // ...add a native consideration item...
+                    orderComponentInfra.considerationItemArray[i] =
+                    SeaportArrays.ConsiderationItems(
+                        orderComponentInfra.nativeConsiderationItem
+                    );
+                } else {
+                    // ...otherwise, add an ERC20 consideration item.
+                    orderComponentInfra.considerationItemArray[i] =
+                    SeaportArrays.ConsiderationItems(
+                        orderComponentInfra.erc20ConsiderationItemOne
+                    );
+                }
+            } else if (context.fulfillArgs.considerationItemsPerOrderCount == 2)
+            {
+                // If the fuzz args call for native consideration...
+                if (context.fulfillArgs.shouldIncludeNativeConsideration) {
+                    // ...add a native consideration item and an ERC20
+                    // consideration item...
+                    orderComponentInfra.considerationItemArray[i] =
+                    SeaportArrays.ConsiderationItems(
+                        orderComponentInfra.nativeConsiderationItem,
+                        orderComponentInfra.erc20ConsiderationItemOne
+                    );
+                } else {
+                    // ...otherwise, add two ERC20 consideration items.
+                    orderComponentInfra.considerationItemArray[i] =
+                    SeaportArrays.ConsiderationItems(
+                        orderComponentInfra.erc20ConsiderationItemOne,
+                        orderComponentInfra.erc20ConsiderationItemTwo
+                    );
+                }
+            } else {
+                orderComponentInfra.considerationItemArray[i] = SeaportArrays
+                    .ConsiderationItems(
+                    orderComponentInfra.nativeConsiderationItem,
+                    orderComponentInfra.erc20ConsiderationItemOne,
+                    orderComponentInfra.erc20ConsiderationItemTwo
+                );
+            }
+        }
+
+        bytes32 conduitKey;
+
+        // Iterate once for each order and create the OrderComponents.
+        for (uint256 i = 0; i < context.fulfillArgs.orderCount; i++) {
+            // if context.fulfillArgs.shouldUseConduit is false: don't use conduits at all.
+            // if context.fulfillArgs.shouldUseConduit is true:
+            //      if context.fulfillArgs.tokenId % 2 == 0:
+            //          use conduits for some and not for others
+            //      if context.fulfillArgs.tokenId % 2 != 0:
+            //          use conduits for all
+            // This is plainly deranged, but it allows for conduit use
+            // for all, for some, and none without weighing down the stack.
+            conduitKey = !context.fulfillArgs.shouldIncludeNativeConsideration
+                && context.fulfillArgs.shouldUseConduit
+                && (context.fulfillArgs.tokenId % 2 == 0 ? i % 2 == 0 : true)
+                ? conduitKeyOne
+                : bytes32(0);
+
+            // Build the order components.
+            orderComponentInfra.orderComponents = OrderComponentsLib.fromDefault(
+                STD_RESTRICTED
+            ).withOffer(orderComponentInfra.offerItemArray[i]).withConsideration(
+                orderComponentInfra.considerationItemArray[i]
+            ).withZone(address(verboseZoneAddress)).withZoneHash(context.fulfillArgs.zoneHash)
+                .withConduitKey(conduitKey).withSalt(
+                context.fulfillArgs.salt % (i + 1)
+            ); // Is this dumb?
+
+            // Add the OrderComponents to the OrderComponents[].
+            orderComponentInfra.orderComponentsArray[i] =
+                orderComponentInfra.orderComponents;
+        }
+
+        // Return the OrderComponents[].
+        return orderComponentInfra.orderComponentsArray;
+    }
+
+    function _buildOrderComponents(
+        Context memory context,
+        OfferItem[] memory offerItemArray,
+        ConsiderationItem[] memory considerationItemArray,
+        address offerer,
+        address verboseZoneAddress
+    ) internal view returns (OrderComponents memory _orderComponents) {
+        OrderComponents memory orderComponents = OrderComponentsLib.empty();
+
+        // Create the offer and consideration item arrays.
+        OfferItem[] memory _offerItemArray = offerItemArray;
+        ConsiderationItem[] memory _considerationItemArray =
+            considerationItemArray;
+
+        // Build the OrderComponents for the prime offerer's order.
+        orderComponents = OrderComponentsLib.fromDefault(STD_RESTRICTED)
+            .withOffer(_offerItemArray).withConsideration(_considerationItemArray)
+            .withZone(verboseZoneAddress).withOrderType(OrderType.FULL_OPEN).withConduitKey(
+            context.matchArgs.tokenId % 2 == 0 ? conduitKeyOne : bytes32(0)
+        ).withOfferer(offerer).withCounter(context.seaport.getCounter(offerer));
+
+
+        // ... set the zone to the verboseZone and set the order type to
+        // FULL_RESTRICTED.
+        orderComponents = orderComponents.copy().withZone(verboseZoneAddress)
+            .withOrderType(OrderType.FULL_RESTRICTED);
+        
+
+        return orderComponents;
+    }
+
+    function _toOrder(
+        ConsiderationInterface seaport,
+        OrderComponents memory orderComponents,
+        uint256 pkey
+    ) internal view returns (Order memory order) {
+        bytes32 orderHash = seaport.getOrderHash(orderComponents);
+        bytes memory signature = signOrder(seaport, pkey, orderHash);
+        order = OrderLib.empty().withParameters(
+            orderComponents.toOrderParameters()
+        ).withSignature(signature);
+    }
+
+    function _buildMirrorOfferItemArray(Context memory context)
+        internal
+        view
+        returns (OfferItem[] memory _offerItemArray)
+    {
+        // Set up the OfferItem array.
+        OfferItem[] memory offerItemArray = new OfferItem[](1);
+
+        // Create some consideration items.
+        (
+            ConsiderationItem memory nativeConsiderationItem,
+            ConsiderationItem memory erc20ConsiderationItemOne,
+            ConsiderationItem memory erc20ConsiderationItemTwo
+        ) = _createReusableConsiderationItems(
+            context.matchArgs.amount, fuzzPrimeOfferer.addr
+        );
+
+        // Convert them to OfferItems.
+        OfferItem memory nativeOfferItem = nativeConsiderationItem.toOfferItem();
+        OfferItem memory erc20OfferItemOne =
+            erc20ConsiderationItemOne.toOfferItem();
+        OfferItem memory erc20OfferItemTwo =
+            erc20ConsiderationItemTwo.toOfferItem();
+
+        if (context.matchArgs.considerationItemsPerPrimeOrderCount == 1) {
+            // If the fuzz args call for native consideration...
+            if (context.matchArgs.shouldIncludeNativeConsideration) {
+                // ...add a native consideration item...
+                offerItemArray = SeaportArrays.OfferItems(nativeOfferItem);
+            } else {
+                // ...otherwise, add an ERC20 consideration item.
+                offerItemArray = SeaportArrays.OfferItems(erc20OfferItemOne);
+            }
+        } else if (context.matchArgs.considerationItemsPerPrimeOrderCount == 2)
+        {
+            // If the fuzz args call for native consideration...
+            if (context.matchArgs.shouldIncludeNativeConsideration) {
+                // ...add a native consideration item and an ERC20
+                // consideration item...
+                offerItemArray =
+                    SeaportArrays.OfferItems(nativeOfferItem, erc20OfferItemOne);
+            } else {
+                // ...otherwise, add two ERC20 consideration items.
+                offerItemArray = SeaportArrays.OfferItems(
+                    erc20OfferItemOne, erc20OfferItemTwo
+                );
+            }
+        } else {
+            offerItemArray = SeaportArrays.OfferItems(
+                nativeOfferItem, erc20OfferItemOne, erc20OfferItemTwo
+            );
+        }
+
+        return offerItemArray;
+    }
+
+    function buildMirrorConsiderationItemArray(
+        Context memory context,
+        uint256 i
+    )
+        internal
+        view
+        returns (ConsiderationItem[] memory _considerationItemArray)
+    {
+        // Set up the ConsiderationItem array.
+        ConsiderationItem[] memory considerationItemArray =
+        new ConsiderationItem[](
+                context.matchArgs.considerationItemsPerPrimeOrderCount
+            );
+
+        // Note that the consideration array here will always be just one NFT
+        // so because the second NFT on the offer side is meant to be excess.
+        considerationItemArray = SeaportArrays.ConsiderationItems(
+            ConsiderationItemLib.fromDefault(SINGLE_721).withToken(
+                address(test721_1)
+            ).withIdentifierOrCriteria(context.matchArgs.tokenId + i)
+                .withRecipient(fuzzMirrorOfferer.addr)
+        );
+
+        return considerationItemArray;
+    }
+
+     function _createReusableConsiderationItems(
+        uint256 amount,
+        address recipient
+    )
+        internal
+        view
+        returns (
+            ConsiderationItem memory nativeConsiderationItem,
+            ConsiderationItem memory erc20ConsiderationItemOne,
+            ConsiderationItem memory erc20ConsiderationItemTwo
+        )
+    {
+        // Create a reusable native consideration item.
+        nativeConsiderationItem = ConsiderationItemLib.empty().withItemType(
+            ItemType.NATIVE
+        ).withIdentifierOrCriteria(0).withStartAmount(amount).withEndAmount(
+            amount
+        ).withRecipient(recipient);
+
+        // Create a reusable ERC20 consideration item.
+        erc20ConsiderationItemOne = ConsiderationItemLib.empty().withItemType(
+            ItemType.ERC20
+        ).withToken(address(token1)).withIdentifierOrCriteria(0).withStartAmount(
+            amount
+        ).withEndAmount(amount).withRecipient(recipient);
+
+        // Create a second reusable ERC20 consideration item.
+        erc20ConsiderationItemTwo = ConsiderationItemLib.empty().withItemType(
+            ItemType.ERC20
+        ).withIdentifierOrCriteria(0).withToken(address(token2)).withStartAmount(
+            amount
+        ).withEndAmount(amount).withRecipient(recipient);
+    }
+
+    function _boundMatchArgs(MatchFuzzInputs memory matchArgs)
+        internal
+        returns (MatchFuzzInputs memory)
+    {
+        // Avoid weird overflow issues.
+        matchArgs.amount =
+            uint128(bound(matchArgs.amount, 1, 0xffffffffffffffff));
+        // Avoid trying to mint the same token.
+        matchArgs.tokenId = bound(matchArgs.tokenId, 0xff, 0xffffffffffffffff);
+        // Make 1-8 order pairs per call.  Each order pair will have 1-2 offer
+        // items on the prime side (depending on whether
+        // shouldIncludeExcessOfferItems is true or false).
+        matchArgs.orderPairCount = bound(matchArgs.orderPairCount, 1, 8);
+        // Use 1-3 (prime) consideration items per order.
+        matchArgs.considerationItemsPerPrimeOrderCount =
+            bound(matchArgs.considerationItemsPerPrimeOrderCount, 1, 3);
+        // To put three items in the consideration, native tokens must be
+        // included.
+        matchArgs.shouldIncludeNativeConsideration = matchArgs
+            .shouldIncludeNativeConsideration
+            || matchArgs.considerationItemsPerPrimeOrderCount >= 3;
+        // Include some excess native tokens to check that they're ending up
+        // with the caller afterward.
+        matchArgs.excessNativeTokens = uint128(
+            bound(
+                matchArgs.excessNativeTokens, 0, 0xfffffffffffffffffffffffffffff
+            )
+        );
+        // Don't set the offer recipient to the null address, because that's the
+        // way to indicate that the caller should be the recipient.
+        matchArgs.unspentPrimeOfferItemRecipient = _nudgeAddressIfProblematic(
+            address(
+                uint160(
+                    bound(
+                        uint160(matchArgs.unspentPrimeOfferItemRecipient),
+                        1,
+                        type(uint160).max
+                    )
+                )
+            )
+        );
+
+        matchArgs.shouldRevert = matchArgs.shouldRevert
+            && !matchArgs.shouldReturnInvalidMagicValue;
+
+        return matchArgs;
+    }
+
+        function _nudgeAddressIfProblematic(address _address)
+        internal
+        returns (address)
+    {
+        bool success;
+        assembly {
+            // Transfer the native token and store if it succeeded or not.
+            success := call(gas(), _address, 1, 0, 0, 0, 0)
+        }
+
+        if (success) {
+            return _address;
+        } else {
+            return address(uint160(_address) + 1);
+        }
+    }
+}
