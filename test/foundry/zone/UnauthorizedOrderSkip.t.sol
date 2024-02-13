@@ -491,8 +491,6 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
         //     this.execFulfillAvailable,
         //     Context(consideration, false, fulfillArgs, emptyMatch)
         // );
-
-        // Reference fails with fucky skips and InsufficientNativeTokensSupplied
         test(
             this.execFulfillAvailable,
             Context(referenceConsideration, true, fulfillArgs, emptyMatch)
@@ -578,14 +576,17 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
             );
         }
 
-        // // Store balances before the call for later comparison.
-        // infra.callerBalanceBefore = address(this).balance;
-        // infra.considerationRecipientNativeBalanceBefore =
-        //     address(context.fulfillArgs.considerationRecipient).balance;
-        // infra.considerationRecipientToken1BalanceBefore =
-        //     token1.balanceOf(context.fulfillArgs.considerationRecipient);
-        // infra.considerationRecipientToken2BalanceBefore =
-        //     token2.balanceOf(context.fulfillArgs.considerationRecipient);
+        // Store balances before the call for later comparison.
+        infra.callerBalanceBefore = address(this).balance;
+        infra.considerationRecipientNativeBalanceBefore =
+            address(context.fulfillArgs.considerationRecipient).balance;
+        infra.considerationRecipientToken1BalanceBefore =
+            token1.balanceOf(context.fulfillArgs.considerationRecipient);
+        infra.considerationRecipientToken2BalanceBefore =
+            token2.balanceOf(context.fulfillArgs.considerationRecipient);
+
+        bytes32[] memory orderHashesThatShouldRevertInAuth = new bytes32[](infra.advancedOrders.length);
+        uint256 skippedOrderCount;
 
         // Set up expectations for the call.
         if (context.fulfillArgs.shouldReturnInvalidMagicValue) {
@@ -610,21 +611,19 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
                 )
             );
         } else if (context.fulfillArgs.shouldRevert) {
-            bytes32[] memory orderHashesThatShouldRevertInAuth = new bytes32[](infra.advancedOrders.length);
             bool gotOneKeeper;
 
             // Iterate over the orders and expect AuthorizeOrderReverted events.
             for (uint256 i = 0; i < infra.advancedOrders.length; i++) {
+                console.log("skippedOrderCount in loop");
+                console.log(skippedOrderCount);
 
-                uint256 offererCounter;
-                bytes32 orderHash;
-
-                offererCounter = context.seaport.getCounter(
+                uint256 offererCounter = context.seaport.getCounter(
                     infra.advancedOrders[i].parameters.offerer
                 );
 
                 // Set up the orderHash.
-                orderHash = context.seaport.getOrderHash(
+                bytes32 orderHash = context.seaport.getOrderHash(
                     infra.advancedOrders[i].parameters.toOrderComponents(
                         offererCounter
                     )
@@ -632,6 +631,8 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
 
                 if ((uint256(orderHash) % 2) == 0 && gotOneKeeper) {
                     orderHashesThatShouldRevertInAuth[i] = orderHash;
+                    console.log("Incrementing skippedOrderCount");
+                    skippedOrderCount++;
                 } else {
                     // Auth the order.
                     verboseZone.setAuthorizationStatus(orderHash, true);
@@ -650,22 +651,19 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
                 }
             }
         } else {
-            // This is the happy path.
-
+            // This is the happy path (no reverts or invalid magic values).
             bytes32[] memory orderHashesToAuth = new bytes32[](infra.advancedOrders.length);
 
             // Iterate over the orders and authorize them, then set up event
             // expectations.
             for (uint256 i = 0; i < context.fulfillArgs.maximumFulfilledCount; i++) {
-                uint256 offererCounter;
-                bytes32 orderHash;
 
-                offererCounter = context.seaport.getCounter(
+                uint256 offererCounter = context.seaport.getCounter(
                     infra.advancedOrders[i].parameters.offerer
                 );
 
                 // Set up the orderHash.
-                orderHash = context.seaport.getOrderHash(
+                bytes32 orderHash = context.seaport.getOrderHash(
                     infra.advancedOrders[i].parameters.toOrderComponents(
                         offererCounter
                     )
@@ -686,6 +684,14 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
                     emit Authorized(orderHashesToAuth[i]);
                 }
             }
+        }
+        
+        // This is the happyish path.
+        if (!context.fulfillArgs.shouldReturnInvalidMagicValue) {
+            uint256 eligibleOrders = infra.advancedOrders.length - skippedOrderCount;
+            uint256 expectedFulfilledOrderCount = eligibleOrders < context.fulfillArgs.maximumFulfilledCount
+                ? eligibleOrders
+                : context.fulfillArgs.maximumFulfilledCount;
 
             if (
                 !context.fulfillArgs.shouldIncludeNativeConsideration
@@ -707,7 +713,7 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
                     context.fulfillArgs.amount
                         * (
                             context.fulfillArgs.shouldAggregateFulfillmentComponents
-                                ? context.fulfillArgs.maximumFulfilledCount
+                                ? expectedFulfilledOrderCount
                                 : 1
                         )
                 );
@@ -722,7 +728,7 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
                         context.fulfillArgs.amount
                             * (
                                 context.fulfillArgs.shouldAggregateFulfillmentComponents
-                                    ? context.fulfillArgs.maximumFulfilledCount
+                                    ? expectedFulfilledOrderCount
                                     : 1
                             ) // value
                     );
@@ -757,17 +763,11 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
             maximumFulfilled: context.fulfillArgs.maximumFulfilledCount
         });
 
+        // Return early if the call should return an invalid magic value,
+        // because that triggers a seaport-level revert.
         if (context.fulfillArgs.shouldReturnInvalidMagicValue) {
             return;
         }
-
-        // TEMP
-        if (context.fulfillArgs.shouldRevert) {
-            return;
-        }
-
-        // TODO: Think about how to gracefully modify these expectations based
-        // on skips.
 
         // Store balances after the call for later comparison.
         infra.callerBalanceAfter = address(this).balance;
@@ -781,95 +781,114 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
         // Check that the NFTs were transferred to the expected recipient.
         for (uint256 i = 0; i < context.fulfillArgs.maximumFulfilledCount; i++)
         {
-            assertEq(
-                test721_1.ownerOf(context.fulfillArgs.tokenId + i),
-                context.fulfillArgs.shouldSpecifyRecipient
-                    ? context.fulfillArgs.offerRecipient
-                    : address(this),
-                "NFT owner incorrect."
-            );
+            if (orderHashesThatShouldRevertInAuth[i] == bytes32(0)) {
+            // The NFT should be owned according to this snippet if the order
+            // was not skipped.
+                assertEq(
+                    test721_1.ownerOf(context.fulfillArgs.tokenId + i),
+                    context.fulfillArgs.shouldSpecifyRecipient
+                        ? context.fulfillArgs.offerRecipient
+                        : address(this),
+                    "NFT owner incorrect."
+                );
+            } else {
+                // The NFT should be owned by the original minter if the order
+                // was skipped.
+                assertEq(
+                    test721_1.ownerOf(context.fulfillArgs.tokenId + i),
+                    offerer1.addr,
+                    "NFT owner incorrect."
+                );
+            }
         }
 
-        // Check that the ERC20s or native tokens were transferred to the
-        // expected recipient according to the fuzz args.
-        if (context.fulfillArgs.shouldIncludeNativeConsideration) {
-            if (
-                address(context.fulfillArgs.considerationRecipient)
-                    == address(this)
-            ) {
-                // Edge case: If the fuzz args pick this address for the
-                // consideration recipient, then the caller's balance should not
-                // change.
-                assertEq(
-                    infra.callerBalanceAfter,
-                    infra.callerBalanceBefore,
-                    "Caller balance incorrect (this contract)."
-                );
-            } else {
-                // Check that the consideration recipient's native balance was
-                // increased by the amount * the number of NFTs for sale.
-                assertEq(
-                    infra.considerationRecipientNativeBalanceAfter,
-                    infra.considerationRecipientNativeBalanceBefore
-                        + context.fulfillArgs.amount
-                            * context.fulfillArgs.maximumFulfilledCount,
-                    "Consideration recipient native balance incorrect."
-                );
-                // The consideration (amount * maximumFulfilledCount) should be
-                // spent, and the excessNativeTokens should be returned.
-                assertEq(
-                    infra.callerBalanceAfter
-                        + context.fulfillArgs.amount
-                            * context.fulfillArgs.maximumFulfilledCount,
-                    infra.callerBalanceBefore,
-                    "Caller balance incorrect."
-                );
-            }
-        } else {
-            // The `else` here is the case where no native consieration is used.
-            if (
-                address(context.fulfillArgs.considerationRecipient)
-                    == address(this)
-            ) {
-                // Edge case: If the fuzz args pick this address for the
-                // consideration recipient, then the caller's balance should not
-                // change.
-                assertEq(
-                    infra.considerationRecipientToken1BalanceAfter,
-                    infra.considerationRecipientToken1BalanceBefore,
-                    "Consideration recipient token1 balance incorrect (this)."
-                );
-            } else {
-                assertEq(
-                    infra.considerationRecipientToken1BalanceAfter,
-                    infra.considerationRecipientToken1BalanceBefore
-                        + context.fulfillArgs.amount
-                            * context.fulfillArgs.maximumFulfilledCount,
-                    "Consideration recipient token1 balance incorrect."
-                );
-            }
+        {
+            uint256 eligibleOrders = infra.advancedOrders.length - skippedOrderCount;
+            uint256 expectedFulfilledOrderCount = eligibleOrders < context.fulfillArgs.maximumFulfilledCount
+                ? eligibleOrders
+                : context.fulfillArgs.maximumFulfilledCount;
 
-            if (context.fulfillArgs.considerationItemsPerOrderCount >= 2) {
+            // Check that the ERC20s or native tokens were transferred to the
+            // expected recipient according to the fuzz args.
+            if (context.fulfillArgs.shouldIncludeNativeConsideration) {
                 if (
                     address(context.fulfillArgs.considerationRecipient)
                         == address(this)
                 ) {
                     // Edge case: If the fuzz args pick this address for the
-                    // consideration recipient, then the caller's balance should
-                    // not change.
+                    // consideration recipient, then the caller's balance should not
+                    // change.
                     assertEq(
-                        infra.considerationRecipientToken2BalanceAfter,
-                        infra.considerationRecipientToken2BalanceBefore,
-                        "Consideration recipient token2 balance incorrect (this)."
+                        infra.callerBalanceAfter,
+                        infra.callerBalanceBefore,
+                        "Caller balance incorrect (this contract)."
+                    );
+                } else {
+                    // Check that the consideration recipient's native balance was
+                    // increased by the amount * the number of NFTs for sale.
+                    assertEq(
+                        infra.considerationRecipientNativeBalanceAfter,
+                        infra.considerationRecipientNativeBalanceBefore
+                            + context.fulfillArgs.amount
+                                * expectedFulfilledOrderCount,
+                        "Consideration recipient native balance incorrect."
+                    );
+                    // The consideration (amount * maximumFulfilledCount) should be
+                    // spent, and the excessNativeTokens should be returned.
+                    assertEq(
+                        infra.callerBalanceAfter
+                            + context.fulfillArgs.amount
+                                * expectedFulfilledOrderCount,
+                        infra.callerBalanceBefore,
+                        "Caller balance incorrect."
+                    );
+                }
+            } else {
+                // The `else` here is the case where no native consieration is used.
+                if (
+                    address(context.fulfillArgs.considerationRecipient)
+                        == address(this)
+                ) {
+                    // Edge case: If the fuzz args pick this address for the
+                    // consideration recipient, then the caller's balance should not
+                    // change.
+                    assertEq(
+                        infra.considerationRecipientToken1BalanceAfter,
+                        infra.considerationRecipientToken1BalanceBefore,
+                        "Consideration recipient token1 balance incorrect (this)."
                     );
                 } else {
                     assertEq(
-                        infra.considerationRecipientToken2BalanceAfter,
-                        infra.considerationRecipientToken2BalanceBefore
+                        infra.considerationRecipientToken1BalanceAfter,
+                        infra.considerationRecipientToken1BalanceBefore
                             + context.fulfillArgs.amount
-                                * context.fulfillArgs.maximumFulfilledCount,
-                        "Consideration recipient token2 balance incorrect."
+                                * expectedFulfilledOrderCount,
+                        "Consideration recipient token1 balance incorrect."
                     );
+                }
+
+                if (context.fulfillArgs.considerationItemsPerOrderCount >= 2) {
+                    if (
+                        address(context.fulfillArgs.considerationRecipient)
+                            == address(this)
+                    ) {
+                        // Edge case: If the fuzz args pick this address for the
+                        // consideration recipient, then the caller's balance should
+                        // not change.
+                        assertEq(
+                            infra.considerationRecipientToken2BalanceAfter,
+                            infra.considerationRecipientToken2BalanceBefore,
+                            "Consideration recipient token2 balance incorrect (this)."
+                        );
+                    } else {
+                        assertEq(
+                            infra.considerationRecipientToken2BalanceAfter,
+                            infra.considerationRecipientToken2BalanceBefore
+                                + context.fulfillArgs.amount
+                                    * expectedFulfilledOrderCount,
+                            "Consideration recipient token2 balance incorrect."
+                        );
+                    }
                 }
             }
         }

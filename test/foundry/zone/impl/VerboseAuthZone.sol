@@ -47,20 +47,7 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
         public
         returns (bytes4)
     {
-        // console2.logBytes(msg.data);
-
-        // console.log("zoneParameters.orderHashes.length");
-        // console.log(zoneParameters.orderHashes.length);
-
-        // console.log("zoneParameters");
-        // helm.log(zoneParameters);
-
         console.log('--------------------------------------------');
-        console.log("orderIsAuthorized[zoneParameters.orderHash] in zone");
-        console.log(orderIsAuthorized[zoneParameters.orderHash]);
-
-        console.log("zoneParameters.orderHash");
-        console.logBytes32(zoneParameters.orderHash);
 
         if (!orderIsAuthorized[zoneParameters.orderHash]) {
             if (shouldReturnInvalidMagicValue) {
