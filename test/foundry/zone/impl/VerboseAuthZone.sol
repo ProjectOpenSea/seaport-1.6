@@ -6,8 +6,6 @@ import {
     ZoneParameters
 } from "seaport-types/src/lib/ConsiderationStructs.sol";
 
-import { ItemType } from "seaport-types/src/lib/ConsiderationEnums.sol";
-
 import { ERC165 } from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 import { ZoneInterface } from "seaport-types/src/interfaces/ZoneInterface.sol";
@@ -74,14 +72,6 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
         return this.authorizeOrder.selector;
     }
 
-    /**
-     * @dev Validates the order with the given `zoneParameters`.  Called by
-     *      Consideration whenever any extraData is provided by the caller.
-     *
-     * @ param zoneParameters The parameters for the order.
-     *
-     * @ return validOrderMagicValue The validOrder magic value.
-     */
     function validateOrder(ZoneParameters calldata /* zoneParameters */)
         external
         pure
@@ -92,9 +82,6 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
         return ZoneInterface.validateOrder.selector;
     }
 
-    /**
-     * @dev Returns the metadata for this zone.
-     */
     function getSeaportMetadata()
         external
         pure

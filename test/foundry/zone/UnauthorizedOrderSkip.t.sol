@@ -3,7 +3,6 @@ pragma solidity ^0.8.17;
 
 import {
     ConsiderationItemLib,
-    FulfillmentComponentLib,
     FulfillmentLib,
     OfferItemLib,
     OrderComponentsLib,
@@ -16,12 +15,8 @@ import { UnavailableReason } from "seaport-sol/src/SpaceEnums.sol";
 
 import { BaseOrderTest } from "../utils/BaseOrderTest.sol";
 
-import { VerboseAuthZone } from
-    "./impl/VerboseAuthZone.sol";
-
 import {
     AdvancedOrder,
-    BasicOrderParameters,
     ConsiderationItem,
     CriteriaResolver,
     Fulfillment,
@@ -33,11 +28,7 @@ import {
     OrderParameters
 } from "seaport-types/src/lib/ConsiderationStructs.sol";
 
-import {
-    BasicOrderType,
-    OrderType,
-    Side
-} from "seaport-types/src/lib/ConsiderationEnums.sol";
+import { OrderType } from "seaport-types/src/lib/ConsiderationEnums.sol";
 
 import { ConsiderationInterface } from
     "seaport-types/src/interfaces/ConsiderationInterface.sol";
@@ -48,19 +39,16 @@ import { FulfillAvailableHelper } from
 import { MatchFulfillmentHelper } from
     "seaport-sol/src/fulfillments/match/MatchFulfillmentHelper.sol";
 
+import { VerboseAuthZone } from
+    "./impl/VerboseAuthZone.sol";
+
 
 contract UnauthorizedOrderSkipTest is BaseOrderTest {
-    using FulfillmentLib for Fulfillment;
-    using FulfillmentComponentLib for FulfillmentComponent;
-    using FulfillmentComponentLib for FulfillmentComponent[];
     using OfferItemLib for OfferItem;
-    using OfferItemLib for OfferItem[];
     using ConsiderationItemLib for ConsiderationItem;
-    using ConsiderationItemLib for ConsiderationItem[];
     using OrderComponentsLib for OrderComponents;
     using OrderParametersLib for OrderParameters;
     using OrderLib for Order;
-    using OrderLib for Order[];
 
     MatchFulfillmentHelper matchFulfillmentHelper;
     FulfillAvailableHelper fulfillAvailableFulfillmentHelper;
@@ -194,6 +182,7 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
         super.setUp();
         matchFulfillmentHelper = new MatchFulfillmentHelper();
         fulfillAvailableFulfillmentHelper = new FulfillAvailableHelper();
+        // Can this be removed?
         conduitController.updateChannel(address(conduit), address(this), true);
         referenceConduitController.updateChannel(
             address(referenceConduit), address(this), true
@@ -248,7 +237,7 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
 
         vm.label(address(verboseZone), "VerboseZone");
 
-         // Set up the infrastructure for this function in a struct to avoid
+        // Set up the infrastructure for this function in a struct to avoid
         // stack depth issues.
         MatchAdvancedOrdersInfra memory infra = MatchAdvancedOrdersInfra({
             orders: new Order[](context.matchArgs.orderPairCount),
