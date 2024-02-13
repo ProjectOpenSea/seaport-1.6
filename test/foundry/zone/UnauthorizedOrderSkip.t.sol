@@ -48,8 +48,6 @@ import { FulfillAvailableHelper } from
 import { MatchFulfillmentHelper } from
     "seaport-sol/src/fulfillments/match/MatchFulfillmentHelper.sol";
 
-import "forge-std/console.sol";
-import { helm } from "seaport-sol/src/helm.sol";
 
 contract UnauthorizedOrderSkipTest is BaseOrderTest {
     using FulfillmentLib for Fulfillment;
@@ -243,14 +241,7 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
         );
     }
 
-    // TODO: Strip out the stuff that's extraneous or redundant.
     function execMatch(Context memory context) public stateless {
-        console.log("context.matchArgs.shouldRevert");
-        console.log(context.matchArgs.shouldRevert);
-
-        console.log("context.matchArgs.shouldReturnInvalidMagicValue");
-        console.log(context.matchArgs.shouldReturnInvalidMagicValue);
-
         // Set up the zone.
         VerboseAuthZone verboseZone =
             new VerboseAuthZone(context.matchArgs.shouldReturnInvalidMagicValue, context.matchArgs.shouldRevert);
@@ -293,7 +284,9 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
                 1,
                 1,
                 context.matchArgs.shouldIncludeJunkDataInAdvancedOrder
-                    ? bytes(abi.encodePacked(context.matchArgs.salt))
+                    ? bytes(abi.encodePacked(
+                        context.matchArgs.salt, context.matchArgs.salt
+                    ))
                     : bytes("")
             );
         }
@@ -309,9 +302,6 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
         // Set up the first orderHash.
         bytes32 orderHash = context.seaport.getOrderHash(
             infra.orders[0].parameters.toOrderComponents(offererCounter));
-
-        console.log("context.matchArgs.shouldRevert");
-        console.log(context.matchArgs.shouldRevert);
 
         if (context.matchArgs.shouldReturnInvalidMagicValue) {
             // Expect AuthorizeOrderNonMagicValue event.
@@ -615,9 +605,6 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
 
             // Iterate over the orders and expect AuthorizeOrderReverted events.
             for (uint256 i = 0; i < infra.advancedOrders.length; i++) {
-                console.log("skippedOrderCount in loop");
-                console.log(skippedOrderCount);
-
                 uint256 offererCounter = context.seaport.getCounter(
                     infra.advancedOrders[i].parameters.offerer
                 );
@@ -631,7 +618,6 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
 
                 if ((uint256(orderHash) % 2) == 0 && gotOneKeeper) {
                     orderHashesThatShouldRevertInAuth[i] = orderHash;
-                    console.log("Incrementing skippedOrderCount");
                     skippedOrderCount++;
                 } else {
                     // Auth the order.
@@ -642,9 +628,6 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
 
             for (uint256 i = 0; i < context.fulfillArgs.maximumFulfilledCount; i++) {
                 if (orderHashesThatShouldRevertInAuth[i] != bytes32(0)) {
-                    console.log("Expecting a skip on orderHash, revert");
-                    console.logBytes32(orderHashesThatShouldRevertInAuth[i]);
-
                     // Expect AuthorizeOrderReverted event.
                     vm.expectEmit(true, false, false, true, address(verboseZone));
                     emit AuthorizeOrderReverted(orderHashesThatShouldRevertInAuth[i]);
@@ -931,7 +914,10 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
                     1,
                     // Reusing salt here for junk data.
                     context.fulfillArgs.shouldIncludeJunkDataInAdvancedOrder
-                        ? bytes(abi.encodePacked(context.fulfillArgs.salt))
+                        ? bytes(abi.encodePacked(
+                            context.fulfillArgs.salt,
+                            context.fulfillArgs.salt
+                        ))
                         : bytes("")
                 );
             }

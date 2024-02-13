@@ -12,10 +12,6 @@ import { ERC165 } from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 import { ZoneInterface } from "seaport-types/src/interfaces/ZoneInterface.sol";
 
-import "forge-std/console.sol";
-import { helm } from "seaport-sol/src/helm.sol";
-import "forge-std/console2.sol";
-
 contract VerboseAuthZone is ERC165, ZoneInterface {
 
     // Create a mapping of orderHashes to authorized status.
@@ -43,15 +39,16 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
         shouldRevert = _shouldRevert;
     }
 
+    function setAuthorizationStatus(bytes32 orderHash, bool status) public {
+        orderIsAuthorized[orderHash] = status;
+    }
+
     function authorizeOrder(ZoneParameters calldata zoneParameters)
         public
         returns (bytes4)
     {
-        console.log('--------------------------------------------');
-
         if (!orderIsAuthorized[zoneParameters.orderHash]) {
             if (shouldReturnInvalidMagicValue) {
-                console.log("==Returning invalid magic value and emitting");
                 emit AuthorizeOrderNonMagicValue(
                     zoneParameters.orderHash
                 );
@@ -62,7 +59,6 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
             }
 
             if (shouldRevert) {   
-                console.log("==Reverting and emitting");
                 emit AuthorizeOrderReverted(
                     zoneParameters.orderHash
                 );
@@ -70,7 +66,6 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
             }
         }
 
-        console.log("==Blessing and emitting");
         emit Authorized(
             zoneParameters.orderHash
         );
@@ -113,7 +108,7 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
         schemas[0].id = 3003;
         schemas[0].metadata = new bytes(0);
 
-        return ("StatefulTestZone", schemas);
+        return ("VerboseAuthZone", schemas);
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -124,9 +119,5 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
     {
         return interfaceId == type(ZoneInterface).interfaceId
             || super.supportsInterface(interfaceId);
-    }
-
-    function setAuthorizationStatus(bytes32 orderHash, bool status) public {
-        orderIsAuthorized[orderHash] = status;
     }
 }
