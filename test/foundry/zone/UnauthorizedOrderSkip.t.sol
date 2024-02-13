@@ -487,10 +487,10 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
     ) public {
         fulfillArgs = _boundFulfillArgs(fulfillArgs);
 
-        // test(
-        //     this.execFulfillAvailable,
-        //     Context(consideration, false, fulfillArgs, emptyMatch)
-        // );
+        test(
+            this.execFulfillAvailable,
+            Context(consideration, false, fulfillArgs, emptyMatch)
+        );
         test(
             this.execFulfillAvailable,
             Context(referenceConsideration, true, fulfillArgs, emptyMatch)
