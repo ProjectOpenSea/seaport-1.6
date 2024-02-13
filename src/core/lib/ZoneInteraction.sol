@@ -131,6 +131,34 @@ contract ZoneInteraction is
         }
     }
 
+    function _checkRestrictedAdvancedOrderAuthorization(
+        AdvancedOrder memory advancedOrder,
+        bytes32[] memory orderHashes,
+        bytes32 orderHash,
+        uint256 orderIndex,
+        bool revertOnInvalid
+    ) internal returns (bool isValid) {
+        // Retrieve the parameters of the order in question.
+        OrderParameters memory parameters = advancedOrder.parameters;
+
+        // OrderType 2-3 require zone to be caller or approve via validateOrder.
+        if (
+            _isRestrictedAndCallerNotZone(parameters.orderType, parameters.zone)
+        ) {
+            // Encode the `validateOrder` call in memory.
+            (MemoryPointer callData, uint256 size) = _encodeAuthorizeOrder(
+                orderHash,
+                parameters,
+                advancedOrder.extraData,
+                orderHashes,
+                orderIndex
+            );
+
+            // Perform call and ensure a corresponding magic value was returned.
+            return _callAndCheckStatusWithSkip(parameters.zone, orderHash, callData, size, InvalidRestrictedOrder_error_selector, revertOnInvalid);
+        }
+    }
+
     function _assertRestrictedAdvancedOrderAuthorization(
         AdvancedOrder memory advancedOrder,
         bytes32[] memory orderHashes,
@@ -331,5 +359,87 @@ contract ZoneInteraction is
                 )
             }
         }
+    }
+
+    /**
+     * @dev Calls the specified target with the given data and checks the status
+     *      of the call. Revert reasons will be "bubbled up" if one is returned,
+     *      otherwise reverting calls will throw a generic error based on the
+     *      supplied error handler.
+     *
+     * @param target          The address of the contract to call.
+     * @param orderHash       The hash of the order associated with the call.
+     * @param callData        The data to pass to the contract call.
+     * @param size            The size of calldata.
+     * @param errorSelector   The error handling function to call if the call
+     *                        fails or the magic value does not match.
+     * @param revertOnInvalid Whether to revert if the call is invalid. Must
+     *                        still revert if the call returns invalid data.
+     */
+    function _callAndCheckStatusWithSkip(
+        address target,
+        bytes32 orderHash,
+        MemoryPointer callData,
+        uint256 size,
+        uint256 errorSelector,
+        bool revertOnInvalid
+    ) internal returns (bool) {
+        bool success;
+        bool magicMatch;
+        assembly {
+            // Get magic value from the selector at start of provided calldata.
+            let magic := and(mload(callData), MaskOverFirstFourBytes)
+
+            // Clear the start of scratch space.
+            mstore(0, 0)
+
+            // Perform call, placing result in the first word of scratch space.
+            success := call(gas(), target, 0, callData, size, 0, OneWord)
+
+            // Determine if returned magic value matches the calldata selector.
+            magicMatch := eq(magic, mload(0))
+        }
+
+        // Revert or return false if the call was not successful.
+        if (!success) {
+            if (!revertOnInvalid) {
+                return false;
+            }
+
+            // Revert and pass reason along if one was returned.
+            _revertWithReasonIfOneIsReturned();
+
+            // If no reason was returned, revert with supplied error selector.
+            assembly {
+                mstore(0, errorSelector)
+                mstore(InvalidRestrictedOrder_error_orderHash_ptr, orderHash)
+                // revert(abi.encodeWithSelector(
+                //     "InvalidRestrictedOrder(bytes32)",
+                //     orderHash
+                // ))
+                revert(
+                    Error_selector_offset, InvalidRestrictedOrder_error_length
+                )
+            }
+        }
+
+        // Revert if the correct magic value was not returned.
+        if (!magicMatch) {
+            // Revert with a generic error message.
+            assembly {
+                mstore(0, errorSelector)
+                mstore(InvalidRestrictedOrder_error_orderHash_ptr, orderHash)
+
+                // revert(abi.encodeWithSelector(
+                //     "InvalidRestrictedOrder(bytes32)",
+                //     orderHash
+                // ))
+                revert(
+                    Error_selector_offset, InvalidRestrictedOrder_error_length
+                )
+            }
+        }
+
+        return true;
     }
 }

@@ -486,9 +486,17 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
 
                 // Update order status as long as there is some fraction available.
                 if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
-                    _assertRestrictedAdvancedOrderAuthorization(
-                        advancedOrder, orderHashes, orderHash, (i / OneWord) - 1
-                    );
+                    if (!_checkRestrictedAdvancedOrderAuthorization(
+                        advancedOrder, orderHashes, orderHash, (i / OneWord) - 1, revertOnInvalid
+                    )) {
+                        assembly {
+                            mstore(add(orderHashes, i), 0)
+                        }
+
+                        advancedOrder.numerator = 0;
+
+                        continue;
+                    }
 
                     if (!_updateStatus(
                         orderHash,
