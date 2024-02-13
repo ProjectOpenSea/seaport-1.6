@@ -32,7 +32,7 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
         bytes32 orderHash
     );
 
-    event AuthorizeOrderMuggleValue(
+    event AuthorizeOrderNonMagicValue(
         bytes32 orderHash
     );
 
@@ -56,7 +56,7 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
         // helm.log(zoneParameters);
 
         console.log('--------------------------------------------');
-        console.log("orderIsAuthorized[zoneParameters.orderHash]");
+        console.log("orderIsAuthorized[zoneParameters.orderHash] in zone");
         console.log(orderIsAuthorized[zoneParameters.orderHash]);
 
         console.log("zoneParameters.orderHash");
@@ -64,8 +64,8 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
 
         if (!orderIsAuthorized[zoneParameters.orderHash]) {
             if (shouldReturnInvalidMagicValue) {
-                console.log("==Returning invalid magic value");
-                emit AuthorizeOrderMuggleValue(
+                console.log("==Returning invalid magic value and emitting");
+                emit AuthorizeOrderNonMagicValue(
                     zoneParameters.orderHash
                 );
 
@@ -75,7 +75,7 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
             }
 
             if (shouldRevert) {   
-                console.log("==Reverting");
+                console.log("==Reverting and emitting");
                 emit AuthorizeOrderReverted(
                     zoneParameters.orderHash
                 );
@@ -83,11 +83,10 @@ contract VerboseAuthZone is ERC165, ZoneInterface {
             }
         }
 
+        console.log("==Blessing and emitting");
         emit Authorized(
             zoneParameters.orderHash
         );
-
-        console.log("==Blessing");
 
         // Return the authorizeOrder magic value.
         return this.authorizeOrder.selector;
