@@ -250,7 +250,7 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
             recipient: address(0)
         });
 
-        // assertTrue(statefulZone.authorizeCalled());
+        assertTrue(statefulZone.authorizeCalled());
         assertTrue(statefulZone.validateCalled());
     }
 
@@ -491,7 +491,7 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
         });
 
         // assertions
-        // assertTrue(statefulZone.authorizeCalled());
+        assertTrue(statefulZone.authorizeCalled());
         assertTrue(statefulZone.validateCalled());
         for (uint256 i = 0; i < allAdditional.length; i++) {
             assertEq(
@@ -578,7 +578,7 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
             recipient: address(0),
             maximumFulfilled: 1
         });
-        // assertTrue(statefulZone.authorizeCalled());
+        assertTrue(statefulZone.authorizeCalled());
         assertTrue(statefulZone.validateCalled());
     }
 
