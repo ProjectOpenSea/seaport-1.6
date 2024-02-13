@@ -69,6 +69,7 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
 
     struct Context {
         ConsiderationInterface seaport;
+        bool isReference;
         FulfillFuzzInputs fulfillArgs;
         MatchFuzzInputs matchArgs;
     }
@@ -222,18 +223,20 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
     function testMatch_x(MatchFuzzInputs memory _matchArgs) public {
         _matchArgs = _boundMatchArgs(_matchArgs);
 
-        // test(
-        //     this.execMatch,
-        //     Context({
-        //         seaport: consideration,
-        //         matchArgs: _matchArgs,
-        //         fulfillArgs: emptyFulfill
-        //     })
-        // );
+        test(
+            this.execMatch,
+            Context({
+                seaport: consideration,
+                isReference: false,
+                matchArgs: _matchArgs,
+                fulfillArgs: emptyFulfill
+            })
+        );
         test(
             this.execMatch,
             Context({
                 seaport: referenceConsideration,
+                isReference: true,
                 matchArgs: _matchArgs,
                 fulfillArgs: emptyFulfill
             })
@@ -315,18 +318,29 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
             vm.expectEmit(true, false, false, true, address(verboseZone));
             emit AuthorizeOrderMuggleValue(orderHash);
             vm.expectRevert(
-                abi.encodeWithSignature("InvalidRestrictedOrder(bytes32)", orderHash)
-            );
-        } else if (context.matchArgs.shouldRevert) {
-            // Expect AuthorizeOrderReverted event.
-            vm.expectEmit(true, false, false, true, address(verboseZone));
-            emit AuthorizeOrderReverted(orderHash);
-            vm.expectRevert(
                 abi.encodeWithSignature(
                     "InvalidRestrictedOrder(bytes32)",
                     orderHash
                 )
             );
+        } else if (context.matchArgs.shouldRevert) {
+            // Expect AuthorizeOrderReverted event.
+            vm.expectEmit(true, false, false, true, address(verboseZone));
+            emit AuthorizeOrderReverted(orderHash);
+            if (context.isReference) {
+                vm.expectRevert(
+                    abi.encodeWithSignature(
+                        "InvalidRestrictedOrder(bytes32)",
+                        orderHash
+                    )
+                );
+            } else {
+                vm.expectRevert(
+                    abi.encodeWithSignature(
+                        "OrderNotAuthorized()"
+                    )
+                );
+            }
         } else {
             if (!context.matchArgs.shouldRevert && !context.matchArgs.shouldReturnInvalidMagicValue) {
 
@@ -475,12 +489,12 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
 
         test(
             this.execFulfillAvailable,
-            Context(consideration, fulfillArgs, emptyMatch)
+            Context(consideration, false, fulfillArgs, emptyMatch)
         );
-        // test(
-        //     this.execFulfillAvailable,
-        //     Context(referenceConsideration, fulfillArgs, emptyMatch)
-        // );
+        test(
+            this.execFulfillAvailable,
+            Context(referenceConsideration, true, fulfillArgs, emptyMatch)
+        );
     }
 
     function execFulfillAvailable(Context memory context)
