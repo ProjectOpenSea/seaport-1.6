@@ -492,7 +492,7 @@ contract ConsiderationEncoder {
         orderHashesLengthLocation.write(orderIndex);
 
         // Modify encoding size to account for the shorter orderHashes array.
-        size -= (1 + orderHashes.length - orderIndex) * OneWord;
+        size -= (orderHashes.length - orderIndex) * OneWord;
     }
 
     /**

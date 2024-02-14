@@ -59,14 +59,14 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
     }
 
     function testAscendingAmount() public {
-        // test(
-        //     this.execAscendingAmount,
-        //     Context({
-        //         consideration: consideration,
-        //         numOriginalAdditional: 0,
-        //         numTips: 0
-        //     })
-        // );
+        test(
+            this.execAscendingAmount,
+            Context({
+                consideration: consideration,
+                numOriginalAdditional: 0,
+                numTips: 0
+            })
+        );
         test(
             this.execAscendingAmount,
             Context({
@@ -118,14 +118,14 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
     }
 
     function testResolvedCriteria() public {
-        // test(
-        //     this.execResolvedCriteria,
-        //     Context({
-        //         consideration: consideration,
-        //         numOriginalAdditional: 0,
-        //         numTips: 0
-        //     })
-        // );
+        test(
+            this.execResolvedCriteria,
+            Context({
+                consideration: consideration,
+                numOriginalAdditional: 0,
+                numTips: 0
+            })
+        );
         test(
             this.execResolvedCriteria,
             Context({
@@ -185,14 +185,14 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
     }
 
     function testStateChange() public {
-        // test(
-        //     this.execStateChange,
-        //     Context({
-        //         consideration: consideration,
-        //         numOriginalAdditional: 0,
-        //         numTips: 0
-        //     })
-        // );
+        test(
+            this.execStateChange,
+            Context({
+                consideration: consideration,
+                numOriginalAdditional: 0,
+                numTips: 0
+            })
+        );
         test(
             this.execStateChange,
             Context({
@@ -255,14 +255,14 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
     }
 
     function testBasicStateful() public {
-        // test(
-        //     this.execBasicStateful,
-        //     Context({
-        //         consideration: consideration,
-        //         numOriginalAdditional: 0,
-        //         numTips: 0
-        //     })
-        // );
+        test(
+            this.execBasicStateful,
+            Context({
+                consideration: consideration,
+                numOriginalAdditional: 0,
+                numTips: 0
+            })
+        );
         test(
             this.execBasicStateful,
             Context({
@@ -319,14 +319,14 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
     }
 
     function testExectBasicStatefulWithConduit() public {
-        // test(
-        //     this.execBasicStatefulWithConduit,
-        //     Context({
-        //         consideration: consideration,
-        //         numOriginalAdditional: 0,
-        //         numTips: 0
-        //     })
-        // );
+        test(
+            this.execBasicStatefulWithConduit,
+            Context({
+                consideration: consideration,
+                numOriginalAdditional: 0,
+                numTips: 0
+            })
+        );
         test(
             this.execBasicStatefulWithConduit,
             Context({
@@ -388,14 +388,14 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
     function testBasicStateful(uint8 numOriginalAdditional, uint8 numTips)
         public
     {
-        // test(
-        //     this.execBasicStatefulFuzz,
-        //     Context({
-        //         consideration: consideration,
-        //         numOriginalAdditional: numOriginalAdditional,
-        //         numTips: numTips
-        //     })
-        // );
+        test(
+            this.execBasicStatefulFuzz,
+            Context({
+                consideration: consideration,
+                numOriginalAdditional: numOriginalAdditional,
+                numTips: numTips
+            })
+        );
         test(
             this.execBasicStatefulFuzz,
             Context({
@@ -503,14 +503,14 @@ contract PreAndPostFulfillmentCheckTest is BaseOrderTest {
     }
 
     function testFulfillAvailableAdvancedAscending() public {
-        // test(
-        //     this.execFulfillAvailableAdvancedAscending,
-        //     Context({
-        //         consideration: consideration,
-        //         numOriginalAdditional: 0,
-        //         numTips: 0
-        //     })
-        // );
+        test(
+            this.execFulfillAvailableAdvancedAscending,
+            Context({
+                consideration: consideration,
+                numOriginalAdditional: 0,
+                numTips: 0
+            })
+        );
         test(
             this.execFulfillAvailableAdvancedAscending,
             Context({

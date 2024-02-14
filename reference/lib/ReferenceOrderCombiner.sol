@@ -441,6 +441,7 @@ contract ReferenceOrderCombiner is
 
             if (!valid) {
                 orderHashes[i] = bytes32(0);
+                ordersToExecute[i].numerator = 0;
                 continue;
             }
 
