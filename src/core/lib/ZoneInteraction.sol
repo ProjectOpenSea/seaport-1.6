@@ -157,6 +157,8 @@ contract ZoneInteraction is
             // Perform call and ensure a corresponding magic value was returned.
             return _callAndCheckStatusWithSkip(parameters.zone, orderHash, callData, size, InvalidRestrictedOrder_error_selector, revertOnInvalid);
         }
+
+        return true;
     }
 
     function _assertRestrictedAdvancedOrderAuthorization(
