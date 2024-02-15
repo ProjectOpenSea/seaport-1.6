@@ -103,8 +103,9 @@ enum Failure {
     InvalidContractOrder_ExcessMaximumSpent, // too many maximum spent items
     InvalidContractOrder_IncorrectMaximumSpent, // incorrect (too many, wrong token, etc.) maximum spent items
     InvalidContractOrder_InvalidMagicValue, // Offerer did not return correct magic value
-    InvalidRestrictedOrder_reverts, // Zone validateOrder call reverts
-    InvalidRestrictedOrder_InvalidMagicValue, // Zone validateOrder call returns invalid magic value
+    InvalidRestrictedOrder_validateReverts, // Zone validateOrder call reverts
+    InvalidRestrictedOrder_authorizeInvalidMagicValue, // Zone authorizeOrder call returns invalid magic value
+    InvalidRestrictedOrder_validateInvalidMagicValue, // Zone validateOrder call returns invalid magic value
     NoContract, // Trying to transfer a token at an address that has no contract
     UnusedItemParameters_Token, // Native item with non-zero token
     UnusedItemParameters_Identifier, // Native or ERC20 item with non-zero identifier
@@ -346,8 +347,9 @@ library FuzzMutationSelectorLib {
                 .ineligibleWhenNotActiveTimeOrNotContractOrderOrNoConsideration
         );
 
-        failuresAndFilters[i++] = Failure.InvalidRestrictedOrder_reverts.and(
-            Failure.InvalidRestrictedOrder_InvalidMagicValue
+        failuresAndFilters[i++] = Failure.InvalidRestrictedOrder_authorizeInvalidMagicValue.and(
+            Failure.InvalidRestrictedOrder_validateReverts)
+            .and(Failure.InvalidRestrictedOrder_validateInvalidMagicValue
         ).withOrder(
             MutationFilters.ineligibleWhenNotAvailableOrNotRestrictedOrder
         );
@@ -873,7 +875,7 @@ library FailureDetailsLib {
             .HashValidationZoneOffererValidateOrderReverts
             .selector
             .withOrder(
-            "InvalidRestrictedOrder_reverts",
+            "InvalidRestrictedOrder_validateReverts",
             FuzzMutations.mutation_invalidRestrictedOrderReverts.selector
         );
 
@@ -881,12 +883,24 @@ library FailureDetailsLib {
             .InvalidRestrictedOrder
             .selector
             .withOrder(
-            "InvalidRestrictedOrder_InvalidMagicValue",
+            "InvalidRestrictedOrder_authorizeInvalidMagicValue",
             FuzzMutations
-                .mutation_invalidRestrictedOrderInvalidMagicValue
+                .mutation_invalidRestrictedOrderAuthorizeInvalidMagicValue
                 .selector,
             details_withOrderHash
         );
+
+        failureDetailsArray[i++] = ZoneInteractionErrors
+            .InvalidRestrictedOrder
+            .selector
+            .withOrder(
+            "InvalidRestrictedOrder_validateInvalidMagicValue",
+            FuzzMutations
+                .mutation_invalidRestrictedOrderValidateInvalidMagicValue
+                .selector,
+            details_withOrderHash
+        );
+
         failureDetailsArray[i++] = TokenTransferrerErrors
             .NoContract
             .selector

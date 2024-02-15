@@ -1939,14 +1939,14 @@ contract FuzzMutations is Test, FuzzExecutor {
         bytes32 orderHash = mutationState.selectedOrderHash;
 
         // This mutation triggers a revert by setting a failure reason that gets
-        // stored in the HashCalldataContractOfferer.
+        // stored in the HashValidationZoneOfferer.
         HashValidationZoneOfferer(payable(order.parameters.zone))
-            .setFailureReason(orderHash, OffererZoneFailureReason.Zone_reverts);
+            .setValidateFailureReason(orderHash, OffererZoneFailureReason.Zone_reverts);
 
         exec(context);
     }
 
-    function mutation_invalidRestrictedOrderInvalidMagicValue(
+    function mutation_invalidRestrictedOrderAuthorizeInvalidMagicValue(
         FuzzTestContext memory context,
         MutationState memory mutationState
     ) external {
@@ -1954,10 +1954,27 @@ contract FuzzMutations is Test, FuzzExecutor {
         bytes32 orderHash = mutationState.selectedOrderHash;
 
         // This mutation triggers a revert by setting a failure reason that gets
-        // stored in the HashCalldataContractOfferer.
+        // stored in the HashValidationZone.
         HashValidationZoneOfferer(payable(order.parameters.zone))
-            .setFailureReason(
-            orderHash, OffererZoneFailureReason.Zone_InvalidMagicValue
+            .setAuthorizeFailureReason(
+            orderHash, OffererZoneFailureReason.Zone_authorizeInvalidMagicValue
+        );
+
+        exec(context);
+    }
+
+    function mutation_invalidRestrictedOrderValidateInvalidMagicValue(
+        FuzzTestContext memory context,
+        MutationState memory mutationState
+    ) external {
+        AdvancedOrder memory order = mutationState.selectedOrder;
+        bytes32 orderHash = mutationState.selectedOrderHash;
+
+        // This mutation triggers a revert by setting a failure reason that gets
+        // stored in the HashValidationZone.
+        HashValidationZoneOfferer(payable(order.parameters.zone))
+            .setValidateFailureReason(
+            orderHash, OffererZoneFailureReason.Zone_validateInvalidMagicValue
         );
 
         exec(context);
