@@ -157,8 +157,6 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
     event AuthorizeOrderReverted(bytes32 orderHash);
     event AuthorizeOrderNonMagicValue(bytes32 orderHash);
 
-    error OrderNotAuthorized();
-
     FulfillFuzzInputs emptyFulfill;
     MatchFuzzInputs emptyMatch;
 
@@ -207,7 +205,7 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
             .saveDefault(STD_RESTRICTED);
     }
 
-    function testMatch_x(MatchFuzzInputs memory _matchArgs) public {
+    function testMatchAuthRevertAndInvMagicValue(MatchFuzzInputs memory _matchArgs) public {
         _matchArgs = _boundMatchArgs(_matchArgs);
 
         test(
@@ -461,7 +459,7 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
         }
     }
 
-    function testFulfillAvailable_x(
+    function testFulfillAvailableAuthRevertAndInvMagicValue(
         FulfillFuzzInputs memory fulfillArgs
     ) public {
         fulfillArgs = _boundFulfillArgs(fulfillArgs);
@@ -1385,7 +1383,7 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
         // Make 2-8 order pairs per call.  Each order pair will have 1-2 offer
         // items on the prime side (depending on whether
         // shouldIncludeExcessOfferItems is true or false).
-        matchArgs.orderPairCount = bound(matchArgs.orderPairCount, 2, 8);
+        matchArgs.orderPairCount = bound(matchArgs.orderPairCount, 2, 32);
         // Use 1-3 (prime) consideration items per order.
         matchArgs.considerationItemsPerPrimeOrderCount =
             bound(matchArgs.considerationItemsPerPrimeOrderCount, 1, 3);
@@ -1430,8 +1428,8 @@ contract UnauthorizedOrderSkipTest is BaseOrderTest {
             uint128(bound(fulfillArgs.amount, 1, 0xffffffffffffffff));
         // Limit this value to avoid overflow issues.
         fulfillArgs.tokenId = bound(fulfillArgs.tokenId, 1, 0xffffffffffffffff);
-        // Create between 2 and 16 orders.
-        fulfillArgs.orderCount = bound(fulfillArgs.orderCount, 4, 16);
+        // Create between 4 and 16 orders.
+        fulfillArgs.orderCount = bound(fulfillArgs.orderCount, 4, 32);
         // Use between 1 and 3 consideration items per order.
         fulfillArgs.considerationItemsPerOrderCount =
             bound(fulfillArgs.considerationItemsPerOrderCount, 1, 3);

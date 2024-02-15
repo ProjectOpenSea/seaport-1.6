@@ -279,6 +279,22 @@ library MutationFilters {
         return ineligibleWhenUnavailable(context, orderIndex);
     }
 
+    function ineligibleWhenFulfillAvailableOrNotAvailableOrNotRestricted(
+        AdvancedOrder memory order,
+        uint256 orderIndex,
+        FuzzTestContext memory context
+    ) internal view returns (bool) {
+        if (ineligibleWhenNotRestrictedOrder(order)) {
+            return true;
+        }
+
+        if (ineligibleWhenFulfillAvailable(context)) {
+            return true;
+        }
+
+        return ineligibleWhenUnavailable(context, orderIndex);
+    }
+
     function ineligibleWhenNotActiveTime(AdvancedOrder memory order)
         internal
         view
@@ -1931,6 +1947,25 @@ contract FuzzMutations is Test, FuzzExecutor {
         exec(context);
     }
 
+    function mutation_invalidRestrictedOrderAuthorizeRevertsMatchReverts(
+        FuzzTestContext memory context,
+        MutationState memory mutationState
+    ) external {
+        AdvancedOrder memory order = mutationState.selectedOrder;
+        bytes32 orderHash = mutationState.selectedOrderHash;
+
+        // This mutation triggers a revert by setting a failure reason that gets
+        // stored in the HashValidationZone. Note that only
+        // non-fulfillAvailable* functions revert at the seaport level when the
+        // zone reverts on authorize.
+        HashValidationZoneOfferer(payable(order.parameters.zone))
+            .setAuthorizeFailureReason(
+            orderHash, OffererZoneFailureReason.Zone_authorizeRevertsMatchReverts
+        );
+
+        exec(context);
+    }
+
     function mutation_invalidRestrictedOrderReverts(
         FuzzTestContext memory context,
         MutationState memory mutationState
@@ -1941,7 +1976,7 @@ contract FuzzMutations is Test, FuzzExecutor {
         // This mutation triggers a revert by setting a failure reason that gets
         // stored in the HashValidationZoneOfferer.
         HashValidationZoneOfferer(payable(order.parameters.zone))
-            .setValidateFailureReason(orderHash, OffererZoneFailureReason.Zone_reverts);
+            .setValidateFailureReason(orderHash, OffererZoneFailureReason.Zone_validateReverts);
 
         exec(context);
     }

@@ -170,11 +170,11 @@ contract ZoneInteraction is
         // Retrieve the parameters of the order in question.
         OrderParameters memory parameters = advancedOrder.parameters;
 
-        // OrderType 2-3 require zone to be caller or approve via validateOrder.
+        // OrderType 2-3 require zone to be caller or approve via authorizeOrder.
         if (
             _isRestrictedAndCallerNotZone(parameters.orderType, parameters.zone)
         ) {
-            // Encode the `validateOrder` call in memory.
+            // Encode the `authorizeOrder` call in memory.
             (MemoryPointer callData, uint256 size) = _encodeAuthorizeOrder(
                 orderHash,
                 parameters,
