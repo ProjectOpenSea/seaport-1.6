@@ -885,8 +885,7 @@ library FailureDetailsLib {
             "InvalidRestrictedOrder_authorizeReverts_matchReverts",
             FuzzMutations
                 .mutation_invalidRestrictedOrderAuthorizeRevertsMatchReverts
-                .selector,
-            details_withOrderHash
+                .selector
         );
 
         failureDetailsArray[i++] = HashValidationZoneOfferer
