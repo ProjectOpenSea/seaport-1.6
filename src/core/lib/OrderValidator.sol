@@ -698,7 +698,13 @@ contract OrderValidator is Executor, ZoneInteraction {
 
             // Revert or skip if the call to generate the contract order failed.
             if (!success) {
-                return _revertOrReturnEmpty(revertOnInvalid, orderHash);
+                if (revertOnInvalid) {
+                    _revertWithReasonIfOneIsReturned();
+
+                    _revertInvalidContractOrder(orderHash);
+                }
+
+                return bytes32(0);
             }
         }
 
@@ -1017,30 +1023,6 @@ contract OrderValidator is Executor, ZoneInteraction {
             orderStatus.numerator,
             orderStatus.denominator
         );
-    }
-
-    /**
-     * @dev Internal pure function to either revert or return an empty tuple
-     *      depending on the value of `revertOnInvalid`.
-     *
-     * @param revertOnInvalid   Whether to revert on invalid input.
-     * @param contractOrderHash The contract order hash.
-     *
-     * @return orderHash   The order hash.
-     */
-    function _revertOrReturnEmpty(
-        bool revertOnInvalid,
-        bytes32 contractOrderHash
-    )
-        internal
-        pure
-        returns (bytes32 orderHash)
-    {
-        if (revertOnInvalid) {
-            _revertInvalidContractOrder(contractOrderHash);
-        }
-
-        return bytes32(0);
     }
 
     /**
