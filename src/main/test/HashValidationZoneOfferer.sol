@@ -244,6 +244,11 @@ contract HashValidationZoneOfferer is
         // Get the orderHash from zoneParameters
         bytes32 orderHash = zoneParameters.orderHash;
 
+        if (authorizeFailureReasons[orderHash] == OffererZoneFailureReason.Zone_authorizeRevertsMatchReverts)
+        {
+            revert HashValidationZoneOffererAuthorizeOrderReverts();
+        }
+
         // Get the length of msg.data
         uint256 dataLength = msg.data.length;
 
@@ -296,7 +301,7 @@ contract HashValidationZoneOfferer is
         // Get the orderHash from zoneParameters
         bytes32 orderHash = zoneParameters.orderHash;
 
-        if (validateFailureReasons[orderHash] == OffererZoneFailureReason.Zone_reverts)
+        if (validateFailureReasons[orderHash] == OffererZoneFailureReason.Zone_validateReverts)
         {
             revert HashValidationZoneOffererValidateOrderReverts();
         }

@@ -103,6 +103,7 @@ enum Failure {
     InvalidContractOrder_ExcessMaximumSpent, // too many maximum spent items
     InvalidContractOrder_IncorrectMaximumSpent, // incorrect (too many, wrong token, etc.) maximum spent items
     InvalidContractOrder_InvalidMagicValue, // Offerer did not return correct magic value
+    InvalidRestrictedOrder_authorizeReverts_matchReverts, // Zone authorizeOrder call reverts and triggers a top level match* revert
     InvalidRestrictedOrder_validateReverts, // Zone validateOrder call reverts
     InvalidRestrictedOrder_authorizeInvalidMagicValue, // Zone authorizeOrder call returns invalid magic value
     InvalidRestrictedOrder_validateInvalidMagicValue, // Zone validateOrder call returns invalid magic value
@@ -345,6 +346,12 @@ library FuzzMutationSelectorLib {
             .withOrder(
             MutationFilters
                 .ineligibleWhenNotActiveTimeOrNotContractOrderOrNoConsideration
+        );
+
+        failuresAndFilters[i++] = Failure
+            .InvalidRestrictedOrder_authorizeReverts_matchReverts
+            .withOrder(
+            MutationFilters.ineligibleWhenNotAvailableOrNotRestrictedOrNotMatch
         );
 
         failuresAndFilters[i++] = Failure.InvalidRestrictedOrder_authorizeInvalidMagicValue.and(
@@ -867,6 +874,17 @@ library FailureDetailsLib {
             "InvalidContractOrder_InvalidMagicValue",
             FuzzMutations
                 .mutation_invalidContractOrderInvalidMagicValue
+                .selector,
+            details_withOrderHash
+        );
+
+        failureDetailsArray[i++] = HashValidationZoneOfferer
+            .HashValidationZoneOffererAuthorizeOrderReverts
+            .selector
+            .withOrder(
+            "InvalidRestrictedOrder_authorizeReverts_matchReverts",
+            FuzzMutations
+                .mutation_invalidRestrictedOrderAuthorizeRevertsMatchReverts
                 .selector,
             details_withOrderHash
         );
