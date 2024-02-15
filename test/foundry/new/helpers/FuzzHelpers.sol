@@ -734,6 +734,46 @@ library FuzzHelpers {
 
     /**
      * @dev Derive ZoneParameters from a given restricted order and return
+     *      the expected calldata hash for the call to authorizeOrder.
+     *
+     * @param orders             The restricted orders.
+     * @param seaport            The Seaport address.
+     * @param fulfiller          The fulfiller.
+     * @param maximumFulfilled   The maximum number of orders to fulfill.
+     * @param criteriaResolvers  The criteria resolvers.
+     * @param maximumFulfilled   The maximum number of orders to fulfill.
+     * @param unavailableReasons The availability status.
+     *
+     * @return calldataHashes The derived calldata hashes.
+     */
+    function getExpectedZoneAuthorizeCalldataHash(
+        AdvancedOrder[] memory orders,
+        address seaport,
+        address fulfiller,
+        CriteriaResolver[] memory criteriaResolvers,
+        uint256 maximumFulfilled,
+        UnavailableReason[] memory unavailableReasons
+    ) internal view returns (bytes32[] memory calldataHashes) {
+        calldataHashes = new bytes32[](orders.length);
+
+        ZoneParameters[] memory zoneParameters = orders.getZoneAuthorizeParameters(
+            fulfiller,
+            maximumFulfilled,
+            seaport,
+            criteriaResolvers,
+            unavailableReasons
+        );
+
+        for (uint256 i; i < zoneParameters.length; ++i) {
+            // Derive the expected calldata hash for the call to authorizeOrder
+            calldataHashes[i] = keccak256(
+                abi.encodeCall(ZoneInterface.authorizeOrder, (zoneParameters[i]))
+            );
+        }
+    }
+
+    /**
+     * @dev Derive ZoneParameters from a given restricted order and return
      *      the expected calldata hash for the call to validateOrder.
      *
      * @param orders             The restricted orders.
@@ -746,7 +786,7 @@ library FuzzHelpers {
      *
      * @return calldataHashes The derived calldata hashes.
      */
-    function getExpectedZoneCalldataHash(
+    function getExpectedZoneValidateCalldataHash(
         AdvancedOrder[] memory orders,
         address seaport,
         address fulfiller,
@@ -756,7 +796,7 @@ library FuzzHelpers {
     ) internal view returns (bytes32[] memory calldataHashes) {
         calldataHashes = new bytes32[](orders.length);
 
-        ZoneParameters[] memory zoneParameters = orders.getZoneParameters(
+        ZoneParameters[] memory zoneParameters = orders.getZoneValidateParameters(
             fulfiller,
             maximumFulfilled,
             seaport,

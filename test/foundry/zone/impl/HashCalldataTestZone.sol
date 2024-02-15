@@ -62,15 +62,15 @@ contract HashCalldataTestZone is ZoneInterface {
     }
 
     function setExpectedAuthorizeCalldataHash(
-        bytes32 _expectedZoneCalldataHash
+        bytes32 _expectedZoneAuthorizeCalldataHash
     ) public {
-        expectedZoneAuthorizeCalldataHash = _expectedZoneCalldataHash;
+        expectedZoneAuthorizeCalldataHash = _expectedZoneAuthorizeCalldataHash;
     }
 
     function setExpectedValidateCalldataHash(
-        bytes32 _expectedZoneCalldataHash
+        bytes32 _expectedZoneValidateCalldataHash
     ) public {
-        expectedZoneValidateCalldataHash = _expectedZoneCalldataHash;
+        expectedZoneValidateCalldataHash = _expectedZoneValidateCalldataHash;
     }
 
     receive() external payable { }

@@ -20,7 +20,9 @@ import { ContractOffererInterface } from
     "seaport-types/src/interfaces/ContractOffererInterface.sol";
 
 import { ZoneInterface } from "seaport-types/src/interfaces/ZoneInterface.sol";
+
 import { OffererZoneFailureReason } from "./OffererZoneFailureReason.sol";
+
 
 /**
  * @dev This contract is used to validate hashes.  Use the
@@ -59,6 +61,7 @@ contract HashValidationZoneOfferer is
     error HashValidationZoneOffererValidateOrderReverts();
     error HashValidationZoneOffererRatifyOrderReverts();
 
+    event AuthorizeOrderDataHash(bytes32 dataHash);
     event ValidateOrderDataHash(bytes32 dataHash);
 
     struct ItemAmountMutation {
@@ -205,6 +208,7 @@ contract HashValidationZoneOfferer is
 
     address internal _expectedOfferRecipient;
 
+    mapping(bytes32 => bytes32) public orderHashToAuthorizeOrderDataHash;
     mapping(bytes32 => bytes32) public orderHashToValidateOrderDataHash;
 
     // Pass in the null address to expect the fulfiller.
@@ -224,11 +228,36 @@ contract HashValidationZoneOfferer is
         failureReasons[orderHash] = newFailureReason;
     }
 
-    function authorizeOrder(ZoneParameters calldata)
+    function authorizeOrder(ZoneParameters calldata zoneParameters)
         public
-        pure
         returns (bytes4)
     {
+        // Get the orderHash from zoneParameters
+        bytes32 orderHash = zoneParameters.orderHash;
+
+        // Get the length of msg.data
+        uint256 dataLength = msg.data.length;
+
+        // Create a variable to store msg.data in memory
+        bytes memory data;
+
+        // Copy msg.data to memory
+        assembly {
+            let ptr := mload(0x40)
+            calldatacopy(add(ptr, 0x20), 0, dataLength)
+            mstore(ptr, dataLength)
+            data := ptr
+        }
+
+        // Get the hash of msg.data
+        bytes32 calldataHash = keccak256(data);
+
+        // Store callDataHash in orderHashToAuthorizeOrderDataHash
+        orderHashToAuthorizeOrderDataHash[orderHash] = calldataHash;
+
+        // Emit a DataHash event with the hash of msg.data
+        emit AuthorizeOrderDataHash(calldataHash);
+
         return this.authorizeOrder.selector;
     }
 

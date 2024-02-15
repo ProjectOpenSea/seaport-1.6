@@ -1464,8 +1464,8 @@ contract FuzzEngineTest is FuzzEngine {
             considerationComponents
         ).withChecks(checks).withMaximumFulfilled(2);
 
-        context.expectations.expectedZoneCalldataHash = advancedOrders
-            .getExpectedZoneCalldataHash(
+        context.expectations.expectedZoneValidateCalldataHashes = advancedOrders
+            .getExpectedZoneValidateCalldataHash(
             address(getSeaport()),
             address(this),
             new CriteriaResolver[](0),
