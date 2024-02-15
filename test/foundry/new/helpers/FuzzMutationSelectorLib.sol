@@ -804,15 +804,14 @@ library FailureDetailsLib {
             details_withOrderHash
         );
 
-        failureDetailsArray[i++] = ZoneInteractionErrors
-            .InvalidContractOrder
+        failureDetailsArray[i++] = HashCalldataContractOfferer
+            .HashCalldataContractOffererGenerateOrderReverts
             .selector
             .withOrder(
             "InvalidContractOrder_generateReverts",
             FuzzMutations
-                .mutation_invalidContractOrderGenerateReturnsInvalidEncoding
-                .selector,
-            details_withOrderHash
+                .mutation_invalidContractOrderGenerateReverts
+                .selector
         );
 
         failureDetailsArray[i++] = HashCalldataContractOfferer
