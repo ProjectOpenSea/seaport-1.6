@@ -279,7 +279,7 @@ library MutationFilters {
         return ineligibleWhenUnavailable(context, orderIndex);
     }
 
-    function ineligibleWhenNotAvailableOrNotRestrictedOrNotMatch(
+    function ineligibleWhenFulfillAvailableOrNotAvailableOrNotRestricted(
         AdvancedOrder memory order,
         uint256 orderIndex,
         FuzzTestContext memory context
@@ -288,7 +288,7 @@ library MutationFilters {
             return true;
         }
 
-        if (ineligibleWhenNotMatch(context)) {
+        if (ineligibleWhenFulfillAvailable(context)) {
             return true;
         }
 
@@ -1955,8 +1955,9 @@ contract FuzzMutations is Test, FuzzExecutor {
         bytes32 orderHash = mutationState.selectedOrderHash;
 
         // This mutation triggers a revert by setting a failure reason that gets
-        // stored in the HashValidationZone. Note that only match* functions
-        // revert at the seaport level when the zone reverts on authorize.
+        // stored in the HashValidationZone. Note that only
+        // non-fulfillAvailable* functions revert at the seaport level when the
+        // zone reverts on authorize.
         HashValidationZoneOfferer(payable(order.parameters.zone))
             .setAuthorizeFailureReason(
             orderHash, OffererZoneFailureReason.Zone_authorizeRevertsMatchReverts

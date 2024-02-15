@@ -351,7 +351,7 @@ library FuzzMutationSelectorLib {
         failuresAndFilters[i++] = Failure
             .InvalidRestrictedOrder_authorizeReverts_matchReverts
             .withOrder(
-            MutationFilters.ineligibleWhenNotAvailableOrNotRestrictedOrNotMatch
+            MutationFilters.ineligibleWhenFulfillAvailableOrNotAvailableOrNotRestricted
         );
 
         failuresAndFilters[i++] = Failure.InvalidRestrictedOrder_authorizeInvalidMagicValue.and(
