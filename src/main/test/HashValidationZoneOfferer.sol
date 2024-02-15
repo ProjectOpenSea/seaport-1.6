@@ -58,6 +58,7 @@ contract HashValidationZoneOfferer is
     error IncorrectSeaportBalance(
         uint256 expectedBalance, uint256 actualBalance
     );
+    error HashValidationZoneOffererAuthorizeOrderReverts();
     error HashValidationZoneOffererValidateOrderReverts();
     error HashValidationZoneOffererRatifyOrderReverts();
 
@@ -219,18 +220,26 @@ contract HashValidationZoneOfferer is
     bool public called = false;
     uint256 public callCount = 0;
 
-    mapping(bytes32 => OffererZoneFailureReason) public failureReasons;
+    mapping(bytes32 => OffererZoneFailureReason) public authorizeFailureReasons;
+    mapping(bytes32 => OffererZoneFailureReason) public validateFailureReasons;
 
-    function setFailureReason(
+    function setAuthorizeFailureReason(
         bytes32 orderHash,
         OffererZoneFailureReason newFailureReason
     ) external {
-        failureReasons[orderHash] = newFailureReason;
+        authorizeFailureReasons[orderHash] = newFailureReason;
+    }
+
+    function setValidateFailureReason(
+        bytes32 orderHash,
+        OffererZoneFailureReason newFailureReason
+    ) external {
+        validateFailureReasons[orderHash] = newFailureReason;
     }
 
     function authorizeOrder(ZoneParameters calldata zoneParameters)
         public
-        returns (bytes4)
+        returns (bytes4 authorizeOrderReturnValue)
     {
         // Get the orderHash from zoneParameters
         bytes32 orderHash = zoneParameters.orderHash;
@@ -258,7 +267,17 @@ contract HashValidationZoneOfferer is
         // Emit a DataHash event with the hash of msg.data
         emit AuthorizeOrderDataHash(calldataHash);
 
-        return this.authorizeOrder.selector;
+        if (
+            authorizeFailureReasons[orderHash]
+                == OffererZoneFailureReason.Zone_authorizeInvalidMagicValue
+        ) {
+            authorizeOrderReturnValue = bytes4(0x12345678);
+        } else {
+            // Return the selector of authorizeOrder as the magic value.
+            authorizeOrderReturnValue = this.authorizeOrder.selector;
+        }
+
+        return authorizeOrderReturnValue;
     }
 
     /**
@@ -277,7 +296,7 @@ contract HashValidationZoneOfferer is
         // Get the orderHash from zoneParameters
         bytes32 orderHash = zoneParameters.orderHash;
 
-        if (failureReasons[orderHash] == OffererZoneFailureReason.Zone_reverts)
+        if (validateFailureReasons[orderHash] == OffererZoneFailureReason.Zone_reverts)
         {
             revert HashValidationZoneOffererValidateOrderReverts();
         }
@@ -323,8 +342,8 @@ contract HashValidationZoneOfferer is
         callCount++;
 
         if (
-            failureReasons[orderHash]
-                == OffererZoneFailureReason.Zone_InvalidMagicValue
+            validateFailureReasons[orderHash]
+                == OffererZoneFailureReason.Zone_validateInvalidMagicValue
         ) {
             validOrderMagicValue = bytes4(0x12345678);
         } else {
