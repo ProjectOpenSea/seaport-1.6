@@ -38,4 +38,6 @@ test/utils/eip712/gen.sol
 metrics.txt
 *-metrics.txt
 
+debug/*
+
 fuzz_debug.json
