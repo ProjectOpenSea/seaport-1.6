@@ -788,7 +788,7 @@ contract OrderValidator is Executor, ZoneInteraction {
                     | _checkRecipients(
                         mPtrOriginal.offset(ReceivedItem_recipient_offset)
                             .readAddress(),
-                        mPtrNew.offset(ConsiderItem_recipient_offset).readAddress()
+                        mPtrNew.offset(ReceivedItem_recipient_offset).readAddress()
                     );
 
                 // Increment the array (cannot overflow as index starts at 0).
