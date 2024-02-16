@@ -30,6 +30,8 @@ import { TestCalldataHashContractOfferer } from
 import { HashValidationZoneOfferer } from
     "../../../../src/main/test/HashValidationZoneOfferer.sol";
 
+import "forge-std/console.sol";
+
 /**
  * @dev Check functions are the post-execution assertions we want to validate.
  *      Checks should be public functions that accept a FuzzTestContext as their
@@ -142,11 +144,19 @@ abstract contract FuzzChecks is Test {
                 bytes32 orderHash =
                     context.executionState.orderDetails[i].orderHash;
 
+                // console.log("");
+                // console.log("orderHash in checks: ");
+                // console.logBytes32(orderHash);
+
                 // Use order hash to get the expected calldata hash from zone.
-                // TODO: fix this in cases where contract orders are part of
-                // orderHashes (the hash calculation is most likely incorrect).
                 bytes32 actualCalldataHash = HashValidationZoneOfferer(testZone)
                     .orderHashToAuthorizeOrderDataHash(orderHash);
+
+                // console.log("actualCalldataHash in checks: ");
+                // console.logBytes32(actualCalldataHash);
+
+                // console.log("expectedCalldataHash in checks: ");
+                // console.logBytes32(expectedCalldataHash);
 
                 // Check that the expected calldata hash matches the actual
                 // calldata hash.
@@ -188,8 +198,6 @@ abstract contract FuzzChecks is Test {
                     context.executionState.orderDetails[i].orderHash;
 
                 // Use order hash to get the expected calldata hash from zone.
-                // TODO: fix this in cases where contract orders are part of
-                // orderHashes (the hash calculation is most likely incorrect).
                 bytes32 actualCalldataHash = HashValidationZoneOfferer(testZone)
                     .orderHashToValidateOrderDataHash(orderHash);
 

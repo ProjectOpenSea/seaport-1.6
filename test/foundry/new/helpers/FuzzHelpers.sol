@@ -51,6 +51,9 @@ import { FuzzInscribers } from "./FuzzInscribers.sol";
 
 import { assume } from "./VmUtils.sol";
 
+import "forge-std/console.sol";
+import {helm} from "seaport-sol/src/helm.sol";
+
 /**
  * @dev The "structure" of the order.
  *      - BASIC: adheres to basic construction rules.
@@ -765,6 +768,8 @@ library FuzzHelpers {
         );
 
         for (uint256 i; i < zoneParameters.length; ++i) {
+            // console.log("zoneParameters in getExpectedZoneAuthorizeCalldataHash");
+            // helm.log(zoneParameters[i]);
             // Derive the expected calldata hash for the call to authorizeOrder
             calldataHashes[i] = keccak256(
                 abi.encodeCall(ZoneInterface.authorizeOrder, (zoneParameters[i]))

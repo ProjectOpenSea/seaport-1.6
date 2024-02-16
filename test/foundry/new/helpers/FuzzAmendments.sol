@@ -36,6 +36,9 @@ import {
 import { HashCalldataContractOfferer } from
     "../../../../src/main/test/HashCalldataContractOfferer.sol";
 
+import { HashValidationZoneOfferer } from
+    "../../../../src/main/test/HashValidationZoneOfferer.sol";
+
 import { OffererZoneFailureReason } from
     "../../../../src/main/test/OffererZoneFailureReason.sol";
 
@@ -299,6 +302,8 @@ abstract contract FuzzAmendments is Test {
     function conformOnChainStatusToExpected(FuzzTestContext memory context)
         public
     {
+        // BREADCRUMB. Rejection might play nicely here, or it might need to be
+        // itsown OrderStatusEnum value.
         for (
             uint256 i = 0;
             i < context.executionState.preExecOrderStatuses.length;
@@ -337,12 +342,32 @@ abstract contract FuzzAmendments is Test {
                 );
             } else if (
                 context.executionState.preExecOrderStatuses[i]
+                    == OrderStatusEnum.ZONE_AUTHORIZE_REVERT
+            ) {
+                OrderParameters memory orderParams =
+                    context.executionState.orders[i].parameters;
+                bytes32 orderHash =
+                    context.executionState.orderDetails[i].orderHash;
+
+                if ( orderParams.zone != address(0) ) {
+                    HashValidationZoneOfferer(payable(orderParams.zone))
+                        .setAuthorizeFailureReason(
+                        orderHash,
+                        OffererZoneFailureReason.Zone_authorizeRevertsSkip
+                    );
+                } else {
+                    // TODO: Remove after a few tens of thousands of runs.
+                    revert('MOAT should be filtering out non-restricted orders upstream.');
+                }
+            } else if (
+                context.executionState.preExecOrderStatuses[i]
                     == OrderStatusEnum.REVERT
             ) {
                 OrderParameters memory orderParams =
                     context.executionState.orders[i].parameters;
                 bytes32 orderHash =
                     context.executionState.orderDetails[i].orderHash;
+
                 if (orderParams.orderType != OrderType.CONTRACT) {
                     revert("FuzzAmendments: bad pre-exec order status");
                 }

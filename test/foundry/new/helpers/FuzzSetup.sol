@@ -314,7 +314,10 @@ abstract contract FuzzSetup is Test, AmountDeriverHelper {
         for (uint256 i; i < context.executionState.orderDetails.length; ++i) {
             OrderDetails memory order = context.executionState.orderDetails[i];
 
-            if (order.unavailableReason != UnavailableReason.AVAILABLE) {
+            // BREADCRUMB. This is scary.
+            if (order.unavailableReason != UnavailableReason.AVAILABLE
+                && order.unavailableReason != UnavailableReason.ZONE_AUTHORIZE_REJECTION
+            ) {
                 continue;
             }
 
@@ -431,7 +434,9 @@ abstract contract FuzzSetup is Test, AmountDeriverHelper {
             OrderDetails memory order = context.executionState.orderDetails[i];
             ReceivedItem[] memory items = order.consideration;
 
-            if (order.unavailableReason != UnavailableReason.AVAILABLE) {
+            if (order.unavailableReason != UnavailableReason.AVAILABLE
+                && order.unavailableReason != UnavailableReason.ZONE_AUTHORIZE_REJECTION
+            ) {
                 continue;
             }
 
@@ -465,6 +470,8 @@ abstract contract FuzzSetup is Test, AmountDeriverHelper {
                                 context.executionState.orderDetails[k]
                                     .unavailableReason
                                     != UnavailableReason.AVAILABLE
+                                    && order.unavailableReason
+                                    != UnavailableReason.ZONE_AUTHORIZE_REJECTION
                             ) {
                                 continue;
                             }

@@ -3132,7 +3132,7 @@ contract FuzzMutations is Test, FuzzExecutor {
         MutationState memory mutationState
     ) external {
         // This mutation works in the same way as
-        // mutation_missingItemAmount_OfferItem_FulfillAvailable aboce, except
+        // mutation_missingItemAmount_OfferItem_FulfillAvailable above, except
         // that it targets consideration items instead of offer items.  Items
         // cannot have 0 amounts.
 

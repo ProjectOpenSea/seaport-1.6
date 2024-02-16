@@ -26,7 +26,8 @@ enum OrderStatusEnum {
     FULFILLED, // completely fulfilled
     CANCELLED_EXPLICIT, // explicit cancellation
     CANCELLED_COUNTER, // canceled via counter increment (reverts due to invalid sig)
-    REVERT // fulfilling reverts
+    REVERT, // fulfilling reverts
+    ZONE_AUTHORIZE_REVERT // zone authorization reverts
 }
 
 enum BroadOrderType {
@@ -368,7 +369,8 @@ enum UnavailableReason {
     CANCELLED,
     ALREADY_FULFILLED,
     MAX_FULFILLED_SATISFIED,
-    GENERATE_ORDER_FAILURE
+    GENERATE_ORDER_FAILURE,
+    ZONE_AUTHORIZE_REJECTION
 }
 
 enum ExtraData {

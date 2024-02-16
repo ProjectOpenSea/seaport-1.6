@@ -43,8 +43,14 @@ import { AmountDeriverHelper } from "./fulfillment/AmountDeriverHelper.sol";
 
 import { OrderDetails } from "../fulfillments/lib/Structs.sol";
 
+import "forge-std/console.sol";
+
 interface FailingContractOfferer {
     function failureReasons(bytes32) external view returns (uint256);
+}
+
+interface RejectingZone {
+    function authorizeFailureReasons(bytes32) external view returns (uint256);
 }
 
 library ZoneParametersLib {
@@ -281,7 +287,7 @@ library ZoneParametersLib {
                 // Set orderHash to 0 if order index exceeds maximumFulfilled
                 details.orderHashes[i] = bytes32(0);
             } else {
-                // Add orderHash to orderHashes and increment totalFulfilled/
+                // Add orderHash to orderHashes and increment totalFulfilled
                 details.orderHashes[i] = orderHash;
                 ++totalFulfilled;
             }
@@ -302,9 +308,17 @@ library ZoneParametersLib {
                 .failureReasons(orderHash) != 0;
         }
 
+        // TODO: Think more about inv magic value vs reverts.
+        bool isUnauthorizedOrder = false;
+        if (order.zone != address(0)) {
+            isUnauthorizedOrder = RejectingZone(order.zone)
+                .authorizeFailureReasons(orderHash) != 0;
+        }
+
         return (
             block.timestamp >= order.endTime
                 || block.timestamp < order.startTime || isCancelled
+                || isUnauthorizedOrder
                 || isRevertingContractOrder
                 || (totalFilled >= totalSize && totalSize > 0)
         );
@@ -327,6 +341,7 @@ library ZoneParametersLib {
                 break;
             }
 
+            // Trim the length.
             bytes32[] memory orderHashes;
 
             if (isAuthorize) {
@@ -338,7 +353,32 @@ library ZoneParametersLib {
                 orderHashes = zoneDetails.orderHashes;
             }
 
-            if (zoneDetails.orderHashes[i] != bytes32(0)) {
+            // console.log("");
+            // console.log("zoneDetails.orderHashes[i]");
+            // console.logBytes32(zoneDetails.orderHashes[i]);
+
+            // console.log("isAuthorize");
+            // console.log(isAuthorize);
+
+            // console.log("(zoneDetails.orderDetails[i].unavailableReason");
+            // console.log(uint256(zoneDetails.orderDetails[i].unavailableReason));
+
+            bool isGoingToBeRejected = zoneDetails.orderDetails[i].unavailableReason
+                == UnavailableReason.ZONE_AUTHORIZE_REJECTION;
+
+            if (isAuthorize && isGoingToBeRejected) {
+                // Create ZoneParameters and add to zoneParameters array,
+                // because we still want to populate the calldataHashes array
+                // in getExpectedZoneAuthorizeCalldataHash, but we don't want
+                // to increment totalFulfilled.
+                zoneParameters[i] = _createZoneParameters(
+                    zoneDetails.orderHashes[i],
+                    zoneDetails.orderDetails[i],
+                    zoneDetails.advancedOrders[i],
+                    zoneDetails.fulfiller,
+                    orderHashes
+                );
+            } else if (zoneDetails.orderHashes[i] != bytes32(0)) {
                 // Create ZoneParameters and add to zoneParameters array
                 zoneParameters[i] = _createZoneParameters(
                     zoneDetails.orderHashes[i],

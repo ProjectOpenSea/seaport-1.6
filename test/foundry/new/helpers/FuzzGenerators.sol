@@ -158,7 +158,7 @@ library TestStateGenerator {
                     ? UnavailableReason.AVAILABLE // Don't fuzz 5 (maxfulfilled satisfied), since it's a more // of a consequence (to be handled in derivers) than a
                         // target.
                     : UnavailableReason(
-                        context.choice(Solarray.uint256s(1, 2, 3, 4, 6))
+                        context.choice(Solarray.uint256s(1, 2, 3, 4, 6, 7))
                     )
             );
 
@@ -523,6 +523,8 @@ library AdvancedOrdersSpaceGenerator {
             _squareUpRemainders(orders, space, context);
             space.maximumFulfilled = orders.length;
         } else {
+            _ensureAuthSkipOnlyAppliedToRestricted(orders, space, context);
+
             if (len > 1) {
                 _adjustUnavailable(orders, space, context);
             } else {
@@ -647,6 +649,24 @@ library AdvancedOrdersSpaceGenerator {
         return space.conduit.generate(context).key;
     }
 
+    function _ensureAuthSkipOnlyAppliedToRestricted(
+        AdvancedOrder[] memory orders,
+        AdvancedOrdersSpace memory space,
+        FuzzGeneratorContext memory context
+    ) internal pure {
+        for (uint256 i = 0; i < orders.length; ++i) {
+            if (space.orders[i].unavailableReason == UnavailableReason.ZONE_AUTHORIZE_REJECTION
+                && orders[i].parameters.orderType != OrderType.FULL_RESTRICTED
+                && orders[i].parameters.orderType != OrderType.PARTIAL_RESTRICTED
+            ) {
+                // Set a different unavailable reason.
+                space.orders[i].unavailableReason = UnavailableReason(
+                    context.choice(Solarray.uint256s(1, 2, 3, 4))
+                );
+            }
+        }
+    }
+
     function _ensureDirectSupport(
         AdvancedOrder[] memory orders,
         AdvancedOrdersSpace memory space,
@@ -724,6 +744,7 @@ library AdvancedOrdersSpaceGenerator {
         //                                        amend phase
         // UnavailableReason.MAX_FULFILLED_SATISFIED => should never hit this
         // UnavailableReason.GENERATE_ORDER_FAILURE => handled downstream
+        // UnavailableReason.ZONE_AUTHORIZE_REJECTION => handled in amend
         if (reason == UnavailableReason.EXPIRED) {
             parameters = parameters.withGeneratedTime(
                 Time(context.randEnum(3, 4)), context
@@ -913,27 +934,6 @@ library AdvancedOrdersSpaceGenerator {
 
             // Replace the offer in the targeted order with the new offer.
             orders[orderInsertionIndex].parameters.offer = newOffer;
-        }
-
-        // TODO: remove this check once high confidence in the mechanic has been
-        // established (this just fails fast to rule out downstream issues)
-        if (infra.remainders.length > 0) {
-            infra.resolvers = context.testHelpers.criteriaResolverHelper()
-                .deriveCriteriaResolvers(orders);
-            bytes32[] memory orderHashes =
-                orders.getOrderHashes(address(context.seaport));
-            OrderDetails[] memory details = orders.getOrderDetails(
-                infra.resolvers, orderHashes, unavailableReasons
-            );
-            // Get the remainders.
-            (,, infra.remainders) = details.getMatchedFulfillments();
-
-            if (infra.remainders.length > 0) {
-                // NOTE: this may be caused by inserting offer items into orders
-                // with partial fill fractions. The amount on the item that is
-                // inserted should be increased based on fraction in that case.
-                revert("FuzzGenerators: could not satisfy remainders");
-            }
         }
     }
 

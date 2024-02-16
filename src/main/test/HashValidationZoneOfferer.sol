@@ -23,6 +23,9 @@ import { ZoneInterface } from "seaport-types/src/interfaces/ZoneInterface.sol";
 
 import { OffererZoneFailureReason } from "./OffererZoneFailureReason.sol";
 
+import "forge-std/console.sol";
+import {helm} from "seaport-sol/src/helm.sol";
+
 
 /**
  * @dev This contract is used to validate hashes.  Use the
@@ -59,6 +62,7 @@ contract HashValidationZoneOfferer is
         uint256 expectedBalance, uint256 actualBalance
     );
     error HashValidationZoneOffererAuthorizeOrderReverts();
+    error HashValidationZoneOffererAuthorizeOrderRevertsShouldSkip();
     error HashValidationZoneOffererValidateOrderReverts();
     error HashValidationZoneOffererRatifyOrderReverts();
 
@@ -244,6 +248,9 @@ contract HashValidationZoneOfferer is
         // Get the orderHash from zoneParameters
         bytes32 orderHash = zoneParameters.orderHash;
 
+        // console.log("zoneParameters in zone");
+        // helm.log(zoneParameters);
+
         if (authorizeFailureReasons[orderHash] == OffererZoneFailureReason.Zone_authorizeRevertsMatchReverts)
         {
             revert HashValidationZoneOffererAuthorizeOrderReverts();
@@ -266,11 +273,22 @@ contract HashValidationZoneOfferer is
         // Get the hash of msg.data
         bytes32 calldataHash = keccak256(data);
 
+        // Emit a DataHash event with the hash of msg.data
+        emit AuthorizeOrderDataHash(calldataHash);
+
+        // console.log("storing calldataHash in orderHashToAuthorizeOrderDataHash");
+        // console.log("orderHash");
+        // console.logBytes32(orderHash);
+        // console.log("calldataHash");
+        // console.logBytes32(calldataHash);
+
         // Store callDataHash in orderHashToAuthorizeOrderDataHash
         orderHashToAuthorizeOrderDataHash[orderHash] = calldataHash;
 
-        // Emit a DataHash event with the hash of msg.data
-        emit AuthorizeOrderDataHash(calldataHash);
+        if (authorizeFailureReasons[orderHash] == OffererZoneFailureReason.Zone_authorizeRevertsSkip)
+        {
+            revert HashValidationZoneOffererAuthorizeOrderRevertsShouldSkip();
+        }
 
         if (
             authorizeFailureReasons[orderHash]

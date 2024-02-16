@@ -904,6 +904,8 @@ library FuzzTestContextLib {
             context.executionState.orders.length
         );
 
+        // BREADCRUMB.  Think about where to say "only do this for restricted orders"
+
         for (uint256 i = 0; i < context.executionState.orders.length; i++) {
             if (space.orders[i].orderType == BroadOrderType.CONTRACT) {
                 if (
@@ -916,6 +918,11 @@ library FuzzTestContextLib {
                     context.executionState.preExecOrderStatuses[i] =
                         OrderStatusEnum.AVAILABLE;
                 }
+            } else if (
+                space.orders[i].unavailableReason == UnavailableReason.ZONE_AUTHORIZE_REJECTION
+            ) {
+                context.executionState.preExecOrderStatuses[i] =
+                    OrderStatusEnum.ZONE_AUTHORIZE_REVERT;
             } else if (
                 space.orders[i].unavailableReason == UnavailableReason.CANCELLED
             ) {

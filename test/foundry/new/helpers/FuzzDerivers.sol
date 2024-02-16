@@ -184,6 +184,11 @@ library FuzzDerivers {
                 ) {
                     context.executionState.orderDetails[i].unavailableReason =
                         UnavailableReason.MAX_FULFILLED_SATISFIED;
+                } else if (
+                    status == OrderStatusEnum.ZONE_AUTHORIZE_REVERT
+                ) {
+                    context.executionState.orderDetails[i].unavailableReason =
+                        UnavailableReason.ZONE_AUTHORIZE_REJECTION;
                 } else {
                     totalAvailable += 1;
                 }
