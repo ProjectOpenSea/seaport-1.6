@@ -44,6 +44,9 @@ import {
     TwoWords
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
+import "forge-std/console.sol";
+import { helm } from "seaport-sol/src/helm.sol";
+
 /**
  * @title OrderCombiner
  * @author 0age
@@ -140,6 +143,17 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
             Execution[] memory /* executions */
         )
     {
+        // Log the orders.
+        // BREADCRUMB. Numerator and denominator are getting screwed up, which
+        // is causing the signature issue.
+        // Still TODO: diagnose the NOT_AUTHORIZED/balance issues.
+        console.log('========================================================');
+        console.log("Orders being fulfilled:");
+        for (uint256 i = 0; i < advancedOrders.length; ++i) {
+            console.log("");
+            helm.log(advancedOrders[i]);
+        }
+
         // Validate orders, apply amounts, & determine if they use conduits.
         (bytes32[] memory orderHashes, bool containsNonOpen) =
         _validateOrdersAndPrepareToFulfill(

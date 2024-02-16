@@ -85,6 +85,9 @@ import {
     DefaultFulfillmentGeneratorLib
 } from "seaport-sol/src/fulfillments/lib/FulfillmentLib.sol";
 
+import "forge-std/console.sol";
+import { helm } from "seaport-sol/src/helm.sol";
+
 /**
  *  @dev Generators are responsible for creating guided, random order data for
  *       FuzzEngine tests. Generation happens in two phases: first, we create an
@@ -625,6 +628,14 @@ library AdvancedOrdersSpaceGenerator {
         // Sign orders and add the hashes to the context.
         _signOrders(space, orders, context);
 
+        // Log the orders.
+        console.log('========================================================');
+        console.log("SIGNED ORDERS");
+        for (uint256 i = 0; i < orders.length; ++i) {
+            console.log("");
+            helm.log(orders[i]);
+        }
+
         return orders;
     }
 
@@ -740,11 +751,10 @@ library AdvancedOrdersSpaceGenerator {
         OrderParameters memory parameters = order.parameters;
         // UnavailableReason.AVAILABLE => take no action
         // UnavailableReason.CANCELLED => state will be conformed in amend phase
-        // UnavailableReason.ALREADY_FULFILLED => state will be conformed in
-        //                                        amend phase
+        // UnavailableReason.ALREADY_FULFILLED => handled in amend phase
         // UnavailableReason.MAX_FULFILLED_SATISFIED => should never hit this
         // UnavailableReason.GENERATE_ORDER_FAILURE => handled downstream
-        // UnavailableReason.ZONE_AUTHORIZE_REJECTION => handled in amend
+        // UnavailableReason.ZONE_AUTHORIZE_REJECTION => handled in amend phase
         if (reason == UnavailableReason.EXPIRED) {
             parameters = parameters.withGeneratedTime(
                 Time(context.randEnum(3, 4)), context

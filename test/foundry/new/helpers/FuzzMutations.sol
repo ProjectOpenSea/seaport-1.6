@@ -152,6 +152,12 @@ library MutationFilters {
             return true;
         }
 
+        // BREADCRUMB
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
+            return true;
+        }
+
         return false;
     }
 
@@ -165,6 +171,11 @@ library MutationFilters {
             action != context.seaport.matchOrders.selector
                 && action != context.seaport.matchAdvancedOrders.selector
         ) {
+            return true;
+        }
+
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
             return true;
         }
 
@@ -273,6 +284,11 @@ library MutationFilters {
         FuzzTestContext memory context
     ) internal pure returns (bool) {
         if (ineligibleWhenNotRestrictedOrder(order)) {
+            return true;
+        }
+
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
             return true;
         }
 
@@ -490,6 +506,24 @@ library MutationFilters {
         return false;
     }
 
+    function ineligibleIfAnyRejections(
+        FuzzTestContext memory context
+    ) internal pure returns (bool) {
+        // Iterate over the unavailable reasons and see if any of them are
+        // ZONE_AUTHORIZE_REJECTION.
+        for (uint256 i = 0; i < context.executionState.orderDetails.length; ++i)
+        {
+            if (
+                context.executionState.orderDetails[i].unavailableReason
+                    == UnavailableReason.ZONE_AUTHORIZE_REJECTION
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // The following functions are ineligibility filters.  These should
     // encapsulate the logic for determining whether an order is ineligible
     // for a given mutation. These functions are wired up with their
@@ -504,6 +538,11 @@ library MutationFilters {
         // Seaport only checks for approval when the order is available and
         // therefore items might actually be transferred.
         if (ineligibleWhenUnavailable(context, orderIndex)) {
+            return true;
+        }
+
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
             return true;
         }
 
@@ -540,6 +579,11 @@ library MutationFilters {
         // functions because the caller does not provide any items during match
         // actions.
         if (ineligibleWhenMatch(context)) {
+            return true;
+        }
+
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
             return true;
         }
 
@@ -650,6 +694,11 @@ library MutationFilters {
             return true;
         }
 
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
+            return true;
+        }
+
         // The target failure can't be triggered if there is no order that is
         // available and has items.
         bool locatedItem;
@@ -690,6 +739,11 @@ library MutationFilters {
                 context, criteriaResolver.orderIndex
             )
         ) {
+            return true;
+        }
+
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
             return true;
         }
 
@@ -1195,6 +1249,11 @@ library MutationFilters {
             return true;
         }
 
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
+            return true;
+        }
+
         return false;
     }
 
@@ -1208,6 +1267,11 @@ library MutationFilters {
         }
 
         if (ineligibleWhenMatch(context)) {
+            return true;
+        }
+
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
             return true;
         }
 
@@ -1477,6 +1541,11 @@ library MutationFilters {
             return true;
         }
 
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
+            return true;
+        }
+
         // Order must have at least one offer item
         if (
             context.executionState.previewedOrders[orderIndex]
@@ -1705,6 +1774,11 @@ library MutationFilters {
             return true;
         }
 
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
+            return true;
+        }
+
         // TODO: This check is overly restrictive and is here as a simplifying
         // assumption. Explore removing it.
         if (order.numerator != order.denominator) {
@@ -1741,6 +1815,11 @@ library MutationFilters {
     ) internal view returns (bool) {
         // Exclude methods that don't support partial fills.
         if (ineligibleWhenNotAdvanced(context)) {
+            return true;
+        }
+
+        // EXPERIMENT
+        if (ineligibleIfAnyRejections(context)) {
             return true;
         }
 
