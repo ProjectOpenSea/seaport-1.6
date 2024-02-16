@@ -1,5 +1,7 @@
 .env
 
+node_modules
+
 #foundry test compilation files
 cache
 out
@@ -24,6 +26,9 @@ reference-out
 optimized-out
 reference-working
 offerers-out
+reference-cache
+optimized-cache
+test-cache
 
 Seaport.yul
 

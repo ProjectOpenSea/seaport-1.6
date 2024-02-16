@@ -46,6 +46,7 @@ out = 'reference-out'
 script = 'reference'
 # specify something so it doesn't try to compile the files in test/foundry
 test = 'test/foundry'
+cache_path='reference-cache'
 
 [profile.optimized]
 src = 'src'
@@ -56,9 +57,12 @@ script = 'script'
 bytecode_hash = 'none'
 # no need to compile tests with via-ir since they load optimized bytecode directly by default
 test ='src/main'
+cache_path='optimized-cache'
+extra_output_files=['irOptimized']
 
 [profile.test]
 src = 'test/foundry'
+cache_path='test-cache'
 
 [profile.test.fuzz]
 runs = 1_000
