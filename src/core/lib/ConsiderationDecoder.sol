@@ -23,6 +23,7 @@ import {
     AdvancedOrderPlusOrderParameters_head_size,
     Common_amount_offset,
     Common_endAmount_offset,
+    ConsiderationItem_recipient_offset,
     ConsiderationItem_size_with_length,
     ConsiderationItem_size,
     CriteriaResolver_criteriaProof_offset,
@@ -1027,18 +1028,18 @@ contract ConsiderationDecoder {
                     // Write the memory pointer to the accompanying head offset.
                     mstore(add(mPtrLength, headOffsetFromLength), mPtrTailNext)
 
-                    // Copy itemType, token, identifier and amount.
+                    // Copy itemType, token, identifier, amount and recipient.
                     returndatacopy(
                         mPtrTailNext,
                         rdPtrHead,
-                        ReceivedItem_size_excluding_recipient
+                        ReceivedItem_size
                     )
 
-                    // Copy amount and recipient.
+                    // Copy amount to consideration item's recipient offset.
                     returndatacopy(
-                        add(mPtrTailNext, Common_endAmount_offset),
+                        add(mPtrTailNext, ConsiderationItem_recipient_offset),
                         add(rdPtrHead, Common_amount_offset),
-                        TwoWords
+                        OneWord
                     )
 
                     // Update read pointer, next tail pointer, and head offset.
@@ -1069,7 +1070,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function() internal pure returns ( uint256, OfferItem[] memory, ConsiderationItem[] memory)
+            function() internal pure returns (uint256, OfferItem[] memory, ConsiderationItem[] memory)
                 outFn
         )
     {

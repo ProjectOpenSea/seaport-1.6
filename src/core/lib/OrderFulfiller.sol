@@ -134,65 +134,9 @@ contract OrderFulfiller is
             orderHash = _getGeneratedOrder(
                 orderParameters, advancedOrder.extraData, true
             );
-
-            // TEMP TEMP TEMP pull this directly from generated order
-            // or similar
-
-            // Declare a nested scope to minimize stack depth.
-            unchecked {
-                // Read offer array length from memory and place on stack.
-                uint256 totalOfferItems = orderParameters.offer.length;
-
-                // Iterate over each offer on the order.
-                // Skip overflow check as for loop is indexed starting at zero.
-                for (uint256 i = 0; i < totalOfferItems; ++i) {
-                    // Retrieve the offer item.
-                    OfferItem memory offerItem = orderParameters.offer[i];
-
-                    // Utilize assembly to set overloaded offerItem arguments.
-                    assembly {
-                        // Write recipient to endAmount.
-                        mstore(
-                            add(offerItem, ReceivedItem_recipient_offset),
-                            recipient
-                        )
-                    }
-                }
-            }
-
-            // Declare a nested scope to minimize stack depth.
-            unchecked {
-                // Read consideration array length from memory and place on stack.
-                uint256 totalConsiderationItems =
-                    orderParameters.consideration.length;
-
-                // Iterate over each consideration item on the order.
-                // Skip overflow check as for loop is indexed starting at zero.
-                for (uint256 i = 0; i < totalConsiderationItems; ++i) {
-                    // Retrieve the consideration item.
-                    ConsiderationItem memory considerationItem =
-                        (orderParameters.consideration[i]);
-
-                    // Use assembly to set overloaded considerationItem arguments.
-                    assembly {
-                        // Write original recipient to endAmount as recipient.
-                        mstore(
-                            add(considerationItem, ReceivedItem_recipient_offset),
-                            mload(
-                                add(
-                                    considerationItem,
-                                    ConsiderationItem_recipient_offset
-                                )
-                            )
-                        )
-                    }
-                }
-            }
-
-            // END TEMP TEMP TEMP
         }
 
-        _transferEach(orderParameters, fulfillerConduitKey);
+        _transferEach(orderParameters, fulfillerConduitKey, recipient);
 
         orderHashes[0] = orderHash;
 
@@ -385,7 +329,8 @@ contract OrderFulfiller is
 
     function _transferEach(
         OrderParameters memory orderParameters,
-        bytes32 fulfillerConduitKey
+        bytes32 fulfillerConduitKey,
+        address recipient
     ) internal {
         // Initialize an accumulator array. From this point forward, no new
         // memory regions can be safely allocated until the accumulator is no
@@ -422,9 +367,21 @@ contract OrderFulfiller is
             // Iterate over each offer on the order.
             // Skip overflow check as for loop is indexed starting at zero.
             for (uint256 i = 0; i < totalOfferItems; ++i) {
+                // Retrieve the offer item.
+                OfferItem memory offerItem = orderParameters.offer[i];
+
+                // Utilize assembly to set overloaded offerItem arguments.
+                assembly {
+                    // Write recipient to endAmount.
+                    mstore(
+                        add(offerItem, ReceivedItem_recipient_offset),
+                        recipient
+                    )
+                }
+
                 // Transfer the item from the offerer to the recipient.
                 _toOfferItemInput(_transfer)(
-                    orderParameters.offer[i],
+                    offerItem,
                     orderParameters.offerer,
                     orderParameters.conduitKey,
                     accumulator
