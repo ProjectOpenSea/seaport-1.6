@@ -9,6 +9,7 @@ import {
 
 import {
     AdvancedOrder,
+    ConsiderationItem,
     CriteriaResolver,
     MemoryPointer,
     OfferItem,
@@ -177,47 +178,83 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                 OrderParameters memory orderParameters =
                     (advancedOrder.parameters);
 
-                // Read consideration length from memory and place on stack.
-                uint256 totalItems = orderParameters.consideration.length;
+                _ensureAllRequiredCriteriaResolved(
+                    i,
+                    orderParameters.consideration,
+                    orderParameters.orderType,
+                    _revertUnresolvedConsiderationCriteria
+                );
 
-                // Iterate over each consideration item on the order.
-                for (uint256 j = 0; j < totalItems; ++j) {
-                    // Ensure item type no longer indicates criteria usage.
-                    if (
-                        _isItemWithCriteria(
-                            orderParameters.consideration[j].itemType
-                        )
-                    ) {
-                        // Revert unless the order is a contract order and
-                        // the identifier is 0.
-                        if (
-                            orderParameters.orderType != OrderType.CONTRACT ||
-                            orderParameters.consideration[j].identifierOrCriteria != 0
-                        ) {
-                            _revertUnresolvedConsiderationCriteria(i, j);
-                        }
-                    }
-                }
+                _toOfferItemArgumentType(_ensureAllRequiredCriteriaResolved)(
+                    i,
+                    orderParameters.offer,
+                    orderParameters.orderType,
+                    _revertUnresolvedOfferCriteria
+                );
+            }
+        }
+    }
 
-                // Read offer length from memory and place on stack.
-                totalItems = orderParameters.offer.length;
+    function _ensureAllRequiredCriteriaResolved(
+        uint256 orderIndex,
+        ConsiderationItem[] memory items,
+        OrderType orderType,
+        function (uint256, uint256) internal pure _revertUnresolvedCriteria
+    ) internal pure {
+        // Read items array length from memory and place on stack.
+        uint256 totalItems = items.length;
 
-                // Iterate over each offer item on the order.
-                for (uint256 j = 0; j < totalItems; ++j) {
-                    // Ensure item type no longer indicates criteria usage.
-                    if (_isItemWithCriteria(orderParameters.offer[j].itemType))
-                    {
-                        // Revert unless the order is a contract order and
-                        // the identifier is 0.
-                        if (
-                            orderParameters.orderType != OrderType.CONTRACT ||
-                            orderParameters.offer[j].identifierOrCriteria != 0
-                        ) {
-                            _revertUnresolvedOfferCriteria(i, j);
-                        }
-                    }
+        // Iterate over each item on the order.
+        for (uint256 i = 0; i < totalItems; ++i) {
+            // Ensure item type no longer indicates criteria usage.
+            if (_isItemWithCriteria(items[i].itemType)) {
+                // Revert unless the order is a contract order and
+                // the identifier is 0.
+                if (
+                    _isNotContractOrNotWildcard(
+                        orderType,
+                        items[i].identifierOrCriteria
+                    )
+                ) {
+                    _revertUnresolvedCriteria(orderIndex, i);
                 }
             }
+        }
+    }
+
+    function _isNotContractOrNotWildcard(
+        OrderType orderType,
+        uint256 identifierOrCriteria
+    )
+        internal
+        pure
+        returns (bool notContractOrNotWildcard)
+    {
+        assembly {
+            notContractOrNotWildcard := or(
+                iszero(eq(orderType, 4)), // OrderType.CONTRACT
+                iszero(iszero(identifierOrCriteria))
+            )
+        }
+    }
+
+    function _toOfferItemArgumentType(
+        function(
+            uint256,
+            ConsiderationItem[] memory,
+            OrderType,
+            function (uint256, uint256) internal pure
+        ) internal pure inFn
+    ) internal pure returns (
+        function(
+            uint256,
+            OfferItem[] memory,
+            OrderType,
+            function (uint256, uint256) internal pure
+        ) internal pure outFn
+    ) {
+        assembly {
+            outFn := inFn
         }
     }
 

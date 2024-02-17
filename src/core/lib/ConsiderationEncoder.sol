@@ -492,7 +492,7 @@ contract ConsiderationEncoder {
         orderHashesLengthLocation.write(orderIndex);
 
         // Modify encoding size to account for the shorter orderHashes array.
-        size -= (orderHashes.length - orderIndex) * OneWord;
+        size -= (orderHashes.length - orderIndex) << OneWordShift;
     }
 
     /**
@@ -604,7 +604,7 @@ contract ConsiderationEncoder {
 
             // Derive offset to event data using base offset & total recipients.
             uint256 offerDataOffset = OrderFulfilled_offer_length_baseOffset
-                + additionalRecipientsLength * OneWord;
+                + (additionalRecipientsLength << OneWordShift);
 
             // Derive size of offer and consideration data.
             // 2 words (lengths) + 4 (offer data) + 5 (consideration 1) + 5 * ar
