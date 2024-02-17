@@ -89,10 +89,14 @@ contract OrderFulfiller is
         bytes32 fulfillerConduitKey,
         address recipient
     ) internal returns (bool) {
+        // Retrieve the order parameters and order type.
+        OrderParameters memory orderParameters = advancedOrder.parameters;
+        OrderType orderType = orderParameters.orderType;
+
         // Ensure this function cannot be triggered during a reentrant call.
         _setReentrancyGuard(
             // Native tokens accepted during execution for contract order types.
-            advancedOrder.parameters.orderType == OrderType.CONTRACT
+            orderType == OrderType.CONTRACT
         );
 
         // Validate order, update status, and determine fraction to fill.
@@ -108,9 +112,6 @@ contract OrderFulfiller is
         // Apply criteria resolvers using generated orders and details arrays.
         _applyCriteriaResolvers(advancedOrders, criteriaResolvers);
 
-        // Retrieve the order parameters after applying criteria resolvers.
-        OrderParameters memory orderParameters = advancedOrders[0].parameters;
-
         // Derive each item transfer with the appropriate fractional amount.
         _applyFractions(
             orderParameters,
@@ -122,9 +123,9 @@ contract OrderFulfiller is
         // Declare empty bytes32 array and populate with the order hash.
         bytes32[] memory orderHashes = new bytes32[](1);
 
-        if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
+        if (orderType != OrderType.CONTRACT) {
             _assertRestrictedAdvancedOrderAuthorization(
-                advancedOrders[0], orderHashes, orderHash, 0
+                advancedOrder, orderHashes, orderHash, 0
             );
 
             _updateStatus(orderHash, fillNumerator, fillDenominator, true);
@@ -142,7 +143,7 @@ contract OrderFulfiller is
 
         // Ensure restricted orders have a valid submitter or pass a zone check.
         _assertRestrictedAdvancedOrderValidity(
-            advancedOrders[0], orderHashes, orderHash
+            advancedOrder, orderHashes, orderHash
         );
 
         // Emit an event signifying that the order has been fulfilled.
