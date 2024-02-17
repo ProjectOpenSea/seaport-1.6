@@ -213,41 +213,42 @@ contract CriteriaResolution is CriteriaResolutionErrors {
         for (uint256 i = 0; i < totalItems; ++i) {
             ConsiderationItem memory item = items[i];
 
-            // Ensure item type no longer indicates criteria usage.
-            if (_isItemWithCriteria(item.itemType)) {
-                // Revert unless the order is a contract order and
-                // the identifier is 0.
-                uint256 identifierOrCriteria = item.identifierOrCriteria;
+            // Revert if the item is still a criteria item unless the
+            // order is a contract order and the identifier is 0.
+            ItemType itemType = item.itemType;
+            uint256 identifierOrCriteria = item.identifierOrCriteria;
 
-                assembly {
-                    if or(
-                        iszero(eq(orderType, 4)), // OrderType.CONTRACT
-                        iszero(iszero(identifierOrCriteria))
-                    ) {
-                        // Store left-padded selector with push4 (reduces bytecode),
-                        // mem[28:32] = selector
-                        mstore(0, revertSelector)
+            assembly {
+                if and(
+                    gt(itemType, 3), // Criteria-based item
+                    or(
+                        iszero(eq(orderType, 4)), // not OrderType.CONTRACT
+                        iszero(iszero(identifierOrCriteria)) // not wildcard
+                    )
+                ) {
+                    // Store left-padded selector with push4 (reduces bytecode),
+                    // mem[28:32] = selector
+                    mstore(0, revertSelector)
 
-                        // Store arguments.
-                        mstore(
-                            UnresolvedConsiderationCriteria_error_orderIndex_ptr,
-                            orderIndex
-                        )
-                        mstore(
-                            UnresolvedConsiderationCriteria_error_considerationIdx_ptr,
-                            i
-                        )
+                    // Store arguments.
+                    mstore(
+                        UnresolvedConsiderationCriteria_error_orderIndex_ptr,
+                        orderIndex
+                    )
+                    mstore(
+                        UnresolvedConsiderationCriteria_error_considerationIdx_ptr,
+                        i
+                    )
 
-                        // revert(abi.encodeWithSignature(
-                        //     "Unresolved[Offer|Consideration]Criteria(uint256, uint256)",
-                        //     orderIndex,
-                        //     i
-                        // ))
-                        revert(
-                            Error_selector_offset,
-                            UnresolvedConsiderationCriteria_error_length
-                        )
-                    }
+                    // revert(abi.encodeWithSignature(
+                    //     "Unresolved[Offer|Consideration]Criteria(uint256, uint256)",
+                    //     orderIndex,
+                    //     i
+                    // ))
+                    revert(
+                        Error_selector_offset,
+                        UnresolvedConsiderationCriteria_error_length
+                    )
                 }
             }
         }
