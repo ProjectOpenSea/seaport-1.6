@@ -254,14 +254,14 @@ contract ConsiderationDecoder {
         // Resolve the offer calldata offset, use that to decode and copy offer
         // from calldata, and write resultant memory offset to head in memory.
         mPtr.offset(OrderParameters_offer_head_offset).write(
-            _decodeOffer(cdPtr.pptr(OrderParameters_offer_head_offset))
+            _decodeOffer(cdPtr.pptrOffset(OrderParameters_offer_head_offset))
         );
 
         // Resolve consideration calldata offset, use that to copy consideration
         // from calldata, and write resultant memory offset to head in memory.
         mPtr.offset(OrderParameters_consideration_head_offset).write(
             _decodeConsideration(
-                cdPtr.pptr(OrderParameters_consideration_head_offset)
+                cdPtr.pptrOffset(OrderParameters_consideration_head_offset)
             )
         );
     }
@@ -311,7 +311,7 @@ contract ConsiderationDecoder {
         // Resolve signature calldata offset, use that to decode and copy from
         // calldata, and write resultant memory offset to head in memory.
         mPtr.offset(Order_signature_offset).write(
-            _decodeBytes(cdPtr.pptr(Order_signature_offset))
+            _decodeBytes(cdPtr.pptrOffset(Order_signature_offset))
         );
     }
 
@@ -350,13 +350,13 @@ contract ConsiderationDecoder {
         // Resolve signature calldata offset, use that to decode and copy from
         // calldata, and write resultant memory offset to head in memory.
         mPtr.offset(AdvancedOrder_signature_offset).write(
-            _decodeBytes(cdPtr.pptr(AdvancedOrder_signature_offset))
+            _decodeBytes(cdPtr.pptrOffset(AdvancedOrder_signature_offset))
         );
 
         // Resolve extraData calldata offset, use that to decode and copy from
         // calldata, and write resultant memory offset to head in memory.
         mPtr.offset(AdvancedOrder_extraData_offset).write(
-            _decodeBytes(cdPtr.pptr(AdvancedOrder_extraData_offset))
+            _decodeBytes(cdPtr.pptrOffset(AdvancedOrder_extraData_offset))
         );
     }
 
@@ -407,7 +407,7 @@ contract ConsiderationDecoder {
         // Resolve signature calldata offset, use that to decode and copy from
         // calldata, and write resultant memory offset to head in memory.
         mPtr.offset(AdvancedOrder_signature_offset).write(
-            _decodeBytes(cdPtr.pptr(Order_signature_offset))
+            _decodeBytes(cdPtr.pptrOffset(Order_signature_offset))
         );
 
         // Resolve extraData calldata offset, use that to decode and copy from
@@ -454,7 +454,7 @@ contract ConsiderationDecoder {
                 // Resolve Order calldata offset, use it to decode and copy from
                 // calldata, and write resultant AdvancedOrder offset to memory.
                 mPtrHead.offset(offset).write(
-                    _decodeOrderAsAdvancedOrder(cdPtrHead.pptr(offset))
+                    _decodeOrderAsAdvancedOrder(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -515,7 +515,7 @@ contract ConsiderationDecoder {
         // from calldata, and write resultant memory offset to head in memory.
         mPtr.offset(CriteriaResolver_criteriaProof_offset).write(
             _decodeCriteriaProof(
-                cdPtr.pptr(CriteriaResolver_criteriaProof_offset)
+                cdPtr.pptrOffset(CriteriaResolver_criteriaProof_offset)
             )
         );
     }
@@ -559,7 +559,7 @@ contract ConsiderationDecoder {
                 // Resolve CriteriaResolver calldata offset, use it to decode
                 // and copy from calldata, and write resultant memory offset.
                 mPtrHead.offset(offset).write(
-                    _decodeCriteriaResolver(cdPtrHead.pptr(offset))
+                    _decodeCriteriaResolver(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -601,7 +601,7 @@ contract ConsiderationDecoder {
                 // Resolve Order calldata offset, use it to decode and copy
                 // from calldata, and write resultant memory offset.
                 mPtrHead.offset(offset).write(
-                    _decodeOrder(cdPtrHead.pptr(offset))
+                    _decodeOrder(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -691,7 +691,7 @@ contract ConsiderationDecoder {
                 // Resolve FulfillmentComponents array calldata offset, use it
                 // to decode and copy from calldata, and write memory offset.
                 mPtrHead.offset(offset).write(
-                    _decodeFulfillmentComponents(cdPtrHead.pptr(offset))
+                    _decodeFulfillmentComponents(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -736,7 +736,7 @@ contract ConsiderationDecoder {
                 // Resolve AdvancedOrder calldata offset, use it to decode and
                 // copy from calldata, and write resultant memory offset.
                 mPtrHead.offset(offset).write(
-                    _decodeAdvancedOrder(cdPtrHead.pptr(offset))
+                    _decodeAdvancedOrder(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -767,7 +767,7 @@ contract ConsiderationDecoder {
         // copy from calldata, and write resultant memory offset to memory head.
         mPtr.offset(Fulfillment_considerationComponents_offset).write(
             _decodeFulfillmentComponents(
-                cdPtr.pptr(Fulfillment_considerationComponents_offset)
+                cdPtr.pptrOffset(Fulfillment_considerationComponents_offset)
             )
         );
     }
@@ -811,7 +811,7 @@ contract ConsiderationDecoder {
                 // Resolve Fulfillment calldata offset, use it to decode and
                 // copy from calldata, and write resultant memory offset.
                 mPtrHead.offset(offset).write(
-                    _decodeFulfillment(cdPtrHead.pptr(offset))
+                    _decodeFulfillment(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -841,13 +841,13 @@ contract ConsiderationDecoder {
         // Resolve the offer calldata offset, use that to decode and copy offer
         // from calldata, and write resultant memory offset to head in memory.
         mPtr.offset(OrderParameters_offer_head_offset).write(
-            _decodeOffer(cdPtr.pptr(OrderParameters_offer_head_offset))
+            _decodeOffer(cdPtr.pptrOffset(OrderParameters_offer_head_offset))
         );
 
         // Resolve consideration calldata offset, use that to copy consideration
         // from calldata, and write resultant memory offset to head in memory.
         MemoryPointer consideration = _decodeConsideration(
-            cdPtr.pptr(OrderParameters_consideration_head_offset)
+            cdPtr.pptrOffset(OrderParameters_consideration_head_offset)
         );
         mPtr.offset(OrderParameters_consideration_head_offset).write(
             consideration

@@ -101,7 +101,7 @@ contract OrderFulfiller is
 
         // Validate order, update status, and determine fraction to fill.
         (bytes32 orderHash, uint256 fillNumerator, uint256 fillDenominator) =
-            _validateOrder(advancedOrder, true);
+            _validateOrder(advancedOrder, _runTimeConstantTrue());
 
         // Create an array with length 1 containing the order.
         AdvancedOrder[] memory advancedOrders = new AdvancedOrder[](1);
@@ -123,17 +123,18 @@ contract OrderFulfiller is
         // Declare empty bytes32 array and populate with the order hash.
         bytes32[] memory orderHashes = new bytes32[](1);
 
+        bool _true = _runTimeConstantTrue();
         if (orderType != OrderType.CONTRACT) {
             _assertRestrictedAdvancedOrderAuthorization(
                 advancedOrder, orderHashes, orderHash, 0
             );
 
-            _updateStatus(orderHash, fillNumerator, fillDenominator, true);
+            _updateStatus(orderHash, fillNumerator, fillDenominator, _true);
         } else {
             // Return the generated order based on the order params and the
             // provided extra data.
             orderHash = _getGeneratedOrder(
-                orderParameters, advancedOrder.extraData, true
+                orderParameters, advancedOrder.extraData, _true
             );
         }
 
@@ -226,7 +227,7 @@ contract OrderFulfiller is
                         denominator,
                         startTime,
                         endTime,
-                        false
+                        _runTimeConstantFalse()
                     );
 
                     // Utilize assembly to set overloaded offerItem arguments.
@@ -302,7 +303,7 @@ contract OrderFulfiller is
                     denominator,
                     startTime,
                     endTime,
-                    true
+                    _runTimeConstantTrue()
                 );
 
                 // Use assembly to set overloaded considerationItem arguments.

@@ -251,7 +251,7 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
                 CalldataStart.pptr()
             ),
             _toCriteriaResolversReturnType(_decodeCriteriaResolvers)(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAdvancedOrder_criteriaResolvers
                 )
             ),
@@ -346,14 +346,14 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
             _toNestedFulfillmentComponentsReturnType(
                 _decodeNestedFulfillmentComponents
             )(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAvailableOrders_offerFulfillments
                 )
             ),
             _toNestedFulfillmentComponentsReturnType(
                 _decodeNestedFulfillmentComponents
             )(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAvailableOrders_considerationFulfillments
                 )
             ),
@@ -476,21 +476,21 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
                 CalldataStart.pptr()
             ),
             _toCriteriaResolversReturnType(_decodeCriteriaResolvers)(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAvailableAdvancedOrders_criteriaResolvers
                 )
             ),
             _toNestedFulfillmentComponentsReturnType(
                 _decodeNestedFulfillmentComponents
             )(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAvailableAdvancedOrders_offerFulfillments
                 )
             ),
             _toNestedFulfillmentComponentsReturnType(
                 _decodeNestedFulfillmentComponents
             )(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAvailableAdvancedOrders_cnsdrationFlflmnts
                 )
             ),
@@ -551,7 +551,7 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
             ),
             new CriteriaResolver[](0), // No criteria resolvers supplied.
             _toFulfillmentsReturnType(_decodeFulfillments)(
-                CalldataStart.pptr(Offset_matchOrders_fulfillments)
+                CalldataStart.pptrOffset(Offset_matchOrders_fulfillments)
             ),
             msg.sender
         );
@@ -635,10 +635,10 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
                 CalldataStart.pptr()
             ),
             _toCriteriaResolversReturnType(_decodeCriteriaResolvers)(
-                CalldataStart.pptr(Offset_matchAdvancedOrders_criteriaResolvers)
+                CalldataStart.pptrOffset(Offset_matchAdvancedOrders_criteriaResolvers)
             ),
             _toFulfillmentsReturnType(_decodeFulfillments)(
-                CalldataStart.pptr(Offset_matchAdvancedOrders_fulfillments)
+                CalldataStart.pptrOffset(Offset_matchAdvancedOrders_fulfillments)
             ),
             _substituteCallerForEmptyRecipient(recipient)
         );
