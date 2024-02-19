@@ -78,7 +78,7 @@ library ForgeEventsLib {
         uint256 topicsCount = topics.readUint256();
         (bytes32 topic0,, bytes32 topic1,, bytes32 topic2,, bytes32 topic3,) =
             getTopics(log);
-        MemoryPointer data = toMemoryPointer(log).pptr(32);
+        MemoryPointer data = toMemoryPointer(log).pptrOffset(32);
         assembly {
             switch topicsCount
             case 4 { log4(data, mload(data), topic0, topic1, topic2, topic3) }
