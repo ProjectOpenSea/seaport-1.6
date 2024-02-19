@@ -16,7 +16,7 @@ import { LowLevelHelpers } from "./LowLevelHelpers.sol";
 
 import { ConsiderationEncoder } from "./ConsiderationEncoder.sol";
 
-import { CalldataPointer, MemoryPointer, OffsetOrLengthMask } from "seaport-types/src/helpers/PointerLibraries.sol";
+import { CalldataPointer, MemoryPointer, OffsetOrLengthMask, ZeroSlotPtr } from "seaport-types/src/helpers/PointerLibraries.sol";
 
 import {
     authorizeOrder_selector_offset,
@@ -70,14 +70,20 @@ contract ZoneInteraction is
             (MemoryPointer callData, uint256 size, uint256 memoryLocationForOrderHashes) =
                 _encodeAuthorizeBasicOrder(orderHash);
 
+            // Write the error selector to memory at the zero slot where it can be used
+            // to revert with a specific error message.
+            ZeroSlotPtr.write(InvalidRestrictedOrder_error_selector);
+
             // Perform `authorizeOrder` call and ensure magic value was returned.
             _callAndCheckStatus(
                 CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress(),
                 orderHash,
                 callData.offset(authorizeOrder_selector_offset),
-                size,
-                InvalidRestrictedOrder_error_selector
+                size
             );
+
+            // Restore the zero slot.
+            ZeroSlotPtr.write(0);
 
             callDataPointer = MemoryPointer.unwrap(callData);
         
@@ -120,14 +126,20 @@ contract ZoneInteraction is
 
             callData = callData.offset(validateOrder_selector_offset);
 
+            // Write the error selector to memory at the zero slot where it can be used
+            // to revert with a specific error message.
+            ZeroSlotPtr.write(InvalidRestrictedOrder_error_selector);
+
             // Perform `validateOrder` call and ensure magic value was returned.
             _callAndCheckStatus(
                 CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress(),
                 orderHash,
                 callData,
-                size,
-                InvalidRestrictedOrder_error_selector
+                size
             );
+
+            // Restore the zero slot.
+            ZeroSlotPtr.write(0);
         }
     }
 
@@ -182,9 +194,16 @@ contract ZoneInteraction is
                 orderHashes,
                 orderIndex
             );
+            
+            // Write the error selector to memory at the zero slot where it can be used
+            // to revert with a specific error message.
+            ZeroSlotPtr.write(InvalidRestrictedOrder_error_selector);
 
             // Perform call and ensure a corresponding magic value was returned.
-            _callAndCheckStatus(parameters.zone, orderHash, callData, size, InvalidRestrictedOrder_error_selector);
+            _callAndCheckStatus(parameters.zone, orderHash, callData, size);
+            
+            // Restore the zero slot.
+            ZeroSlotPtr.write(0);
         }
     }
 
@@ -258,9 +277,16 @@ contract ZoneInteraction is
         } else {
             return;
         }
+        
+        // Write the error selector to memory at the zero slot where it can be used
+        // to revert with a specific error message.
+        ZeroSlotPtr.write(errorSelector);
 
         // Perform call and ensure a corresponding magic value was returned.
-        _callAndCheckStatus(target, orderHash, callData, size, errorSelector);
+        _callAndCheckStatus(target, orderHash, callData, size);
+        
+        // Restore the zero slot.
+        ZeroSlotPtr.write(0);
     }
 
     /**
@@ -296,19 +322,20 @@ contract ZoneInteraction is
      *      otherwise reverting calls will throw a generic error based on the
      *      supplied error handler.
      *
+     *      Note: The custom error selector must already be in memory at the zero
+     *            slot when this function is called.
+     *
      * @param target        The address of the contract to call.
      * @param orderHash     The hash of the order associated with the call.
      * @param callData      The data to pass to the contract call.
      * @param size          The size of calldata.
-     * @param errorSelector The error handling function to call if the call
-     *                      fails or the magic value does not match.
      */
     function _callAndCheckStatus(
         address target,
         bytes32 orderHash,
         MemoryPointer callData,
-        uint256 size,
-        uint256 errorSelector
+        uint256 size/* ,
+        uint256 errorSelector */
     ) internal {
         bool success;
         bool magicMatch;
@@ -333,14 +360,14 @@ contract ZoneInteraction is
 
             // If no reason was returned, revert with supplied error selector.
             assembly {
-                mstore(0, errorSelector)
-                mstore(InvalidRestrictedOrder_error_orderHash_ptr, orderHash)
+                // The error selector is already in memory at the zero slot.
+                mstore(0x80, orderHash)
                 // revert(abi.encodeWithSelector(
                 //     "InvalidRestrictedOrder(bytes32)",
                 //     orderHash
                 // ))
                 revert(
-                    Error_selector_offset, InvalidRestrictedOrder_error_length
+                    0x7c, InvalidRestrictedOrder_error_length
                 )
             }
         }
@@ -349,15 +376,15 @@ contract ZoneInteraction is
         if (!magicMatch) {
             // Revert with a generic error message.
             assembly {
-                mstore(0, errorSelector)
-                mstore(InvalidRestrictedOrder_error_orderHash_ptr, orderHash)
+                // The error selector is already in memory at the zero slot.
+                mstore(0x80, orderHash)
 
                 // revert(abi.encodeWithSelector(
                 //     "InvalidRestrictedOrder(bytes32)",
                 //     orderHash
                 // ))
                 revert(
-                    Error_selector_offset, InvalidRestrictedOrder_error_length
+                    0x7c, InvalidRestrictedOrder_error_length
                 )
             }
         }

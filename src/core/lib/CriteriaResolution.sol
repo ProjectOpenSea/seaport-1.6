@@ -125,7 +125,7 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                         // Using the array directly has a significant impact on
                         // the optimized compiler output.
                         MemoryPointer considerationPtr = orderParameters
-                            .toMemoryPointer().pptr(
+                            .toMemoryPointer().pptrOffset(
                             OrderParameters_consideration_head_offset
                         );
 

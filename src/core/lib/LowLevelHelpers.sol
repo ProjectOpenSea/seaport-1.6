@@ -11,6 +11,10 @@ import {
     ThirtyOneBytes
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
+import { MemoryPointer, MemoryPointerLib } from "seaport-types/src/helpers/PointerLibraries.sol";
+
+import { AdvancedOrder } from "seaport-types/src/lib/ConsiderationStructs.sol";
+
 /**
  * @title LowLevelHelpers
  * @author 0age
@@ -106,5 +110,55 @@ contract LowLevelHelpers {
         assembly {
             u := b
         }
+    }
+
+    /**
+     * @dev Internal pure function to cast the `pptrOffset` function from
+     *      `MemoryPointerLib` to a function that takes a memory array of
+     *      `AdvancedOrder` and an offset in memory and returns the
+     *      `AdvancedOrder` whose pointer is stored at that offset from the
+     *      array length.
+     */
+    function _getReadAdvancedOrderByOffset(
+        // function (MemoryPointer, uint256) internal pure returns (MemoryPointer) fn1
+    ) internal pure returns (
+        function (AdvancedOrder[] memory, uint256) internal pure returns (AdvancedOrder memory) fn2
+    ) {
+        function (MemoryPointer, uint256) internal pure returns (MemoryPointer) fn1 = MemoryPointerLib.pptrOffset;
+        assembly {
+            fn2 := fn1
+        }
+    }
+
+    /**
+     * @dev Internal pure function to return a `true` value that solc
+     *      will not recognize as a compile time constant.
+     *
+     *      This function is used to bypass function specialization for
+     *      functions which take a constant boolean as an input parameter.
+     *
+     *      This should only be used in cases where specialization has a
+     *      negligible impact on the gas cost of the function.
+     *
+     *      Note: assumes the calldatasize is non-zero.
+     */
+    function _runTimeConstantTrue() internal pure returns (bool) {
+        return msg.data.length > 0;
+    }
+
+    /**
+     * @dev Internal pure function to return a `false` value that solc
+     *      will not recognize as a compile time constant.
+     *
+     *      This function is used to bypass function specialization for
+     *      functions which take a constant boolean as an input parameter.
+     *
+     *      This should only be used in cases where specialization has a
+     *      negligible impact on the gas cost of the function.
+     *
+     *      Note: assumes the calldatasize is non-zero.
+     */
+    function _runTimeConstantFalse() internal pure returns (bool) {
+        return msg.data.length == 0;
     }
 }

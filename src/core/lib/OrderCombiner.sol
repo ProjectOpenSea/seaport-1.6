@@ -44,6 +44,8 @@ import {
     TwoWords
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
+import { MemoryPointer, MemoryPointerLib, ZeroSlotPtr } from "seaport-types/src/helpers/PointerLibraries.sol";
+
 /**
  * @title OrderCombiner
  * @author 0age
@@ -140,12 +142,16 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
             Execution[] memory /* executions */
         )
     {
+        // Create a `false` boolean variable to indicate that invalid orders
+        // should NOT revert. Does not use a constant to avoid function
+        // specialization in solc that would increase contract size.
+        bool revertOnInvalid = _runTimeConstantFalse();
         // Validate orders, apply amounts, & determine if they use conduits.
         (bytes32[] memory orderHashes, bool containsNonOpen) =
         _validateOrdersAndPrepareToFulfill(
             advancedOrders,
             criteriaResolvers,
-            false, // Signifies that invalid orders should NOT revert.
+            revertOnInvalid,
             maximumFulfilled,
             recipient
         );
@@ -228,7 +234,6 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
         }
 
         // Declare variables for later use.
-        AdvancedOrder memory advancedOrder;
         uint256 terminalMemoryOffset;
 
         unchecked {
@@ -244,16 +249,13 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
 
         // Skip overflow checks as all for loops are indexed starting at zero.
         unchecked {
-            // Declare inner variables.
-            OfferItem[] memory offer;
-            ConsiderationItem[] memory consideration;
-
             // Iterate over each order.
             for (uint256 i = OneWord; i < terminalMemoryOffset; i += OneWord) {
-                // Retrieve order using assembly to bypass out-of-range check.
-                assembly {
-                    advancedOrder := mload(add(advancedOrders, i))
-                }
+                // Retrieve order using pointer libraries to bypass out-of-range
+                // check and a cast function to avoid additional memory allocation.
+                AdvancedOrder memory advancedOrder = _getReadAdvancedOrderByOffset(
+                    // MemoryPointerLib.pptrOffset
+                )(advancedOrders, i);
 
                 // Validate it, update status, and determine fraction to fill.
                 (bytes32 orderHash, uint256 numerator, uint256 denominator) =
@@ -280,12 +282,6 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                 // Place the end time for the order on the stack.
                 uint256 endTime = advancedOrder.parameters.endTime;
 
-                // Retrieve array of offer items for the order in question.
-                offer = advancedOrder.parameters.offer;
-
-                // Read length of offer array and place on the stack.
-                uint256 totalOfferItems = offer.length;
-
                 {
                     // Determine the order type, used to check for eligibility
                     // for native token offer items as well as for the presence
@@ -308,6 +304,12 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         containsNonOpen := or(containsNonOpen, gt(orderType, 1))
                     }
                 }
+
+                // Retrieve array of offer items for the order in question.
+                OfferItem[] memory offer = advancedOrder.parameters.offer;
+
+                // Read length of offer array and place on the stack.
+                uint256 totalOfferItems = offer.length;
 
                 // Iterate over each offer item on the order.
                 for (uint256 j = 0; j < totalOfferItems; ++j) {
@@ -347,7 +349,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         endAmount,
                         startTime,
                         endTime,
-                        false // round down
+                        _runTimeConstantFalse() // round down
                     );
 
                     // Update amounts in memory to match the current amount.
@@ -357,7 +359,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                 }
 
                 // Retrieve array of consideration items for order in question.
-                consideration = (advancedOrder.parameters.consideration);
+                ConsiderationItem[] memory consideration = (advancedOrder.parameters.consideration);
 
                 // Read length of consideration array and place on the stack.
                 uint256 totalConsiderationItems = consideration.length;
@@ -396,7 +398,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                             endAmount,
                             startTime,
                             endTime,
-                            true // round up
+                            _runTimeConstantTrue() // round up
                         )
                     );
 
@@ -458,6 +460,9 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
 
             // Iterate over each order.
             for (uint256 i = OneWord; i < terminalMemoryOffset; i += OneWord) {
+                AdvancedOrder memory advancedOrder = _getReadAdvancedOrderByOffset(
+                    // MemoryPointerLib.pptrOffset
+                )(advancedOrders, i);
                 assembly {
                     orderHash := mload(add(orderHashes, i))
                 }
@@ -1024,12 +1029,16 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
         Fulfillment[] memory fulfillments,
         address recipient
     ) internal returns (Execution[] memory /* executions */ ) {
+        // Create a `true` boolean variable to indicate that invalid orders
+        // should revert. Does not use a constant to avoid function
+        // specialization in solc that would increase contract size.
+        bool revertOnInvalid = _runTimeConstantTrue();
         // Validate orders, update order status, and determine item amounts.
         (bytes32[] memory orderHashes, bool containsNonOpen) =
         _validateOrdersAndPrepareToFulfill(
             advancedOrders,
             criteriaResolvers,
-            true, // Signifies that invalid orders should revert.
+            revertOnInvalid,
             advancedOrders.length,
             recipient
         );

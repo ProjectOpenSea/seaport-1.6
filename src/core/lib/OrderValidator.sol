@@ -104,7 +104,7 @@ contract OrderValidator is Executor, ZoneInteraction {
             orderHash,
             orderStatus,
             true, // Only allow unused orders when fulfilling basic orders.
-            true // Signifies to revert if the order is invalid.
+            _runTimeConstantTrue() // Signifies to revert if the order is invalid.
         );
 
         // If the order is not already validated, verify the supplied signature.
@@ -803,7 +803,7 @@ contract OrderValidator is Executor, ZoneInteraction {
                     orderHash,
                     orderStatus,
                     false, // Signifies that partially filled orders are valid.
-                    true // Signifies to revert if the order is invalid.
+                    _runTimeConstantTrue() // Signifies to revert if the order is invalid.
                 );
 
                 // If the order has not already been validated...
