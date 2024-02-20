@@ -94,9 +94,6 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                 // mem[28:32] = selector
                 mstore(0, OfferAndConsiderationRequiredOnFulfillment_error_selector)
 
-                // revert(abi.encodeWithSignature(
-                //     "OfferAndConsiderationRequiredOnFulfillment()"
-                // ))
                 revert(
                     Error_selector_offset,
                     OfferAndConsiderationRequiredOnFulfillment_error_length
@@ -165,10 +162,6 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                     fulfillmentIndex
                 )
 
-                // revert(abi.encodeWithSignature(
-                //     "MismatchedFulfillmentOfferAndConsiderationComponents(uint256)",
-                //     fulfillmentIndex
-                // ))
                 revert(
                     Error_selector_offset,
                     MismatchedOfferAndConsiderationComponents_error_length

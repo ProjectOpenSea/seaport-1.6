@@ -195,7 +195,8 @@ contract OrderValidator is Executor, ZoneInteraction {
             if (invalidFraction) {
                 _revertBadFraction();
             }
-
+            // Return a placeholder orderHash and a fill fraction of 1/1.
+            // The real orderHash will be returned by _getGeneratedOrder.
             return (
                 bytes32(uint256(1)), 1, 1
             );
@@ -389,6 +390,19 @@ contract OrderValidator is Executor, ZoneInteraction {
         }
     }
 
+    /**
+     * @dev Internal function to update the status of an order by applying the
+     *      supplied fill fraction to the remaining order fraction. If
+     *      revertOnInvalid is true, the function will revert if the order is
+     *      unavailable or if it is not possible to apply the supplied fill 
+     *      fraction to the remaining amount (e.g., if there is not enough
+     *      of the order remaining to fill the supplied fraction, or if the
+     *      fractions cannot be represented by two uint120 values).
+     * @param orderHash The hash of the order.
+     * @param numerator The numerator of the fraction filled to write to the order status.
+     * @param denominator The denominator of the fraction filled to write to the order status.
+     * @param revertOnInvalid Whether to revert if an order is already filled.
+     */
     function _updateStatus(
         bytes32 orderHash,
         uint256 numerator,

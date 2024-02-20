@@ -120,7 +120,6 @@ contract LowLevelHelpers {
      *      array length.
      */
     function _getReadAdvancedOrderByOffset(
-        // function (MemoryPointer, uint256) internal pure returns (MemoryPointer) fn1
     ) internal pure returns (
         function (AdvancedOrder[] memory, uint256) internal pure returns (AdvancedOrder memory) fn2
     ) {

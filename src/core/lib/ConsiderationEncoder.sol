@@ -357,8 +357,13 @@ contract ConsiderationEncoder {
      * @param extraData       The extraData bytes array used to construct the
      *                        encoded `authorizeOrder` calldata.
      * @param orderHashes     An array of bytes32 values representing the order
-     *                        hashes of all orders included as part of the
-     *                        current fulfillment.
+     *                        hashes of all available orders validated thus far
+     *                        as part of current fulfillment. 
+     *                        Note that this differs from the orderHashes array
+     *                        passed to `validateOrder` in that the latter
+     *                        includes *all* available and validated orders
+     *                        in the final fulfillment, as it is only a subset
+     *                        of the final fulfilled orderHashes.
      *
      * @return dst  A memory pointer referencing the encoded `authorizeOrder`
      *              calldata.
@@ -488,7 +493,7 @@ contract ConsiderationEncoder {
             MemoryPointer.unwrap(orderHashesLengthLocation)
         );
 
-        // Write the shorted orderHashes array length.
+        // Write the shortened orderHashes array length.
         orderHashesLengthLocation.write(orderIndex);
 
         // Modify encoding size to account for the shorter orderHashes array.
