@@ -302,6 +302,7 @@ uint256 constant BasicOrder_zone_cdPtr = 0xa4;
 uint256 constant BasicOrder_offerToken_cdPtr = 0xc4;
 uint256 constant BasicOrder_offerIdentifier_cdPtr = 0xe4;
 uint256 constant BasicOrder_offerAmount_cdPtr = 0x104;
+uint256 constant BasicOrder_basicOrderParameters_cd_offset = 0x24;
 uint256 constant BasicOrder_basicOrderType_cdPtr = 0x124;
 uint256 constant BasicOrder_startTime_cdPtr = 0x144;
 uint256 constant BasicOrder_endTime_cdPtr = 0x164;

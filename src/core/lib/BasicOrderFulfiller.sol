@@ -25,6 +25,7 @@ import {
     AdditionalRecipient_size,
     BasicOrder_additionalRecipients_data_cdPtr,
     BasicOrder_additionalRecipients_length_cdPtr,
+    BasicOrder_basicOrderParameters_cd_offset,
     BasicOrder_basicOrderType_cdPtr,
     BasicOrder_common_params_size,
     BasicOrder_considerationAmount_cdPtr,
@@ -1022,9 +1023,16 @@ contract BasicOrderFulfiller is OrderValidator {
         OrderStatus storage orderStatus = _validateBasicOrder(
             orderHash,
             _toBytesReturnType(_decodeBytes)(
+                // Wrap the absolute pointer to the order signature as a
+                // CalldataPointer.
                 CalldataPointer.wrap(
-                    CalldataPointer.wrap(BasicOrder_signature_cdPtr)
-                        .readMaskedUint256() + 0x24
+                    // Read the relative pointer to the order signature.
+                    CalldataPointer
+                        .wrap(BasicOrder_signature_cdPtr)
+                        .readMaskedUint256() +
+                        // Add the BasicOrderParameters struct offset to the
+                        // relative pointer.
+                        BasicOrder_basicOrderParameters_cd_offset
                 )
             )
         );

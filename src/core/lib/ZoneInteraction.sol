@@ -334,8 +334,7 @@ contract ZoneInteraction is
         address target,
         bytes32 orderHash,
         MemoryPointer callData,
-        uint256 size/* ,
-        uint256 errorSelector */
+        uint256 size
     ) internal {
         bool success;
         bool magicMatch;
@@ -378,7 +377,6 @@ contract ZoneInteraction is
             assembly {
                 // The error selector is already in memory at the zero slot.
                 mstore(0x80, orderHash)
-
                 // revert(abi.encodeWithSelector(
                 //     "InvalidRestrictedOrder(bytes32)",
                 //     orderHash

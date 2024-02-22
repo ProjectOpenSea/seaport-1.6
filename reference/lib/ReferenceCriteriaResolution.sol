@@ -317,6 +317,8 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
             }
         }
 
+        // Skip validating criteria resolvers for considerationItems on contract
+        // orders, since contract offerers may resolve wildcard items themselves.
         if (advancedOrder.parameters.orderType == OrderType.CONTRACT) {
             return;
         }

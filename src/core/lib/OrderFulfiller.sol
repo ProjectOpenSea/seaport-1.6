@@ -120,9 +120,12 @@ contract OrderFulfiller is
             recipient
         );
 
-        // Declare empty bytes32 array and populate with the order hash.
+        // Declare an empty length-1 array to hold the order hash, but do not
+        // write to it until after the order has been authorized or generated.
         bytes32[] memory orderHashes = new bytes32[](1);
 
+        // Declare a boolean that cannot be optimized out by the compiler
+        // outside of the if-else statement so it can be used in either.
         bool _true = _runTimeConstantTrue();
         if (orderType != OrderType.CONTRACT) {
             _assertRestrictedAdvancedOrderAuthorization(
@@ -140,6 +143,7 @@ contract OrderFulfiller is
 
         _transferEach(orderParameters, fulfillerConduitKey, recipient);
 
+        // Write the order hash to the orderHashes array.
         orderHashes[0] = orderHash;
 
         // Ensure restricted orders have a valid submitter or pass a zone check.
