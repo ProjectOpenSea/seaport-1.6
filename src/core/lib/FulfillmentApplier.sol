@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.24;
 
 import { ItemType, Side } from "seaport-types/src/lib/ConsiderationEnums.sol";
 
@@ -11,9 +11,7 @@ import {
 } from "seaport-types/src/lib/ConsiderationStructs.sol";
 
 import {
-    _revertMismatchedFulfillmentOfferAndConsiderationComponents,
-    _revertMissingFulfillmentComponentOnAggregation,
-    _revertOfferAndConsiderationRequiredOnFulfillment
+    _revertMissingFulfillmentComponentOnAggregation
 } from "seaport-types/src/lib/ConsiderationErrors.sol";
 
 import { FulfillmentApplicationErrors } from
@@ -41,8 +39,13 @@ import {
     Error_selector_offset,
     InvalidFulfillmentComponentData_error_length,
     InvalidFulfillmentComponentData_error_selector,
+    MismatchedOfferAndConsiderationComponents_error_idx_ptr,
+    MismatchedOfferAndConsiderationComponents_error_length,
+    MismatchedOfferAndConsiderationComponents_error_selector,
     MissingItemAmount_error_length,
     MissingItemAmount_error_selector,
+    OfferAndConsiderationRequiredOnFulfillment_error_length,
+    OfferAndConsiderationRequiredOnFulfillment_error_selector,
     Panic_arithmetic,
     Panic_error_code_ptr,
     Panic_error_length,
@@ -82,9 +85,23 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
         uint256 fulfillmentIndex
     ) internal pure returns (Execution memory execution) {
         // Ensure 1+ of both offer and consideration components are supplied.
-        if (offerComponents.length == 0 || considerationComponents.length == 0)
-        {
-            _revertOfferAndConsiderationRequiredOnFulfillment();
+        assembly {
+            if or(
+                iszero(mload(offerComponents)),
+                iszero(mload(considerationComponents))
+            ) {
+                // Store left-padded selector with push4 (reduces bytecode),
+                // mem[28:32] = selector
+                mstore(0, OfferAndConsiderationRequiredOnFulfillment_error_selector)
+
+                // revert(abi.encodeWithSignature(
+                //     "OfferAndConsiderationRequiredOnFulfillment()"
+                // ))
+                revert(
+                    Error_selector_offset,
+                    OfferAndConsiderationRequiredOnFulfillment_error_length
+                )
+            }
         }
 
         // Declare a new Execution struct.
@@ -116,28 +133,51 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
             advancedOrders, offerComponents, execution
         );
 
+        ReceivedItem memory executionItem = execution.item;
+
         // Ensure offer & consideration item types, tokens, & identifiers match.
         // (a != b || c != d || e != f) == (((a ^ b) | (c ^ d) | (e ^ f)) != 0),
         // but the second expression requires less gas to evaluate.
-        if (
-            (
-                (
-                    uint8(execution.item.itemType)
-                        ^ uint8(considerationItem.itemType)
+        assembly {
+            if or(
+                or(
+                    xor(
+                        mload(executionItem), // no offset for item type
+                        mload(considerationItem) // no offset for item type
+                    ),
+                    xor(
+                        mload(add(executionItem, Common_token_offset)),
+                        mload(add(considerationItem, Common_token_offset))
+                    )
+                ),
+                xor(
+                    mload(add(executionItem, Common_identifier_offset)),
+                    mload(add(considerationItem, Common_identifier_offset))
                 )
-                    | (
-                        uint160(execution.item.token)
-                            ^ uint160(considerationItem.token)
-                    ) | (execution.item.identifier ^ considerationItem.identifier)
-            ) != 0
-        ) {
-            _revertMismatchedFulfillmentOfferAndConsiderationComponents(
-                fulfillmentIndex
-            );
+            ) {
+                // Store left-padded selector with push4 (reduces bytecode),
+                // mem[28:32] = selector
+                mstore(0, MismatchedOfferAndConsiderationComponents_error_selector)
+
+                // Store fulfillment index argument.
+                mstore(
+                    MismatchedOfferAndConsiderationComponents_error_idx_ptr,
+                    fulfillmentIndex
+                )
+
+                // revert(abi.encodeWithSignature(
+                //     "MismatchedFulfillmentOfferAndConsiderationComponents(uint256)",
+                //     fulfillmentIndex
+                // ))
+                revert(
+                    Error_selector_offset,
+                    MismatchedOfferAndConsiderationComponents_error_length
+                )
+            }
         }
 
         // If total consideration amount exceeds the offer amount...
-        if (considerationItem.amount > execution.item.amount) {
+        if (considerationItem.amount > executionItem.amount) {
             // Retrieve the first consideration component from the fulfillment.
             FulfillmentComponent memory targetComponent =
                 (considerationComponents[0]);
@@ -149,7 +189,7 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                 advancedOrders[targetComponent.orderIndex]
                     .parameters
                     .consideration[targetComponent.itemIndex].startAmount =
-                    (considerationItem.amount - execution.item.amount);
+                    (considerationItem.amount - executionItem.amount);
             }
         } else {
             // Retrieve the first offer component from the fulfillment.
@@ -161,15 +201,15 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                 // Add excess offer item amount to the original array of orders.
                 advancedOrders[targetComponent.orderIndex].parameters.offer[targetComponent
                     .itemIndex].startAmount =
-                    (execution.item.amount - considerationItem.amount);
+                    (executionItem.amount - considerationItem.amount);
             }
 
             // Reduce total offer amount to equal the consideration amount.
-            execution.item.amount = considerationItem.amount;
+            executionItem.amount = considerationItem.amount;
         }
 
         // Reuse consideration recipient.
-        execution.item.recipient = considerationItem.recipient;
+        executionItem.recipient = considerationItem.recipient;
 
         // Return the final execution that will be triggered for relevant items.
         return execution; // Execution(considerationItem, offerer, conduitKey);

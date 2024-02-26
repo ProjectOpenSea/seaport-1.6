@@ -1,5 +1,6 @@
 [profile.default]
-solc = '0.8.21'
+solc = '0.8.24'
+evm_version = 'cancun'
 src = 'src'
 out = 'out'
 libs = ["node_modules", "lib"]
@@ -31,7 +32,7 @@ fs_permissions = [
 ]
 
 [profile.validator]
-solc = '0.8.17'
+solc = '0.8.24'
 src = 'src/main/helpers/order-validator'
 optimizer_runs = 1
 
@@ -40,12 +41,13 @@ runs = 1_000
 max_test_rejects = 1_000_000
 
 [profile.reference]
-solc = '0.8.21'
+solc = '0.8.24'
 src = 'reference'
 out = 'reference-out'
 script = 'reference'
 # specify something so it doesn't try to compile the files in test/foundry
 test = 'test/foundry'
+cache_path='reference-cache'
 
 [profile.optimized]
 src = 'src'
@@ -56,9 +58,13 @@ script = 'script'
 bytecode_hash = 'none'
 # no need to compile tests with via-ir since they load optimized bytecode directly by default
 test ='src/main'
+evm_version = 'cancun'
+cache_path='optimized-cache'
+extra_output_files=['irOptimized']
 
 [profile.test]
 src = 'test/foundry'
+cache_path='test-cache'
 
 [profile.test.fuzz]
 runs = 1_000

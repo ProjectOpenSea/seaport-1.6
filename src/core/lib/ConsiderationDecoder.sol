@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.24;
 
 import {
     AdvancedOrder,
@@ -23,6 +23,9 @@ import {
     AdvancedOrderPlusOrderParameters_head_size,
     Common_amount_offset,
     Common_endAmount_offset,
+    Common_identifier_offset,
+    Common_token_offset,
+    ConsiderationItem_recipient_offset,
     ConsiderationItem_size_with_length,
     ConsiderationItem_size,
     CriteriaResolver_criteriaProof_offset,
@@ -251,14 +254,14 @@ contract ConsiderationDecoder {
         // Resolve the offer calldata offset, use that to decode and copy offer
         // from calldata, and write resultant memory offset to head in memory.
         mPtr.offset(OrderParameters_offer_head_offset).write(
-            _decodeOffer(cdPtr.pptr(OrderParameters_offer_head_offset))
+            _decodeOffer(cdPtr.pptrOffset(OrderParameters_offer_head_offset))
         );
 
         // Resolve consideration calldata offset, use that to copy consideration
         // from calldata, and write resultant memory offset to head in memory.
         mPtr.offset(OrderParameters_consideration_head_offset).write(
             _decodeConsideration(
-                cdPtr.pptr(OrderParameters_consideration_head_offset)
+                cdPtr.pptrOffset(OrderParameters_consideration_head_offset)
             )
         );
     }
@@ -308,7 +311,7 @@ contract ConsiderationDecoder {
         // Resolve signature calldata offset, use that to decode and copy from
         // calldata, and write resultant memory offset to head in memory.
         mPtr.offset(Order_signature_offset).write(
-            _decodeBytes(cdPtr.pptr(Order_signature_offset))
+            _decodeBytes(cdPtr.pptrOffset(Order_signature_offset))
         );
     }
 
@@ -347,13 +350,13 @@ contract ConsiderationDecoder {
         // Resolve signature calldata offset, use that to decode and copy from
         // calldata, and write resultant memory offset to head in memory.
         mPtr.offset(AdvancedOrder_signature_offset).write(
-            _decodeBytes(cdPtr.pptr(AdvancedOrder_signature_offset))
+            _decodeBytes(cdPtr.pptrOffset(AdvancedOrder_signature_offset))
         );
 
         // Resolve extraData calldata offset, use that to decode and copy from
         // calldata, and write resultant memory offset to head in memory.
         mPtr.offset(AdvancedOrder_extraData_offset).write(
-            _decodeBytes(cdPtr.pptr(AdvancedOrder_extraData_offset))
+            _decodeBytes(cdPtr.pptrOffset(AdvancedOrder_extraData_offset))
         );
     }
 
@@ -404,7 +407,7 @@ contract ConsiderationDecoder {
         // Resolve signature calldata offset, use that to decode and copy from
         // calldata, and write resultant memory offset to head in memory.
         mPtr.offset(AdvancedOrder_signature_offset).write(
-            _decodeBytes(cdPtr.pptr(Order_signature_offset))
+            _decodeBytes(cdPtr.pptrOffset(Order_signature_offset))
         );
 
         // Resolve extraData calldata offset, use that to decode and copy from
@@ -451,7 +454,7 @@ contract ConsiderationDecoder {
                 // Resolve Order calldata offset, use it to decode and copy from
                 // calldata, and write resultant AdvancedOrder offset to memory.
                 mPtrHead.offset(offset).write(
-                    _decodeOrderAsAdvancedOrder(cdPtrHead.pptr(offset))
+                    _decodeOrderAsAdvancedOrder(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -512,7 +515,7 @@ contract ConsiderationDecoder {
         // from calldata, and write resultant memory offset to head in memory.
         mPtr.offset(CriteriaResolver_criteriaProof_offset).write(
             _decodeCriteriaProof(
-                cdPtr.pptr(CriteriaResolver_criteriaProof_offset)
+                cdPtr.pptrOffset(CriteriaResolver_criteriaProof_offset)
             )
         );
     }
@@ -556,7 +559,7 @@ contract ConsiderationDecoder {
                 // Resolve CriteriaResolver calldata offset, use it to decode
                 // and copy from calldata, and write resultant memory offset.
                 mPtrHead.offset(offset).write(
-                    _decodeCriteriaResolver(cdPtrHead.pptr(offset))
+                    _decodeCriteriaResolver(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -598,7 +601,7 @@ contract ConsiderationDecoder {
                 // Resolve Order calldata offset, use it to decode and copy
                 // from calldata, and write resultant memory offset.
                 mPtrHead.offset(offset).write(
-                    _decodeOrder(cdPtrHead.pptr(offset))
+                    _decodeOrder(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -688,7 +691,7 @@ contract ConsiderationDecoder {
                 // Resolve FulfillmentComponents array calldata offset, use it
                 // to decode and copy from calldata, and write memory offset.
                 mPtrHead.offset(offset).write(
-                    _decodeFulfillmentComponents(cdPtrHead.pptr(offset))
+                    _decodeFulfillmentComponents(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -733,7 +736,7 @@ contract ConsiderationDecoder {
                 // Resolve AdvancedOrder calldata offset, use it to decode and
                 // copy from calldata, and write resultant memory offset.
                 mPtrHead.offset(offset).write(
-                    _decodeAdvancedOrder(cdPtrHead.pptr(offset))
+                    _decodeAdvancedOrder(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -764,7 +767,7 @@ contract ConsiderationDecoder {
         // copy from calldata, and write resultant memory offset to memory head.
         mPtr.offset(Fulfillment_considerationComponents_offset).write(
             _decodeFulfillmentComponents(
-                cdPtr.pptr(Fulfillment_considerationComponents_offset)
+                cdPtr.pptrOffset(Fulfillment_considerationComponents_offset)
             )
         );
     }
@@ -808,7 +811,7 @@ contract ConsiderationDecoder {
                 // Resolve Fulfillment calldata offset, use it to decode and
                 // copy from calldata, and write resultant memory offset.
                 mPtrHead.offset(offset).write(
-                    _decodeFulfillment(cdPtrHead.pptr(offset))
+                    _decodeFulfillment(cdPtrHead.pptrOffset(offset))
                 );
             }
         }
@@ -838,13 +841,13 @@ contract ConsiderationDecoder {
         // Resolve the offer calldata offset, use that to decode and copy offer
         // from calldata, and write resultant memory offset to head in memory.
         mPtr.offset(OrderParameters_offer_head_offset).write(
-            _decodeOffer(cdPtr.pptr(OrderParameters_offer_head_offset))
+            _decodeOffer(cdPtr.pptrOffset(OrderParameters_offer_head_offset))
         );
 
         // Resolve consideration calldata offset, use that to copy consideration
         // from calldata, and write resultant memory offset to head in memory.
         MemoryPointer consideration = _decodeConsideration(
-            cdPtr.pptr(OrderParameters_consideration_head_offset)
+            cdPtr.pptrOffset(OrderParameters_consideration_head_offset)
         );
         mPtr.offset(OrderParameters_consideration_head_offset).write(
             consideration
@@ -865,7 +868,7 @@ contract ConsiderationDecoder {
      * @return offer           The decoded offer array.
      * @return consideration   The decoded consideration array.
      */
-    function _decodeGenerateOrderReturndata()
+    function _decodeGenerateOrderReturndata(MemoryPointer originalOffer, MemoryPointer originalConsideration)
         internal
         pure
         returns (
@@ -942,23 +945,34 @@ contract ConsiderationDecoder {
             }
 
             if iszero(invalidEncoding) {
-                offer :=
+                let invalidSpentItems, invalidReceivedItems
+                offer, invalidSpentItems :=
                     copySpentItemsAsOfferItems(
-                        add(offsetOffer, OneWord), offerLength
+                        originalOffer,
+                        add(offsetOffer, OneWord),
+                        offerLength
                     )
 
-                consideration :=
+                consideration, invalidReceivedItems :=
                     copyReceivedItemsAsConsiderationItems(
-                        add(offsetConsideration, OneWord), considerationLength
+                        originalConsideration,
+                        add(offsetConsideration, OneWord),
+                        considerationLength
                     )
+                invalidEncoding := or(invalidSpentItems, invalidReceivedItems)
             }
 
-            function copySpentItemsAsOfferItems(rdPtrHead, length) -> mPtrLength
+            function copySpentItemsAsOfferItems(
+                mPtrLengthOriginal, rdPtrHeadSpentItems, length
+            ) -> mPtrLength, invalidSpentItems
             {
                 // Retrieve the current free memory pointer.
                 mPtrLength := mload(FreeMemoryPointerSlot)
 
-                // Allocate memory for the array.
+                // Cache the original offer array length
+                let originalOfferLength := mload(mPtrLengthOriginal)
+
+                // Allocate memory for the new array.
                 mstore(
                     FreeMemoryPointerSlot,
                     add(
@@ -974,14 +988,58 @@ contract ConsiderationDecoder {
                 let headOffsetFromLength := OneWord
                 let headSizeWithLength := shl(OneWordShift, add(1, length))
                 let mPtrTailNext := add(mPtrLength, headSizeWithLength)
+                let mPtrTailOriginalNext := add(
+                    mPtrLengthOriginal,
+                    shl(OneWordShift, add(1, originalOfferLength))
+                )
 
-                // Iterate over each element.
+                let headSizeToCompareWithLength := shl(OneWordShift, add(1, min(length, originalOfferLength)))
+
+                // Iterate over each new element with a corresponding original item
+                // For each original offer item, check that:
+                // - There is a corresponding new spent item.
+                // - The original and new items match with compareItems.
+                // - The new offer's amount is greater than or equal to the original amount.
+                invalidSpentItems := gt(originalOfferLength, length)
+                for { } lt(headOffsetFromLength, headSizeToCompareWithLength) { } {
+                    // Write the memory pointer to the accompanying head offset.
+                    mstore(add(mPtrLength, headOffsetFromLength), mPtrTailNext)
+
+                    // Copy itemType, token, identifier and amount.
+                    returndatacopy(mPtrTailNext, rdPtrHeadSpentItems, SpentItem_size)
+
+                    let newAmount := mload(add(mPtrTailNext, Common_amount_offset))
+
+                    // Copy amount to endAmount.
+                    mstore(
+                        add(mPtrTailNext, Common_endAmount_offset),
+                        newAmount
+                    )
+
+                    let originalAmount := mload(add(mPtrTailOriginalNext, Common_amount_offset))
+                    invalidSpentItems := or(
+                        invalidSpentItems,
+                        or(
+                            compareItems(mPtrTailOriginalNext, mPtrTailNext),
+                            gt(originalAmount, newAmount)
+                        )
+                    )
+
+                    // Update read pointer, next tail pointer for new and
+                    // original, and head offset.
+                    rdPtrHeadSpentItems := add(rdPtrHeadSpentItems, SpentItem_size)
+                    mPtrTailNext := add(mPtrTailNext, OfferItem_size)
+                    mPtrTailOriginalNext := add(mPtrTailOriginalNext, OfferItem_size)
+                    headOffsetFromLength := add(headOffsetFromLength, OneWord)
+                }
+
+                // Iterate over each element without a corresponding original item
                 for { } lt(headOffsetFromLength, headSizeWithLength) { } {
                     // Write the memory pointer to the accompanying head offset.
                     mstore(add(mPtrLength, headOffsetFromLength), mPtrTailNext)
 
                     // Copy itemType, token, identifier and amount.
-                    returndatacopy(mPtrTailNext, rdPtrHead, SpentItem_size)
+                    returndatacopy(mPtrTailNext, rdPtrHeadSpentItems, SpentItem_size)
 
                     // Copy amount to endAmount.
                     mstore(
@@ -990,17 +1048,20 @@ contract ConsiderationDecoder {
                     )
 
                     // Update read pointer, next tail pointer, and head offset.
-                    rdPtrHead := add(rdPtrHead, SpentItem_size)
+                    rdPtrHeadSpentItems := add(rdPtrHeadSpentItems, SpentItem_size)
                     mPtrTailNext := add(mPtrTailNext, OfferItem_size)
                     headOffsetFromLength := add(headOffsetFromLength, OneWord)
                 }
             }
 
-            function copyReceivedItemsAsConsiderationItems(rdPtrHead, length) ->
-                mPtrLength
+            function copyReceivedItemsAsConsiderationItems(
+                mPtrLengthOriginal, rdPtrHeadReceivedItems, length
+            ) -> mPtrLength, invalidReceivedItems
             {
                 // Retrieve the current free memory pointer.
                 mPtrLength := mload(FreeMemoryPointerSlot)
+                // Cache the original consideration array length
+                let originalConsiderationLength := mload(mPtrLengthOriginal)
 
                 // Allocate memory for the array.
                 mstore(
@@ -1021,31 +1082,162 @@ contract ConsiderationDecoder {
                 let headOffsetFromLength := OneWord
                 let headSizeWithLength := shl(OneWordShift, add(1, length))
                 let mPtrTailNext := add(mPtrLength, headSizeWithLength)
+                let mPtrTailOriginalNext := add(
+                    mPtrLengthOriginal,
+                    shl(OneWordShift, add(1, originalConsiderationLength))
+                )
 
-                // Iterate over each element.
+                let headSizeToCompareWithLength := shl(
+                    OneWordShift,
+                    add(1, min(length, originalConsiderationLength))
+                )
+
+                // Iterate over each new element with a corresponding original item.
+                // For each new received item, check that:
+                // - There is a corresponding original consideration item.
+                // - The items match with compareItems.
+                // - The new amount is less than or equal to the original amount.
+                // - The items have the same recipient if the original's was not null.
+                invalidReceivedItems := gt(length, originalConsiderationLength)
+                for { } lt(headOffsetFromLength, headSizeToCompareWithLength) { } {
+                    // Write the memory pointer to the accompanying head offset.
+                    mstore(add(mPtrLength, headOffsetFromLength), mPtrTailNext)
+
+                    // Copy itemType, token, identifier, amount and recipient.
+                    returndatacopy(
+                        mPtrTailNext,
+                        rdPtrHeadReceivedItems,
+                        ReceivedItem_size
+                    )
+
+                    // Copy amount to consideration item's recipient offset.
+                    returndatacopy(
+                        add(mPtrTailNext, ConsiderationItem_recipient_offset),
+                        add(rdPtrHeadReceivedItems, Common_amount_offset),
+                        OneWord
+                    )
+
+                    let newAmount := mload(add(mPtrTailNext, Common_amount_offset))
+                    let originalAmount := mload(add(mPtrTailOriginalNext, Common_amount_offset))
+
+                    // Compare items' item type, token, and identifier, ensure they have the same
+                    // recipient and that the new amount is less than or equal to the original amount.
+                    invalidReceivedItems := or(
+                        invalidReceivedItems,
+                        or(
+                            compareItems(mPtrTailOriginalNext, mPtrTailNext),
+                            or(
+                                gt(newAmount, originalAmount),
+                                checkRecipients(
+                                    mload(add(mPtrTailOriginalNext, ReceivedItem_recipient_offset)),
+                                    mload(add(mPtrTailNext, ReceivedItem_recipient_offset))
+                                )
+                            )
+                        )
+                    )
+
+                    // Update read pointer, next tail pointer, and head offset.
+                    rdPtrHeadReceivedItems := add(rdPtrHeadReceivedItems, ReceivedItem_size)
+                    mPtrTailNext := add(mPtrTailNext, ConsiderationItem_size)
+                    mPtrTailOriginalNext := add(mPtrTailOriginalNext, ConsiderationItem_size)
+                    headOffsetFromLength := add(headOffsetFromLength, OneWord)
+                }
+
+                // Iterate over each new element without a corresponding original item
                 for { } lt(headOffsetFromLength, headSizeWithLength) { } {
                     // Write the memory pointer to the accompanying head offset.
                     mstore(add(mPtrLength, headOffsetFromLength), mPtrTailNext)
 
-                    // Copy itemType, token, identifier and amount.
+                    // Copy itemType, token, identifier, amount and recipient.
                     returndatacopy(
                         mPtrTailNext,
-                        rdPtrHead,
-                        ReceivedItem_size_excluding_recipient
+                        rdPtrHeadReceivedItems,
+                        ReceivedItem_size
                     )
 
-                    // Copy amount and recipient.
+                    // Copy amount to consideration item's recipient offset.
                     returndatacopy(
-                        add(mPtrTailNext, Common_endAmount_offset),
-                        add(rdPtrHead, Common_amount_offset),
-                        TwoWords
+                        add(mPtrTailNext, ConsiderationItem_recipient_offset),
+                        add(rdPtrHeadReceivedItems, Common_amount_offset),
+                        OneWord
                     )
 
                     // Update read pointer, next tail pointer, and head offset.
-                    rdPtrHead := add(rdPtrHead, ReceivedItem_size)
+                    rdPtrHeadReceivedItems := add(rdPtrHeadReceivedItems, ReceivedItem_size)
                     mPtrTailNext := add(mPtrTailNext, ConsiderationItem_size)
                     headOffsetFromLength := add(headOffsetFromLength, OneWord)
                 }
+            }
+
+            /**
+             * @dev Yul function to check the compatibility of two offer or
+             *      consideration items for contract orders.  Note that the itemType
+             *      and identifier are reset in cases where criteria = 0 (collection-
+             *      wide offers), which means that a contract offerer has full latitude
+             *      to choose any identifier it wants mid-flight, in contrast to the
+             *      normal behavior, where the fulfiller can pick which identifier to
+             *      receive by providing a CriteriaResolver.
+             *
+             * @param originalItem The original offer or consideration item.
+             * @param newItem      The new offer or consideration item.
+             *
+             * @return isInvalid Error buffer indicating if items are incompatible.
+             */
+            function compareItems(originalItem, newItem) -> isInvalid {
+                let itemType := mload(originalItem)
+                let identifier := mload(add(originalItem, Common_identifier_offset))
+
+                // Set returned identifier for criteria-based items w/ criteria = 0
+                if and(gt(itemType, 3), iszero(identifier)) {
+                    // replace item type
+                    itemType := sub(3, eq(itemType, 4))
+                    identifier := mload(add(newItem, Common_identifier_offset))
+                }
+
+                isInvalid :=
+                    iszero(
+                        and(
+                            // originalItem.token == newItem.token &&
+                            // originalItem.itemType == newItem.itemType
+                            and(
+                                eq(
+                                    mload(add(originalItem, Common_token_offset)),
+                                    mload(add(newItem, Common_token_offset))
+                                ),
+                                eq(itemType, mload(newItem))
+                            ),
+                            // originalItem.identifier == newItem.identifier
+                            eq(
+                                identifier,
+                                mload(add(newItem, Common_identifier_offset))
+                            )
+
+                        )
+                    )
+            }
+
+            /**
+             * @dev Internal pure function to check the compatibility of two recipients
+             *      on consideration items for contract orders. This check is skipped if
+             *      no recipient is originally supplied.
+             *
+             * @param originalRecipient The original consideration item recipient.
+             * @param newRecipient      The new consideration item recipient.
+             *
+             * @return isInvalid Error buffer indicating if recipients are incompatible.
+             */
+            function checkRecipients(originalRecipient, newRecipient) -> isInvalid {
+                isInvalid :=
+                    iszero(
+                        or(
+                            iszero(originalRecipient),
+                            eq(newRecipient, originalRecipient)
+                        )
+                    )
+            }
+
+            function min(a, b) -> c {
+                c := add(b, mul(lt(a, b), sub(a, b)))
             }
         }
     }
@@ -1061,7 +1253,7 @@ contract ConsiderationDecoder {
      *               error buffer, offer array, and consideration array.
      */
     function _convertGetGeneratedOrderResult(
-        function()
+        function(MemoryPointer, MemoryPointer)
             internal
             pure
             returns (uint256, MemoryPointer, MemoryPointer) inFn
@@ -1069,7 +1261,7 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function() internal pure returns ( uint256, OfferItem[] memory, ConsiderationItem[] memory)
+            function(OfferItem[] memory, ConsiderationItem[] memory) internal pure returns (uint256, OfferItem[] memory, ConsiderationItem[] memory)
                 outFn
         )
     {

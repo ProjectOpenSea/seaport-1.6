@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.24;
 
 import {
     ItemType,
@@ -9,6 +9,7 @@ import {
 
 import {
     AdvancedOrder,
+    ConsiderationItem,
     CriteriaResolver,
     MemoryPointer,
     OfferItem,
@@ -18,9 +19,7 @@ import {
 import {
     _revertCriteriaNotEnabledForItem,
     _revertInvalidProof,
-    _revertOrderCriteriaResolverOutOfRange,
-    _revertUnresolvedConsiderationCriteria,
-    _revertUnresolvedOfferCriteria
+    _revertOrderCriteriaResolverOutOfRange
 } from "seaport-types/src/lib/ConsiderationErrors.sol";
 
 import { CriteriaResolutionErrors } from
@@ -37,7 +36,12 @@ import {
 import {
     ConsiderationCriteriaResolverOutOfRange_err_selector,
     Error_selector_offset,
-    OfferCriteriaResolverOutOfRange_error_selector
+    OfferCriteriaResolverOutOfRange_error_selector,
+    UnresolvedConsiderationCriteria_error_length,
+    UnresolvedConsiderationCriteria_error_orderIndex_ptr,
+    UnresolvedConsiderationCriteria_error_considerationIdx_ptr,
+    UnresolvedConsiderationCriteria_error_selector,
+    UnresolvedOfferCriteria_error_selector
 } from "seaport-types/src/lib/ConsiderationErrorConstants.sol";
 
 /**
@@ -121,7 +125,7 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                         // Using the array directly has a significant impact on
                         // the optimized compiler output.
                         MemoryPointer considerationPtr = orderParameters
-                            .toMemoryPointer().pptr(
+                            .toMemoryPointer().pptrOffset(
                             OrderParameters_consideration_head_offset
                         );
 
@@ -177,47 +181,96 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                 OrderParameters memory orderParameters =
                     (advancedOrder.parameters);
 
-                // Read consideration length from memory and place on stack.
-                uint256 totalItems = orderParameters.consideration.length;
+                OrderType orderType = orderParameters.orderType;
 
-                // Iterate over each consideration item on the order.
-                for (uint256 j = 0; j < totalItems; ++j) {
-                    // Ensure item type no longer indicates criteria usage.
-                    if (
-                        _isItemWithCriteria(
-                            orderParameters.consideration[j].itemType
-                        )
-                    ) {
-                        // Revert unless the order is a contract order and
-                        // the identifier is 0.
-                        if (
-                            orderParameters.orderType != OrderType.CONTRACT ||
-                            orderParameters.consideration[j].identifierOrCriteria != 0
-                        ) {
-                            _revertUnresolvedConsiderationCriteria(i, j);
-                        }
-                    }
-                }
+                _ensureAllRequiredCriteriaResolved(
+                    i,
+                    orderParameters.consideration,
+                    orderType,
+                    UnresolvedConsiderationCriteria_error_selector
+                );
 
-                // Read offer length from memory and place on stack.
-                totalItems = orderParameters.offer.length;
+                _toOfferItemArgumentType(_ensureAllRequiredCriteriaResolved)(
+                    i,
+                    orderParameters.offer,
+                    orderType,
+                    UnresolvedOfferCriteria_error_selector
+                );
+            }
+        }
+    }
 
-                // Iterate over each offer item on the order.
-                for (uint256 j = 0; j < totalItems; ++j) {
-                    // Ensure item type no longer indicates criteria usage.
-                    if (_isItemWithCriteria(orderParameters.offer[j].itemType))
-                    {
-                        // Revert unless the order is a contract order and
-                        // the identifier is 0.
-                        if (
-                            orderParameters.orderType != OrderType.CONTRACT ||
-                            orderParameters.offer[j].identifierOrCriteria != 0
-                        ) {
-                            _revertUnresolvedOfferCriteria(i, j);
-                        }
-                    }
+    function _ensureAllRequiredCriteriaResolved(
+        uint256 orderIndex,
+        ConsiderationItem[] memory items,
+        OrderType orderType,
+        uint256 revertSelector
+    ) internal pure {
+        // Read items array length from memory and place on stack.
+        uint256 totalItems = items.length;
+
+        // Iterate over each item on the order.
+        for (uint256 i = 0; i < totalItems; ++i) {
+            ConsiderationItem memory item = items[i];
+
+            // Revert if the item is still a criteria item unless the
+            // order is a contract order and the identifier is 0.
+            ItemType itemType = item.itemType;
+            uint256 identifierOrCriteria = item.identifierOrCriteria;
+
+            assembly {
+                if and(
+                    gt(itemType, 3), // Criteria-based item
+                    or(
+                        iszero(eq(orderType, 4)), // not OrderType.CONTRACT
+                        iszero(iszero(identifierOrCriteria)) // not wildcard
+                    )
+                ) {
+                    // Store left-padded selector with push4 (reduces bytecode),
+                    // mem[28:32] = selector
+                    mstore(0, revertSelector)
+
+                    // Store arguments.
+                    mstore(
+                        UnresolvedConsiderationCriteria_error_orderIndex_ptr,
+                        orderIndex
+                    )
+                    mstore(
+                        UnresolvedConsiderationCriteria_error_considerationIdx_ptr,
+                        i
+                    )
+
+                    // revert(abi.encodeWithSignature(
+                    //     "Unresolved[Offer|Consideration]Criteria(uint256, uint256)",
+                    //     orderIndex,
+                    //     i
+                    // ))
+                    revert(
+                        Error_selector_offset,
+                        UnresolvedConsiderationCriteria_error_length
+                    )
                 }
             }
+        }
+    }
+
+    function _toOfferItemArgumentType(
+        function(
+            uint256,
+            ConsiderationItem[] memory,
+            OrderType,
+            uint256
+        ) internal pure inFn
+    ) internal pure returns (
+        function(
+            uint256,
+            OfferItem[] memory,
+            OrderType,
+            uint256
+        ) internal pure outFn
+    ) {
+        assembly {
+            outFn := inFn
         }
     }
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.24;
 
 import {
     ItemType, OrderType
@@ -89,15 +89,19 @@ contract OrderFulfiller is
         bytes32 fulfillerConduitKey,
         address recipient
     ) internal returns (bool) {
+        // Retrieve the order parameters and order type.
+        OrderParameters memory orderParameters = advancedOrder.parameters;
+        OrderType orderType = orderParameters.orderType;
+
         // Ensure this function cannot be triggered during a reentrant call.
         _setReentrancyGuard(
             // Native tokens accepted during execution for contract order types.
-            advancedOrder.parameters.orderType == OrderType.CONTRACT
+            orderType == OrderType.CONTRACT
         );
 
         // Validate order, update status, and determine fraction to fill.
         (bytes32 orderHash, uint256 fillNumerator, uint256 fillDenominator) =
-            _validateOrder(advancedOrder, true);
+            _validateOrder(advancedOrder, _runTimeConstantTrue());
 
         // Create an array with length 1 containing the order.
         AdvancedOrder[] memory advancedOrders = new AdvancedOrder[](1);
@@ -108,9 +112,6 @@ contract OrderFulfiller is
         // Apply criteria resolvers using generated orders and details arrays.
         _applyCriteriaResolvers(advancedOrders, criteriaResolvers);
 
-        // Retrieve the order parameters after applying criteria resolvers.
-        OrderParameters memory orderParameters = advancedOrders[0].parameters;
-
         // Derive each item transfer with the appropriate fractional amount.
         _applyFractions(
             orderParameters,
@@ -119,86 +120,35 @@ contract OrderFulfiller is
             recipient
         );
 
-        // Declare empty bytes32 array and populate with the order hash.
+        // Declare an empty length-1 array to hold the order hash, but do not
+        // write to it until after the order has been authorized or generated.
         bytes32[] memory orderHashes = new bytes32[](1);
 
-        if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
+        // Declare a boolean that cannot be optimized out by the compiler
+        // outside of the if-else statement so it can be used in either.
+        bool _true = _runTimeConstantTrue();
+        if (orderType != OrderType.CONTRACT) {
             _assertRestrictedAdvancedOrderAuthorization(
-                advancedOrders[0], orderHashes, orderHash, 0
+                advancedOrder, orderHashes, orderHash, 0
             );
 
-            _updateStatus(orderHash, fillNumerator, fillDenominator, true);
+            _updateStatus(orderHash, fillNumerator, fillDenominator, _true);
         } else {
             // Return the generated order based on the order params and the
             // provided extra data.
             orderHash = _getGeneratedOrder(
-                orderParameters, advancedOrder.extraData, true
+                orderParameters, advancedOrder.extraData, _true
             );
-
-            // TEMP TEMP TEMP pull this directly from generated order
-            // or similar
-
-            // Declare a nested scope to minimize stack depth.
-            unchecked {
-                // Read offer array length from memory and place on stack.
-                uint256 totalOfferItems = orderParameters.offer.length;
-
-                // Iterate over each offer on the order.
-                // Skip overflow check as for loop is indexed starting at zero.
-                for (uint256 i = 0; i < totalOfferItems; ++i) {
-                    // Retrieve the offer item.
-                    OfferItem memory offerItem = orderParameters.offer[i];
-
-                    // Utilize assembly to set overloaded offerItem arguments.
-                    assembly {
-                        // Write recipient to endAmount.
-                        mstore(
-                            add(offerItem, ReceivedItem_recipient_offset),
-                            recipient
-                        )
-                    }
-                }
-            }
-
-            // Declare a nested scope to minimize stack depth.
-            unchecked {
-                // Read consideration array length from memory and place on stack.
-                uint256 totalConsiderationItems =
-                    orderParameters.consideration.length;
-
-                // Iterate over each consideration item on the order.
-                // Skip overflow check as for loop is indexed starting at zero.
-                for (uint256 i = 0; i < totalConsiderationItems; ++i) {
-                    // Retrieve the consideration item.
-                    ConsiderationItem memory considerationItem =
-                        (orderParameters.consideration[i]);
-
-                    // Use assembly to set overloaded considerationItem arguments.
-                    assembly {
-                        // Write original recipient to endAmount as recipient.
-                        mstore(
-                            add(considerationItem, ReceivedItem_recipient_offset),
-                            mload(
-                                add(
-                                    considerationItem,
-                                    ConsiderationItem_recipient_offset
-                                )
-                            )
-                        )
-                    }
-                }
-            }
-
-            // END TEMP TEMP TEMP
         }
 
-        _transferEach(orderParameters, fulfillerConduitKey);
+        _transferEach(orderParameters, fulfillerConduitKey, recipient);
 
+        // Write the order hash to the orderHashes array.
         orderHashes[0] = orderHash;
 
         // Ensure restricted orders have a valid submitter or pass a zone check.
         _assertRestrictedAdvancedOrderValidity(
-            advancedOrders[0], orderHashes, orderHash
+            advancedOrder, orderHashes, orderHash
         );
 
         // Emit an event signifying that the order has been fulfilled.
@@ -281,7 +231,7 @@ contract OrderFulfiller is
                         denominator,
                         startTime,
                         endTime,
-                        false
+                        _runTimeConstantFalse()
                     );
 
                     // Utilize assembly to set overloaded offerItem arguments.
@@ -357,7 +307,7 @@ contract OrderFulfiller is
                     denominator,
                     startTime,
                     endTime,
-                    true
+                    _runTimeConstantTrue()
                 );
 
                 // Use assembly to set overloaded considerationItem arguments.
@@ -385,7 +335,8 @@ contract OrderFulfiller is
 
     function _transferEach(
         OrderParameters memory orderParameters,
-        bytes32 fulfillerConduitKey
+        bytes32 fulfillerConduitKey,
+        address recipient
     ) internal {
         // Initialize an accumulator array. From this point forward, no new
         // memory regions can be safely allocated until the accumulator is no
@@ -422,9 +373,21 @@ contract OrderFulfiller is
             // Iterate over each offer on the order.
             // Skip overflow check as for loop is indexed starting at zero.
             for (uint256 i = 0; i < totalOfferItems; ++i) {
+                // Retrieve the offer item.
+                OfferItem memory offerItem = orderParameters.offer[i];
+
+                // Utilize assembly to set overloaded offerItem arguments.
+                assembly {
+                    // Write recipient to endAmount.
+                    mstore(
+                        add(offerItem, ReceivedItem_recipient_offset),
+                        recipient
+                    )
+                }
+
                 // Transfer the item from the offerer to the recipient.
                 _toOfferItemInput(_transfer)(
-                    orderParameters.offer[i],
+                    offerItem,
                     orderParameters.offerer,
                     orderParameters.conduitKey,
                     accumulator

@@ -13,7 +13,7 @@ When 1.6 is ready, we'll create 1.6 branches on all of the seaport repos and mov
 ### Differences between this repo and the production repos
 
 - This repo has the `authorizeOrder` interface added to zones.
-- This repo uses 0.8.21 instead of 0.8.17.
+- This repo uses 0.8.21 instead of 0.8.17. Note that the decision on which compiler version to use, and whether to utilize the `PUSH0` opcode, is still being debated.
 - Some files that appear in multiple repos, such as the [Transfer](https://github.com/ProjectOpenSea/seaport-core/blob/main/src/helpers/TransferHelper.sol) [Helper](https://github.com/ProjectOpenSea/seaport/blob/main/contracts/helpers/TransferHelper.sol) have been removed or modified to inherit from a single source of truth.
 - Some files were lightly jiggled around internally to avoid yul stack too deep errors during the optimized build.
 - The Hardhat tests are gone. If we need to add them back, we can.

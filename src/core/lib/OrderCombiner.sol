@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.24;
 
 import {
     Side,
@@ -44,8 +44,12 @@ import {
     TwoWords
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
+<<<<<<< HEAD
 import "forge-std/console.sol";
 import { helm } from "seaport-sol/src/helm.sol";
+=======
+import { MemoryPointer, MemoryPointerLib, ZeroSlotPtr } from "seaport-types/src/helpers/PointerLibraries.sol";
+>>>>>>> 78e7973d455959ffe2e4c6bbbdc32b167de59e17
 
 /**
  * @title OrderCombiner
@@ -154,12 +158,16 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
             helm.log(advancedOrders[i]);
         }
 
+        // Create a `false` boolean variable to indicate that invalid orders
+        // should NOT revert. Does not use a constant to avoid function
+        // specialization in solc that would increase contract size.
+        bool revertOnInvalid = _runTimeConstantFalse();
         // Validate orders, apply amounts, & determine if they use conduits.
         (bytes32[] memory orderHashes, bool containsNonOpen) =
         _validateOrdersAndPrepareToFulfill(
             advancedOrders,
             criteriaResolvers,
-            false, // Signifies that invalid orders should NOT revert.
+            revertOnInvalid,
             maximumFulfilled,
             recipient
         );
@@ -242,7 +250,6 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
         }
 
         // Declare variables for later use.
-        AdvancedOrder memory advancedOrder;
         uint256 terminalMemoryOffset;
 
         unchecked {
@@ -258,16 +265,13 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
 
         // Skip overflow checks as all for loops are indexed starting at zero.
         unchecked {
-            // Declare inner variables.
-            OfferItem[] memory offer;
-            ConsiderationItem[] memory consideration;
-
             // Iterate over each order.
             for (uint256 i = OneWord; i < terminalMemoryOffset; i += OneWord) {
-                // Retrieve order using assembly to bypass out-of-range check.
-                assembly {
-                    advancedOrder := mload(add(advancedOrders, i))
-                }
+                // Retrieve order using pointer libraries to bypass out-of-range
+                // check and a cast function to avoid additional memory allocation.
+                AdvancedOrder memory advancedOrder = _getReadAdvancedOrderByOffset(
+                    // MemoryPointerLib.pptrOffset
+                )(advancedOrders, i);
 
                 // Validate it, update status, and determine fraction to fill.
                 (bytes32 orderHash, uint256 numerator, uint256 denominator) =
@@ -294,12 +298,6 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                 // Place the end time for the order on the stack.
                 uint256 endTime = advancedOrder.parameters.endTime;
 
-                // Retrieve array of offer items for the order in question.
-                offer = advancedOrder.parameters.offer;
-
-                // Read length of offer array and place on the stack.
-                uint256 totalOfferItems = offer.length;
-
                 {
                     // Determine the order type, used to check for eligibility
                     // for native token offer items as well as for the presence
@@ -322,6 +320,12 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         containsNonOpen := or(containsNonOpen, gt(orderType, 1))
                     }
                 }
+
+                // Retrieve array of offer items for the order in question.
+                OfferItem[] memory offer = advancedOrder.parameters.offer;
+
+                // Read length of offer array and place on the stack.
+                uint256 totalOfferItems = offer.length;
 
                 // Iterate over each offer item on the order.
                 for (uint256 j = 0; j < totalOfferItems; ++j) {
@@ -361,7 +365,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         endAmount,
                         startTime,
                         endTime,
-                        false // round down
+                        _runTimeConstantFalse() // round down
                     );
 
                     // Update amounts in memory to match the current amount.
@@ -371,7 +375,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                 }
 
                 // Retrieve array of consideration items for order in question.
-                consideration = (advancedOrder.parameters.consideration);
+                ConsiderationItem[] memory consideration = (advancedOrder.parameters.consideration);
 
                 // Read length of consideration array and place on the stack.
                 uint256 totalConsiderationItems = consideration.length;
@@ -410,7 +414,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                             endAmount,
                             startTime,
                             endTime,
-                            true // round up
+                            _runTimeConstantTrue() // round up
                         )
                     );
 
@@ -472,6 +476,9 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
 
             // Iterate over each order.
             for (uint256 i = OneWord; i < terminalMemoryOffset; i += OneWord) {
+                AdvancedOrder memory advancedOrder = _getReadAdvancedOrderByOffset(
+                    // MemoryPointerLib.pptrOffset
+                )(advancedOrders, i);
                 assembly {
                     orderHash := mload(add(orderHashes, i))
                 }
@@ -501,7 +508,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                 // Update order status as long as there is some fraction available.
                 if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
                     if (!_checkRestrictedAdvancedOrderAuthorization(
-                        advancedOrder, orderHashes, orderHash, (i / OneWord) - 1, revertOnInvalid
+                        advancedOrder, orderHashes, orderHash, (i >> OneWordShift) - 1, revertOnInvalid
                     )) {
                         assembly {
                             mstore(add(orderHashes, i), 0)
@@ -533,61 +540,6 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                     orderHash = _getGeneratedOrder(
                         advancedOrder.parameters, advancedOrder.extraData, revertOnInvalid
                     );
-
-                    ////// TEMP TEMP TEMP — instead we should copy these encoded values
-                    // right from the returndata of generateOrder or something similar.
-
-                    // Iterate over each offer item on the order.
-                    for (uint256 j = 0; j < advancedOrder.parameters.offer.length; ++j) {
-                        // Retrieve the offer item.
-                        OfferItem memory offerItem = advancedOrder.parameters.offer[j];
-
-                        // Update amounts in memory to match the current amount.
-                        // Note that the end amount is used to track spent amounts.
-                        offerItem.endAmount = offerItem.startAmount;
-                    }
-
-                    // Iterate over each consideration item on the order.
-                    for (uint256 j = 0; j < advancedOrder.parameters.consideration.length; ++j) {
-                        // Retrieve the consideration item.
-                        ConsiderationItem memory considerationItem =
-                            (advancedOrder.parameters.consideration[j]);
-
-                        uint256 currentAmount = considerationItem.startAmount;
-
-                        // Utilize assembly to manually "shift" the recipient value,
-                        // then to copy the start amount to the recipient.
-                        // Note that this sets up the memory layout that is
-                        // subsequently relied upon by
-                        // _aggregateValidFulfillmentConsiderationItems.
-                        assembly {
-                            // Derive the pointer to the recipient using the item
-                            // pointer along with the offset to the recipient.
-                            let considerationItemRecipientPtr :=
-                                add(
-                                    considerationItem,
-                                    ConsiderationItem_recipient_offset // recipient
-                                )
-
-                            // Write recipient to endAmount, as endAmount is not
-                            // used from this point on and can be repurposed to fit
-                            // the layout of a ReceivedItem.
-                            mstore(
-                                add(
-                                    considerationItem,
-                                    ReceivedItem_recipient_offset // old endAmount
-                                ),
-                                mload(considerationItemRecipientPtr)
-                            )
-
-                            // Write startAmount to recipient, as recipient is not
-                            // used from this point on and can be repurposed to
-                            // track received amounts.
-                            mstore(considerationItemRecipientPtr, currentAmount)
-                        }
-                    }
-
-                    ////// END TEMP TEMP TEMP
 
                     assembly {
                         mstore(add(orderHashes, i), orderHash)
@@ -1093,12 +1045,16 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
         Fulfillment[] memory fulfillments,
         address recipient
     ) internal returns (Execution[] memory /* executions */ ) {
+        // Create a `true` boolean variable to indicate that invalid orders
+        // should revert. Does not use a constant to avoid function
+        // specialization in solc that would increase contract size.
+        bool revertOnInvalid = _runTimeConstantTrue();
         // Validate orders, update order status, and determine item amounts.
         (bytes32[] memory orderHashes, bool containsNonOpen) =
         _validateOrdersAndPrepareToFulfill(
             advancedOrders,
             criteriaResolvers,
-            true, // Signifies that invalid orders should revert.
+            revertOnInvalid,
             advancedOrders.length,
             recipient
         );

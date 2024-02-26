@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.24;
 
 import { OrderType } from "seaport-types/src/lib/ConsiderationEnums.sol";
 
@@ -104,7 +104,7 @@ contract OrderValidator is Executor, ZoneInteraction {
             orderHash,
             orderStatus,
             true, // Only allow unused orders when fulfilling basic orders.
-            true // Signifies to revert if the order is invalid.
+            _runTimeConstantTrue() // Signifies to revert if the order is invalid.
         );
 
         // If the order is not already validated, verify the supplied signature.
@@ -195,7 +195,8 @@ contract OrderValidator is Executor, ZoneInteraction {
             if (invalidFraction) {
                 _revertBadFraction();
             }
-
+            // Return a placeholder orderHash and a fill fraction of 1/1.
+            // The real orderHash will be returned by _getGeneratedOrder.
             return (
                 bytes32(uint256(1)), 1, 1
             );
@@ -389,6 +390,19 @@ contract OrderValidator is Executor, ZoneInteraction {
         }
     }
 
+    /**
+     * @dev Internal function to update the status of an order by applying the
+     *      supplied fill fraction to the remaining order fraction. If
+     *      revertOnInvalid is true, the function will revert if the order is
+     *      unavailable or if it is not possible to apply the supplied fill 
+     *      fraction to the remaining amount (e.g., if there is not enough
+     *      of the order remaining to fill the supplied fraction, or if the
+     *      fractions cannot be represented by two uint120 values).
+     * @param orderHash The hash of the order.
+     * @param numerator The numerator of the fraction filled to write to the order status.
+     * @param denominator The denominator of the fraction filled to write to the order status.
+     * @param revertOnInvalid Whether to revert if an order is already filled.
+     */
     function _updateStatus(
         bytes32 orderHash,
         uint256 numerator,
@@ -554,85 +568,6 @@ contract OrderValidator is Executor, ZoneInteraction {
     }
 
     /**
-     * @dev Internal pure function to check the compatibility of two offer
-     *      or consideration items for contract orders.  Note that the itemType
-     *      and identifier are reset in cases where criteria = 0 (collection-
-     *      wide offers), which means that a contract offerer has full latitude
-     *      to choose any identifier it wants mid-flight, in contrast to the
-     *      normal behavior, where the fulfiller can pick which identifier to
-     *      receive by providing a CriteriaResolver.
-     *
-     * @param originalItem The original offer or consideration item.
-     * @param newItem      The new offer or consideration item.
-     *
-     * @return isInvalid Error buffer indicating if items are incompatible.
-     */
-    function _compareItems(MemoryPointer originalItem, MemoryPointer newItem)
-        internal
-        pure
-        returns (uint256 isInvalid)
-    {
-        assembly {
-            let itemType := mload(originalItem)
-            let identifier := mload(add(originalItem, Common_identifier_offset))
-
-            // Set returned identifier for criteria-based items w/ criteria = 0
-            if and(gt(itemType, 3), iszero(identifier)) {
-                // replace item type
-                itemType := sub(3, eq(itemType, 4))
-                identifier := mload(add(newItem, Common_identifier_offset))
-            }
-
-            isInvalid :=
-                iszero(
-                    and(
-                        // originalItem.token == newItem.token &&
-                        // originalItem.itemType == newItem.itemType
-                        and(
-                            eq(
-                                mload(add(originalItem, Common_token_offset)),
-                                mload(add(newItem, Common_token_offset))
-                            ),
-                            eq(itemType, mload(newItem))
-                        ),
-                        // originalItem.identifier == newItem.identifier
-                        eq(
-                            identifier,
-                            mload(add(newItem, Common_identifier_offset))
-                        )
-
-                    )
-                )
-        }
-    }
-
-    /**
-     * @dev Internal pure function to check the compatibility of two recipients
-     *      on consideration items for contract orders. This check is skipped if
-     *      no recipient is originally supplied.
-     *
-     * @param originalRecipient The original consideration item recipient.
-     * @param newRecipient      The new consideration item recipient.
-     *
-     * @return isInvalid Error buffer indicating if recipients are incompatible.
-     */
-    function _checkRecipients(address originalRecipient, address newRecipient)
-        internal
-        pure
-        returns (uint256 isInvalid)
-    {
-        assembly {
-            isInvalid :=
-                iszero(
-                    or(
-                        iszero(originalRecipient),
-                        eq(newRecipient, originalRecipient)
-                    )
-                )
-        }
-    }
-
-    /**
      * @dev Internal function to generate a contract order. When a
      *      collection-wide criteria-based item (criteria = 0) is provided as an
      *      input to a contract order, the contract offerer has full latitude to
@@ -717,94 +652,20 @@ contract OrderValidator is Executor, ZoneInteraction {
             uint256 errorBuffer,
             OfferItem[] memory offer,
             ConsiderationItem[] memory consideration
-        ) = _convertGetGeneratedOrderResult(_decodeGenerateOrderReturndata)();
+        ) = _convertGetGeneratedOrderResult(_decodeGenerateOrderReturndata)(
+            orderParameters.offer, orderParameters.consideration
+        );
 
         // Revert if the returndata could not be decoded correctly.
         if (errorBuffer != 0) {
             _revertInvalidContractOrder(orderHash);
         }
 
-        {
-            // Designate lengths.
-            uint256 originalOfferLength = orderParameters.offer.length;
-            uint256 newOfferLength = offer.length;
+        // Assign the returned offer item in place of the original item.
+        orderParameters.offer = offer;
 
-            // Explicitly specified offer items cannot be removed.
-            if (originalOfferLength > newOfferLength) {
-                _revertInvalidContractOrder(orderHash);
-            }
-
-            // Iterate over each specified offer (e.g. minimumReceived) item.
-            for (uint256 i = 0; i < originalOfferLength;) {
-                // Retrieve the pointer to the originally supplied item.
-                MemoryPointer mPtrOriginal =
-                    orderParameters.offer[i].toMemoryPointer();
-
-                // Retrieve the pointer to the newly returned item.
-                MemoryPointer mPtrNew = offer[i].toMemoryPointer();
-
-                // Compare the items and update the error buffer accordingly.
-                errorBuffer |= _cast(
-                    mPtrOriginal.offset(Common_amount_offset).readUint256()
-                        > mPtrNew.offset(Common_amount_offset).readUint256()
-                ) | _compareItems(mPtrOriginal, mPtrNew);
-
-                // Increment the array (cannot overflow as index starts at 0).
-                unchecked {
-                    ++i;
-                }
-            }
-
-            // Assign the returned offer item in place of the original item.
-            orderParameters.offer = offer;
-        }
-
-        {
-            // Designate lengths & memory locations.
-            ConsiderationItem[] memory originalConsiderationArray =
-                (orderParameters.consideration);
-            uint256 newConsiderationLength = consideration.length;
-
-            // New consideration items cannot be created.
-            if (newConsiderationLength > originalConsiderationArray.length) {
-                _revertInvalidContractOrder(orderHash);
-            }
-
-            // Iterate over returned consideration & do not exceed maximumSpent.
-            for (uint256 i = 0; i < newConsiderationLength;) {
-                // Retrieve the pointer to the originally supplied item.
-                MemoryPointer mPtrOriginal =
-                    originalConsiderationArray[i].toMemoryPointer();
-
-                // Retrieve the pointer to the newly returned item.
-                MemoryPointer mPtrNew = consideration[i].toMemoryPointer();
-
-                // Compare the items and update the error buffer accordingly
-                // and ensure that the recipients are equal when provided.
-                errorBuffer |= _cast(
-                    mPtrNew.offset(Common_amount_offset).readUint256()
-                        > mPtrOriginal.offset(Common_amount_offset).readUint256()
-                ) | _compareItems(mPtrOriginal, mPtrNew)
-                    | _checkRecipients(
-                        mPtrOriginal.offset(ReceivedItem_recipient_offset)
-                            .readAddress(),
-                        mPtrNew.offset(ConsiderItem_recipient_offset).readAddress()
-                    );
-
-                // Increment the array (cannot overflow as index starts at 0).
-                unchecked {
-                    ++i;
-                }
-            }
-
-            // Assign returned consideration item in place of the original item.
-            orderParameters.consideration = consideration;
-        }
-
-        // Revert if any item comparison failed.
-        if (errorBuffer != 0) {
-            _revertInvalidContractOrder(orderHash);
-        }
+        // Assign returned consideration item in place of the original item.
+        orderParameters.consideration = consideration;
 
         // Return the order hash.
         return orderHash;
@@ -956,7 +817,7 @@ contract OrderValidator is Executor, ZoneInteraction {
                     orderHash,
                     orderStatus,
                     false, // Signifies that partially filled orders are valid.
-                    true // Signifies to revert if the order is invalid.
+                    _runTimeConstantTrue() // Signifies to revert if the order is invalid.
                 );
 
                 // If the order has not already been validated...

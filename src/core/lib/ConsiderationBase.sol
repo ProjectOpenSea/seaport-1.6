@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.24;
 
 import { ConduitControllerInterface } from
     "seaport-types/src/interfaces/ConduitControllerInterface.sol";
@@ -221,7 +221,7 @@ contract ConsiderationBase is
         nameHash = keccak256(bytes(_nameString()));
 
         // Derive hash of the version string of the contract.
-        versionHash = keccak256(bytes("1.5"));
+        versionHash = keccak256(bytes("1.6"));
 
         // Construct the OfferItem type string.
         bytes memory offerItemTypeString = bytes(

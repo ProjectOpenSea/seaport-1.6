@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.24;
 
 import { ConsiderationInterface } from
     "seaport-types/src/interfaces/ConsiderationInterface.sol";
@@ -41,7 +41,8 @@ import {
  * @custom:coauthor d1ll0n (d1ll0n.eth)
  * @custom:coauthor transmissions11 (t11s.eth)
  * @custom:coauthor James Wenzel (emo.eth)
- * @custom:version 1.5
+ * @custom:coauthor Daniel Viau (snotrocket.eth)
+ * @custom:version 1.6
  * @notice Consideration is a generalized native token/ERC20/ERC721/ERC1155
  *         marketplace that provides lightweight methods for common routes as
  *         well as more flexible methods for composing advanced orders or groups
@@ -251,7 +252,7 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
                 CalldataStart.pptr()
             ),
             _toCriteriaResolversReturnType(_decodeCriteriaResolvers)(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAdvancedOrder_criteriaResolvers
                 )
             ),
@@ -346,14 +347,14 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
             _toNestedFulfillmentComponentsReturnType(
                 _decodeNestedFulfillmentComponents
             )(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAvailableOrders_offerFulfillments
                 )
             ),
             _toNestedFulfillmentComponentsReturnType(
                 _decodeNestedFulfillmentComponents
             )(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAvailableOrders_considerationFulfillments
                 )
             ),
@@ -476,21 +477,21 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
                 CalldataStart.pptr()
             ),
             _toCriteriaResolversReturnType(_decodeCriteriaResolvers)(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAvailableAdvancedOrders_criteriaResolvers
                 )
             ),
             _toNestedFulfillmentComponentsReturnType(
                 _decodeNestedFulfillmentComponents
             )(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAvailableAdvancedOrders_offerFulfillments
                 )
             ),
             _toNestedFulfillmentComponentsReturnType(
                 _decodeNestedFulfillmentComponents
             )(
-                CalldataStart.pptr(
+                CalldataStart.pptrOffset(
                     Offset_fulfillAvailableAdvancedOrders_cnsdrationFlflmnts
                 )
             ),
@@ -551,7 +552,7 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
             ),
             new CriteriaResolver[](0), // No criteria resolvers supplied.
             _toFulfillmentsReturnType(_decodeFulfillments)(
-                CalldataStart.pptr(Offset_matchOrders_fulfillments)
+                CalldataStart.pptrOffset(Offset_matchOrders_fulfillments)
             ),
             msg.sender
         );
@@ -635,10 +636,10 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
                 CalldataStart.pptr()
             ),
             _toCriteriaResolversReturnType(_decodeCriteriaResolvers)(
-                CalldataStart.pptr(Offset_matchAdvancedOrders_criteriaResolvers)
+                CalldataStart.pptrOffset(Offset_matchAdvancedOrders_criteriaResolvers)
             ),
             _toFulfillmentsReturnType(_decodeFulfillments)(
-                CalldataStart.pptr(Offset_matchAdvancedOrders_fulfillments)
+                CalldataStart.pptrOffset(Offset_matchAdvancedOrders_fulfillments)
             ),
             _substituteCallerForEmptyRecipient(recipient)
         );

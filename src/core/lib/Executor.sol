@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.24;
 
 import { ConduitInterface } from
     "seaport-types/src/interfaces/ConduitInterface.sol";
@@ -473,7 +473,7 @@ contract Executor is Verifiers, TokenTransferrer {
             _revertInvalidCallToConduit(conduit);
         }
 
-        // Ensure result was extracted and matches EIP-1271 magic value.
+        // Ensure result was extracted and matches magic value.
         if (result != ConduitInterface.execute.selector) {
             _revertInvalidConduit(conduitKey, conduit);
         }

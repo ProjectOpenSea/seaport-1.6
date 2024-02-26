@@ -18,6 +18,7 @@ using MemoryWriters for MemoryPointer global;
 
 CalldataPointer constant CalldataStart = CalldataPointer.wrap(0x04);
 MemoryPointer constant FreeMemoryPPtr = MemoryPointer.wrap(0x40);
+MemoryPointer constant ZeroSlotPtr = MemoryPointer.wrap(0x60);
 uint256 constant IdentityPrecompileAddress = 0x4;
 uint256 constant OffsetOrLengthMask = 0xffffffff;
 uint256 constant _OneWord = 0x20;
@@ -86,7 +87,7 @@ library CalldataPointerLib {
     /// @dev Resolves an offset stored at `cdPtr + headOffset` to a calldata.
     ///      pointer `cdPtr` must point to some parent object with a dynamic
     ///      type's head stored at `cdPtr + headOffset`.
-    function pptr(CalldataPointer cdPtr, uint256 headOffset)
+    function pptrOffset(CalldataPointer cdPtr, uint256 headOffset)
         internal
         pure
         returns (CalldataPointer cdPtrChild)
@@ -181,7 +182,7 @@ library ReturndataPointerLib {
     /// @dev Resolves an offset stored at `rdPtr + headOffset` to a returndata
     ///      pointer. `rdPtr` must point to some parent object with a dynamic
     ///      type's head stored at `rdPtr + headOffset`.
-    function pptr(ReturndataPointer rdPtr, uint256 headOffset)
+    function pptrOffset(ReturndataPointer rdPtr, uint256 headOffset)
         internal
         pure
         returns (ReturndataPointer rdPtrChild)
@@ -319,7 +320,7 @@ library MemoryPointerLib {
     /// @dev Resolves a pointer at `mPtr + headOffset` to a memory
     ///    pointer. `mPtr` must point to some parent object with a dynamic
     ///    type's pointer stored at `mPtr + headOffset`.
-    function pptr(MemoryPointer mPtr, uint256 headOffset)
+    function pptrOffset(MemoryPointer mPtr, uint256 headOffset)
         internal
         pure
         returns (MemoryPointer mPtrChild)
