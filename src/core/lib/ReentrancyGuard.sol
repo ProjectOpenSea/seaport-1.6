@@ -218,6 +218,9 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
      *         reentrancy guard is not currently set.
      */
     function _assertNonReentrant() internal view {
+        // Place immutable variable on the stack access within inline assembly.
+        bool tstoreInitialSupport = _tstoreInitialSupport;
+
         // Utilize assembly to check the reentrancy guard based on tstore support.
         assembly {
             // "Loop" over three possible cases for setting the reentrancy guard
@@ -278,6 +281,9 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
      *      native tokens may be received during execution is currently set.
      */
     function _assertAcceptingNativeTokens() internal view {
+        // Place immutable variable on the stack access within inline assembly.
+        bool tstoreInitialSupport = _tstoreInitialSupport;
+
         // Utilize assembly to check the reentrancy guard based on tstore support.
         assembly {
             // "Loop" over three possible cases for setting the reentrancy guard
