@@ -49,6 +49,11 @@ uint256 constant information_versionLengthPtr = 0x63;
 uint256 constant information_versionWithLength = 0x03312e36; // 1.6
 uint256 constant information_length = 0xa0;
 
+uint256 constant _REENTRANCY_GUARD_SLOT = 0x929eee14;
+uint256 constant _TSTORE_SUPPORTED_SLOT = 0x54778ab1;
+uint256 constant _TLOAD_TEST_PAYLOAD = 0x3d5c;
+uint256 constant _TLOAD_TEST_PAYLOAD_LENGTH = 0x02;
+uint256 constant _TLOAD_TEST_PAYLOAD_OFFSET = 0x0e;
 uint256 constant _NOT_ENTERED = 0;
 uint256 constant _ENTERED = 1;
 uint256 constant _ENTERED_AND_ACCEPTING_NATIVE_TOKENS = 2;
