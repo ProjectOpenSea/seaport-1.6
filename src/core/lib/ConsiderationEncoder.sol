@@ -8,6 +8,7 @@ import {
     authorizeOrder_zoneParameters_offset,
     BasicOrder_additionalRecipients_length_cdPtr,
     BasicOrder_common_params_size,
+    BasicOrder_consideration_offset_from_offer,
     BasicOrder_offerer_cdPtr,
     BasicOrder_startTime_cdPtr,
     BasicOrder_startTimeThroughZoneHash_size,
@@ -601,7 +602,7 @@ contract ConsiderationEncoder {
         unchecked {
             // Write consideration offset next (located 5 words after offer).
             dstHead.offset(ZoneParameters_consideration_head_offset).write(
-                tailOffset + BasicOrder_common_params_size
+                tailOffset + BasicOrder_consideration_offset_from_offer
             );
 
             // Retrieve the offset to the length of additional recipients.

@@ -149,13 +149,13 @@ uint256 constant DefaultFreeMemoryPointer = 0x80;
 uint256 constant Slot0x80 = 0x80;
 uint256 constant Slot0xA0 = 0xa0;
 
-// uint256 constant BasicOrder_endAmount_cdPtr = 0x104;
 uint256 constant BasicOrder_common_params_size = 0xa0;
 uint256 constant BasicOrder_considerationHashesArray_ptr = 0x160;
 uint256 constant BasicOrder_receivedItemByteMap =
     (0x0000010102030000000000000000000000000000000000000000000000000000);
 uint256 constant BasicOrder_offeredItemByteMap =
     (0x0203020301010000000000000000000000000000000000000000000000000000);
+uint256 constant BasicOrder_consideration_offset_from_offer = 0xa0;
 
 bytes32 constant OrdersMatchedTopic0 =
     (0x4b9f2d36e1b4c93de62cc077b00b1a91d84b6c31b4a14e012718dcca230689e7);
