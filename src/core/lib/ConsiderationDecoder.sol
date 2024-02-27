@@ -861,14 +861,22 @@ contract ConsiderationDecoder {
     /**
      * @dev Decodes the returndata from a call to generateOrder, or returns
      *      empty arrays and a boolean signifying that the returndata does not
-     *      adhere to a valid encoding scheme if it cannot be decoded.
+     *      adhere to a valid encoding scheme if it cannot be decoded. Note
+     *      that this function expects that original offer and consideration
+     *      item arrays have been modified and repurposed to resemble spent
+     *      and received item arrays; specifically, the recipient should be
+     *      in the endAmount location on consideration items and the derived
+     *      amount should be in the startAmount location for both item types.
      *
      * @return invalidEncoding A boolean signifying whether the returndata has
      *                         an invalid encoding.
      * @return offer           The decoded offer array.
      * @return consideration   The decoded consideration array.
      */
-    function _decodeGenerateOrderReturndata(MemoryPointer originalOffer, MemoryPointer originalConsideration)
+    function _decodeGenerateOrderReturndata(
+        MemoryPointer originalOffer,
+        MemoryPointer originalConsideration
+    )
         internal
         pure
         returns (
@@ -1121,6 +1129,8 @@ contract ConsiderationDecoder {
 
                     // Compare items' item type, token, and identifier, ensure they have the same
                     // recipient and that the new amount is less than or equal to the original amount.
+                    // The original recipient must already be present at the ReceivedItem recipient
+                    // offset rather than at the initial ConsiderationItem recipient offset.
                     invalidReceivedItems := or(
                         invalidReceivedItems,
                         or(
