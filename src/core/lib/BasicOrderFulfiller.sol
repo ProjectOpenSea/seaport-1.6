@@ -1019,7 +1019,7 @@ contract BasicOrderFulfiller is OrderValidator {
             mstore(FreeMemoryPointerSlot, add(eventDataPtr, dataSize))
         }
 
-        // Verify and update the status of the derived order.
+        // Verify the status of the derived order.
         OrderStatus storage orderStatus = _validateBasicOrder(
             orderHash,
             _toBytesReturnType(_decodeBytes)(
