@@ -492,7 +492,11 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                 // Update order status as long as there is some fraction available.
                 if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
                     if (!_checkRestrictedAdvancedOrderAuthorization(
-                        advancedOrder, orderHashes, orderHash, (i >> OneWordShift) - 1, revertOnInvalid
+                        advancedOrder,
+                        orderHashes,
+                        orderHash,
+                        (i >> OneWordShift) - 1,
+                        revertOnInvalid
                     )) {
                         assembly {
                             mstore(add(orderHashes, i), 0)
@@ -507,7 +511,10 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         orderHash,
                         advancedOrder.numerator,
                         advancedOrder.denominator,
-                        revertOnInvalid
+                        _revertOnFailedUpdate(
+                            advancedOrder.parameters.orderType,
+                            revertOnInvalid
+                        )
                     )) {
                         assembly {
                             mstore(add(orderHashes, i), 0)
@@ -1176,6 +1183,29 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                     // indicating that the execution does not involve native tokens.
                     iszero(iszero(mload(item)))
                 )
+        }
+    }
+
+    /**
+     * @dev Internal pure function to determine whether a status update failure
+     *      should cause a revert or allow a skipped order. The call must revert
+     *      if an authorizeOrder call has been successfully performed and the
+     *      status update cannot be performed, regardless of whether the order
+     *      could be otherwise marked as skipped.
+     *
+     * @param orderType       The order type.
+     * @param revertOnInvalid A boolean indicating whether the call should
+     *                        revert for non-restricted order types.
+     *
+     * @return revertOnFailedUpdate A boolean indicating whether the order should
+     *                              revert on a failed status update.
+     */
+    function _revertOnFailedUpdate(
+        OrderType orderType,
+        bool revertOnInvalid
+    ) internal pure returns (bool revertOnFailedUpdate) {
+        assembly {
+            revertOnFailedUpdate := or(revertOnInvalid, gt(orderType, 1))
         }
     }
 }
