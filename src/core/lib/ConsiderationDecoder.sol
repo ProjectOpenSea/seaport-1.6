@@ -38,7 +38,7 @@ import {
     FulfillmentComponent_mem_tail_size_shift,
     FulfillmentComponent_mem_tail_size,
     generateOrder_maximum_returndatasize,
-    OfferItem_size_with_length,
+    OfferItem_size_with_head_pointer,
     OfferItem_size,
     OneWord,
     OneWordShift,
@@ -985,7 +985,7 @@ contract ConsiderationDecoder {
                     FreeMemoryPointerSlot,
                     add(
                         mPtrLength,
-                        add(OneWord, mul(length, OfferItem_size_with_length))
+                        add(OneWord, mul(length, OfferItem_size_with_head_pointer))
                     )
                 )
 
