@@ -564,7 +564,7 @@ contract ConsiderationEncoder {
 
         MemoryPointer dst = ptr;
 
-        // Write validateOrder selector and get pointer to start of calldata.
+        // Write authorizeOrder selector and get pointer to start of calldata.
         dst.write(authorizeOrder_selector);
         dst = dst.offset(authorizeOrder_selector_offset);
 
