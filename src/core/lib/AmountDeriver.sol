@@ -137,7 +137,7 @@ contract AmountDeriver is AmountDerivationErrors {
         // Multiply the numerator by the value and ensure no overflow occurs.
         uint256 valueTimesNumerator = value * numerator;
 
-        // Divide and check for remainder. Note that denominator cannot be zero.
+        // Divide by the denominator (note that denominator cannot be zero).
         assembly {
             // Perform division without zero check.
             newValue := div(valueTimesNumerator, denominator)
