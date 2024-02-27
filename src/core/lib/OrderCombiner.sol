@@ -44,12 +44,10 @@ import {
     TwoWords
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
-<<<<<<< HEAD
+import { MemoryPointer, MemoryPointerLib, ZeroSlotPtr } from "seaport-types/src/helpers/PointerLibraries.sol";
+
 import "forge-std/console.sol";
 import { helm } from "seaport-sol/src/helm.sol";
-=======
-import { MemoryPointer, MemoryPointerLib, ZeroSlotPtr } from "seaport-types/src/helpers/PointerLibraries.sol";
->>>>>>> 78e7973d455959ffe2e4c6bbbdc32b167de59e17
 
 /**
  * @title OrderCombiner
