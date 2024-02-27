@@ -1094,8 +1094,7 @@ contract ConsiderationDecoder {
 
                 // Iterate over each new element with a corresponding original item.
                 // For each new received item, check that:
-                // - There is a corresponding original consideration item.
-                // - The items match with compareItems.
+                // - The new item and corresponding original item match with compareItems.
                 // - The new amount is less than or equal to the original amount.
                 // - The items have the same recipient if the original's was not null.
                 invalidReceivedItems := gt(length, originalConsiderationLength)
