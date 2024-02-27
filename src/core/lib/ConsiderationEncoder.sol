@@ -544,7 +544,9 @@ contract ConsiderationEncoder {
 
     /**
      * @dev Takes an order hash and BasicOrderParameters struct (from calldata)
-     *      and encodes it as `authorizeOrder` calldata.
+     *      and encodes it as `authorizeOrder` calldata. Note that data is
+     *      copied from event data, so this function will need to be modified if
+     *      the layout of that event data changes.
      *
      * @param orderHash  The order hash.
      *
