@@ -461,9 +461,12 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
         // Apply criteria resolvers to each order as applicable.
         _applyCriteriaResolvers(advancedOrders, criteriaResolvers);
 
-        // Emit an event for each order signifying that it has been fulfilled.
+        // Iterate over each order to check authorization status (for restricted
+        // orders), generate orders (for contract orders), and emit events (for
+        // all available orders) signifying that they have been fulfilled.
         // Skip overflow checks as all for loops are indexed starting at zero.
         unchecked {
+            // Declare stack variable outside of the loop to track order hash.
             bytes32 orderHash;
 
             // Iterate over each order.
@@ -524,7 +527,10 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         orderHash,
                         advancedOrder.numerator,
                         advancedOrder.denominator,
-                        revertOnInvalid
+                        _revertOnFailedUpdate(
+                            advancedOrder.parameters,
+                            revertOnInvalid
+                        )
                     )) {
                         assembly {
                             mstore(add(orderHashes, i), 0)
@@ -1196,6 +1202,36 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                     // native tokens.
                     iszero(iszero(mload(item)))
                 )
+        }
+    }
+
+    /**
+     * @dev Internal view function to determine whether a status update failure
+     *      should cause a revert or allow a skipped order. The call must revert
+     *      if an `authorizeOrder` call has been successfully performed and the
+     *      status update cannot be performed, regardless of whether the order
+     *      could be otherwise marked as skipped. Note that a revert is not
+     *      required on a failed update if the call originates from the zone, as
+     *      no `authorizeOrder` call is performed in that case.
+     *
+     * @param orderParameters The order parameters in question.
+     * @param revertOnInvalid A boolean indicating whether the call should
+     *                        revert for non-restricted order types.
+     *
+     * @return revertOnFailedUpdate A boolean indicating whether the order
+     *                              should revert on a failed status update.
+     */
+    function _revertOnFailedUpdate(
+        OrderParameters memory orderParameters,
+        bool revertOnInvalid
+    ) internal view returns (bool revertOnFailedUpdate) {
+        OrderType orderType = orderParameters.orderType;
+        address zone = orderParameters.zone;
+        assembly {
+            revertOnFailedUpdate := or(
+                revertOnInvalid,
+                and(gt(orderType, 1), iszero(eq(caller(), zone)))
+            )
         }
     }
 }
