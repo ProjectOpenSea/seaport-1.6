@@ -16,7 +16,12 @@ import { LowLevelHelpers } from "./LowLevelHelpers.sol";
 
 import { ConsiderationEncoder } from "./ConsiderationEncoder.sol";
 
-import { CalldataPointer, MemoryPointer, OffsetOrLengthMask, ZeroSlotPtr } from "seaport-types/src/helpers/PointerLibraries.sol";
+import {
+    CalldataPointer,
+    MemoryPointer,
+    OffsetOrLengthMask,
+    ZeroSlotPtr
+} from "seaport-types/src/helpers/PointerLibraries.sol";
 
 import {
     authorizeOrder_selector_offset,
@@ -64,17 +69,24 @@ contract ZoneInteraction is
         // Order type 2-3 require zone be caller or zone to approve.
         // Note that in cases where fulfiller == zone, the restricted order
         // validation will be skipped.
-        if (_isRestrictedAndCallerNotZone(orderType, CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress())) {
+        if (
+            _isRestrictedAndCallerNotZone(
+                orderType,
+                CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress()
+            )
+        ) {
             // Encode the `authorizeOrder` call in memory.
+            (
+                MemoryPointer callData,
+                uint256 size,
+                uint256 memoryLocationForOrderHashes
+            ) = _encodeAuthorizeBasicOrder(orderHash);
 
-            (MemoryPointer callData, uint256 size, uint256 memoryLocationForOrderHashes) =
-                _encodeAuthorizeBasicOrder(orderHash);
-
-            // Write the error selector to memory at the zero slot where it can be used
-            // to revert with a specific error message.
+            // Write the error selector to memory at the zero slot where it can
+            // be used to revert with a specific error message.
             ZeroSlotPtr.write(InvalidRestrictedOrder_error_selector);
 
-            // Perform `authorizeOrder` call and ensure magic value was returned.
+            // Perform `authorizeOrder` call & ensure magic value was returned.
             _callAndCheckStatus(
                 CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress(),
                 orderHash,
@@ -85,10 +97,17 @@ contract ZoneInteraction is
             // Restore the zero slot.
             ZeroSlotPtr.write(0);
 
+            // Register the calldata pointer for the encoded calldata.
             callDataPointer = MemoryPointer.unwrap(callData);
         
+            // Utilize unchecked logic as size value cannot be so large as to
+            // cause an overflow.
             unchecked {
-                callData.write((size + OneWord) << 128 | memoryLocationForOrderHashes);
+                // Write the packed encoding of size and memory location for
+                // order hashes to memory at the head of the encoded calldata.
+                callData.write(
+                    (size + OneWord) << 128 | memoryLocationForOrderHashes
+                );
             }
         }
     }
@@ -114,20 +133,35 @@ contract ZoneInteraction is
         // Order type 2-3 require zone be caller or zone to approve.
         // Note that in cases where fulfiller == zone, the restricted order
         // validation will be skipped.
-        if (_isRestrictedAndCallerNotZone(orderType, CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress())) {
+        if (
+            _isRestrictedAndCallerNotZone(
+                orderType,
+                CalldataPointer.wrap(BasicOrder_zone_cdPtr).readAddress()
+            )
+        ) {
+            // Cast the call data pointer to a memory pointer.
             MemoryPointer callData = MemoryPointer.wrap(callDataPtr);
-            uint256 sizeAndMemoryLocationForOrderHashes = callData.readUint256();
 
+            // Retrieve the size and memory location for order hashes from the
+            // head of the encoded calldata where it was previously written.
+            uint256 sizeAndMemoryLocationForOrderHashes = (
+                callData.readUint256()
+            );
+
+            // Split the packed encoding to retrieve size and memory location.
             uint256 size = sizeAndMemoryLocationForOrderHashes >> 128;
-            uint256 memoryLocationForOrderHashes = sizeAndMemoryLocationForOrderHashes & OffsetOrLengthMask;
+            uint256 memoryLocationForOrderHashes = (
+                sizeAndMemoryLocationForOrderHashes & OffsetOrLengthMask
+            );
 
             // Encode the `validateOrder` call in memory.
             _encodeValidateBasicOrder(callData, memoryLocationForOrderHashes);
 
+            // Account for the offset of the selector in the encoded call data.
             callData = callData.offset(validateOrder_selector_offset);
 
-            // Write the error selector to memory at the zero slot where it can be used
-            // to revert with a specific error message.
+            // Write the error selector to memory at the zero slot where it can
+            // be used to revert with a specific error message.
             ZeroSlotPtr.write(InvalidRestrictedOrder_error_selector);
 
             // Perform `validateOrder` call and ensure magic value was returned.
@@ -143,6 +177,24 @@ contract ZoneInteraction is
         }
     }
 
+    /**
+     * @dev Internal function to determine the pre-execution validity of
+     *      restricted orders, signaling whether or not the order is valid.
+     *      Restricted orders where the caller is not the zone must
+     *      successfully call `authorizeOrder` with the correct magic value
+     *      returned.
+     *
+     * @param advancedOrder   The advanced order in question.
+     * @param orderHashes     The order hashes of each order included as part
+     *                        of the current fulfillment.
+     * @param orderHash       The hash of the order.
+     * @param orderIndex      The index of the order.
+     * @param revertOnInvalid Whether to revert if the call is invalid.
+     * 
+     * @return isValid True if the order is valid, false otherwise (unless
+     *                 revertOnInvalid is true, in which case this function
+     *                 will revert).
+     */
     function _checkRestrictedAdvancedOrderAuthorization(
         AdvancedOrder memory advancedOrder,
         bytes32[] memory orderHashes,
@@ -167,12 +219,32 @@ contract ZoneInteraction is
             );
 
             // Perform call and ensure a corresponding magic value was returned.
-            return _callAndCheckStatusWithSkip(parameters.zone, orderHash, callData, size, InvalidRestrictedOrder_error_selector, revertOnInvalid);
+            return _callAndCheckStatusWithSkip(
+                parameters.zone,
+                orderHash,
+                callData,
+                size,
+                InvalidRestrictedOrder_error_selector,
+                revertOnInvalid
+            );
         }
 
         return true;
     }
 
+    /**
+     * @dev Internal function to determine the pre-execution validity of
+     *      restricted orders and to revert if the order is invalid.
+     *      Restricted orders where the caller is not the zone must
+     *      successfully call `authorizeOrder` with the correct magic value
+     *      returned.
+     *
+     * @param advancedOrder   The advanced order in question.
+     * @param orderHashes     The order hashes of each order included as part
+     *                        of the current fulfillment.
+     * @param orderHash       The hash of the order.
+     * @param orderIndex      The index of the order.
+     */
     function _assertRestrictedAdvancedOrderAuthorization(
         AdvancedOrder memory advancedOrder,
         bytes32[] memory orderHashes,
@@ -182,7 +254,7 @@ contract ZoneInteraction is
         // Retrieve the parameters of the order in question.
         OrderParameters memory parameters = advancedOrder.parameters;
 
-        // OrderType 2-3 require zone to be caller or approve via authorizeOrder.
+        // OrderType 2-3 requires zone to call or approve via authorizeOrder.
         if (
             _isRestrictedAndCallerNotZone(parameters.orderType, parameters.zone)
         ) {
@@ -195,8 +267,8 @@ contract ZoneInteraction is
                 orderIndex
             );
             
-            // Write the error selector to memory at the zero slot where it can be used
-            // to revert with a specific error message.
+            // Write the error selector to memory at the zero slot where it can
+            // be used to revert with a specific error message.
             ZeroSlotPtr.write(InvalidRestrictedOrder_error_selector);
 
             // Perform call and ensure a corresponding magic value was returned.
@@ -278,8 +350,8 @@ contract ZoneInteraction is
             return;
         }
         
-        // Write the error selector to memory at the zero slot where it can be used
-        // to revert with a specific error message.
+        // Write the error selector to memory at the zero slot where it can be
+        // used to revert with a specific error message.
         ZeroSlotPtr.write(errorSelector);
 
         // Perform call and ensure a corresponding magic value was returned.
@@ -304,12 +376,13 @@ contract ZoneInteraction is
         view
         returns (bool mustValidate)
     {
+        // Utilize assembly to efficiently perform the check.
         assembly {
             mustValidate :=
                 and(
-                    // Note that this check requires that there are no order types
-                    // beyond the current set (0-4).  It will need to be modified if
-                    // more order types are added.
+                    // Note that this check requires that there are no order
+                    // types beyond the current set (0-4).  It will need to be
+                    // modified if more order types are added.
                     and(lt(orderType, 4), gt(orderType, 1)),
                     iszero(eq(caller(), zone))
                 )
