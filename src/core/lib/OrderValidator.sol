@@ -123,8 +123,11 @@ contract OrderValidator is Executor, ZoneInteraction {
     function _updateBasicOrderStatus(OrderStatus storage orderStatus) internal {
         // Utilize assembly to efficiently update the order status.
         assembly {
-            // Update order status as validated, not cancelled, and fully filled.
-            orderStatus.slot := OrderStatus_ValidatedAndNotCancelledAndFullyFilled
+            // Update order status as validated, not cancelled, & fully filled.
+            sstore(
+                orderStatus.slot,
+                OrderStatus_ValidatedAndNotCancelledAndFullyFilled
+            )
         }  
     }
 
