@@ -465,7 +465,10 @@ contract ReferenceOrderValidator is
                 }
             } else {
                 // If the call fails, revert or return empty.
-                (orderHash, orderToExecute) = _revertOrReturnEmpty(revertOnInvalid, orderHash);
+                (orderHash, orderToExecute) = _revertOrReturnEmpty(
+                    revertOnInvalid,
+                    orderHash
+                );
                 return orderHash;
             }
         }
@@ -484,29 +487,15 @@ contract ReferenceOrderValidator is
                     SpentItem[] memory extendedSpent = new SpentItem[](
                         newOfferLength
                     );
-                    uint256[]
-                        memory extendedSpentItemOriginalAmounts = new uint256[](
-                            newOfferLength
-                        );
 
                     // Copy original spent items to new array.
                     for (uint256 i = 0; i < originalOfferLength; ++i) {
                         extendedSpent[i] = orderToExecute.spentItems[i];
-                        extendedSpentItemOriginalAmounts[i] = (
-                            orderToExecute.spentItemOriginalAmounts[i]
-                        );
                     }
 
                     // Update order to execute with extended items.
                     orderToExecute.spentItems = extendedSpent;
-                    orderToExecute.spentItemOriginalAmounts = (
-                        extendedSpentItemOriginalAmounts
-                    );
                 }
-            } else {
-                orderToExecute.spentItemOriginalAmounts = new uint256[](
-                    originalOfferLength
-                );
             }
 
             // Loop through each new offer and ensure the new amounts are at
@@ -541,21 +530,16 @@ contract ReferenceOrderValidator is
                 ) {
                     revert InvalidContractOrder(orderHash);
                 }
-
-                // Update the original amounts to use the generated amounts.
-                originalOffer.amount = newOffer.amount;
-                orderToExecute.spentItemOriginalAmounts[i] = newOffer.amount;
             }
 
-            // Add new offer items if there are more than original.
-            for (uint256 i = originalOfferLength; i < newOfferLength; ++i) {
-                SpentItem memory newOffer = offer[i];
+            orderToExecute.spentItems = offer;
+            orderToExecute.spentItemOriginalAmounts = new uint256[](
+                offer.length
+            );
 
-                orderToExecute.spentItems[i].itemType = newOffer.itemType;
-                orderToExecute.spentItems[i].token = newOffer.token;
-                orderToExecute.spentItems[i].identifier = newOffer.identifier;
-                orderToExecute.spentItems[i].amount = newOffer.amount;
-                orderToExecute.spentItemOriginalAmounts[i] = newOffer.amount;
+            // Add new offer items if there are more than original.
+            for (uint256 i = 0; i < offer.length; ++i) {
+                orderToExecute.spentItemOriginalAmounts[i] = offer[i].amount;
             }
         }
 
@@ -570,10 +554,6 @@ contract ReferenceOrderValidator is
             if (newConsiderationLength > originalConsiderationArray.length) {
                 revert InvalidContractOrder(orderHash);
             }
-
-            orderToExecute.receivedItemOriginalAmounts = new uint256[](
-                newConsiderationLength
-            );
 
             // Loop through and check consideration.
             for (uint256 i = 0; i < newConsiderationLength; ++i) {
@@ -610,44 +590,22 @@ contract ReferenceOrderValidator is
                 ) {
                     revert InvalidContractOrder(orderHash);
                 }
-
-                // Update the original amounts to use the generated amounts.
-                originalConsideration.amount = newConsideration.amount;
-                originalConsideration.recipient = newConsideration.recipient;
-
-                orderToExecute.receivedItemOriginalAmounts[i] = (
-                    newConsideration.amount
-                );
             }
 
-            {
-                ReceivedItem[] memory shortenedReceivedItems = (
-                    new ReceivedItem[](newConsiderationLength)
-                );
-
-                // Iterate over original consideration array and copy to new.
-                for (uint256 i = 0; i < newConsiderationLength; ++i) {
-                    shortenedReceivedItems[i] = orderToExecute.receivedItems[i];
-                }
-
-                orderToExecute.receivedItems = shortenedReceivedItems;
-            }
-
-            uint256[] memory shortenedReceivedItemOriginalAmounts = (
-                new uint256[](newConsiderationLength)
+            orderToExecute.receivedItems = consideration;
+            orderToExecute.receivedItemOriginalAmounts = new uint256[](
+                consideration.length
             );
 
             // Iterate over original consideration array and copy to new.
-            for (uint256 i = 0; i < newConsiderationLength; ++i) {
-                shortenedReceivedItemOriginalAmounts[i] = (
-                    orderToExecute.receivedItemOriginalAmounts[i]
+            for (uint256 i = 0; i < consideration.length; ++i) {
+                orderToExecute.receivedItemOriginalAmounts[i] = (
+                    consideration[i].amount
                 );
             }
-
-            orderToExecute.receivedItemOriginalAmounts = (
-                shortenedReceivedItemOriginalAmounts
-            );
         }
+
+        orderToExecute.numerator = 1;
 
         // Return the order hash.
         return orderHash;
