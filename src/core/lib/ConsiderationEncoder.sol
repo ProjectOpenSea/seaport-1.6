@@ -193,7 +193,9 @@ contract ConsiderationEncoder {
         }
 
         // Write offset to maximumSpent.
-        dstHead.offset(generateOrder_maximumSpent_head_offset).write(tailOffset);
+        dstHead.offset(generateOrder_maximumSpent_head_offset).write(
+            tailOffset
+        );
 
         // Get memory pointer to `orderParameters.consideration.length`.
         MemoryPointer srcConsiderationPointer = src.offset(
@@ -458,15 +460,19 @@ contract ConsiderationEncoder {
 
         unchecked {
             // Copy extraData.
-            uint256 extraDataSize =
-                _encodeBytes(toMemoryPointer(extraData), dstHead.offset(tailOffset));
+            uint256 extraDataSize =_encodeBytes(
+                toMemoryPointer(extraData),
+                dstHead.offset(tailOffset)
+            );
 
             // Increment tail offset, now used to populate orderHashes array.
             tailOffset += extraDataSize;
         }
 
         // Write offset to orderHashes.
-        dstHead.offset(ZoneParameters_orderHashes_head_offset).write(tailOffset);
+        dstHead.offset(ZoneParameters_orderHashes_head_offset).write(
+            tailOffset
+        );
 
         // Encode the order hashes array.
         MemoryPointer orderHashesLengthLocation = dstHead.offset(tailOffset);
@@ -528,7 +534,9 @@ contract ConsiderationEncoder {
     ) internal view returns (MemoryPointer dst, uint256 size) {
         dst = MemoryPointer.wrap(salt >> 128);
         size = (salt >> 64) & OffsetOrLengthMask;
-        MemoryPointer orderHashesLengthLocation = MemoryPointer.wrap(salt & OffsetOrLengthMask);
+        MemoryPointer orderHashesLengthLocation = MemoryPointer.wrap(
+            salt & OffsetOrLengthMask
+        );
 
         // Write validateOrder selector.
         dst.write(validateOrder_selector);
@@ -638,9 +646,13 @@ contract ConsiderationEncoder {
         }
 
         // Write offset to orderHashes.
-        dstHead.offset(ZoneParameters_orderHashes_head_offset).write(tailOffset);
+        dstHead.offset(ZoneParameters_orderHashes_head_offset).write(
+            tailOffset
+        );
 
-        memoryLocationForOrderHashes = MemoryPointer.unwrap(dstHead.offset(tailOffset));
+        memoryLocationForOrderHashes = MemoryPointer.unwrap(
+            dstHead.offset(tailOffset)
+        );
 
         // Write length = 0 to the orderHashes array.
         dstHead.offset(tailOffset).write(0);
