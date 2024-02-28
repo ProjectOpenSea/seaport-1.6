@@ -4,7 +4,9 @@ pragma solidity ^0.8.24;
 import { ConduitInterface } from
     "seaport-types/src/interfaces/ConduitInterface.sol";
 
-import { ConduitItemType } from "seaport-types/src/conduit/lib/ConduitEnums.sol";
+import {
+    ConduitItemType
+} from "seaport-types/src/conduit/lib/ConduitEnums.sol";
 
 import { ItemType } from "seaport-types/src/lib/ConsiderationEnums.sol";
 
@@ -457,8 +459,15 @@ contract Executor is Verifiers, TokenTransferrer {
             mstore(0, 0)
 
             // Perform call, placing first word of return data in scratch space.
-            success :=
-                call(gas(), conduit, 0, callDataOffset, callDataSize, 0, OneWord)
+            success := call(
+                gas(),
+                conduit,
+                0,
+                callDataOffset,
+                callDataSize,
+                0,
+                OneWord
+            )
 
             // Take value from scratch space and place it on the stack.
             result := mload(0)
@@ -548,8 +557,10 @@ contract Executor is Verifiers, TokenTransferrer {
         } else {
             // Otherwise, increase the number of elements by one.
             assembly {
-                elements :=
-                    add(mload(add(accumulator, Accumulator_array_length_ptr)), 1)
+                elements := add(
+                    mload(add(accumulator, Accumulator_array_length_ptr)),
+                    1
+                )
                 mstore(add(accumulator, Accumulator_array_length_ptr), elements)
             }
         }

@@ -200,6 +200,18 @@ contract CriteriaResolution is CriteriaResolutionErrors {
         }
     }
 
+    /**
+     * @dev Internal pure function to examine an array of items and ensure that
+     *      all criteria-based items (with the exception of wildcard items on
+     *      contract orders) have had a criteria resolver successfully applied.
+     *
+     * @param orderIndex     The index of the order being examined.
+     * @param items          The items to examine. These are consideration items
+     *                       in the default case, but offer items are also casted
+     *                       to consideration items as required.
+     * @param orderType      The type of order being examined.
+     * @param revertSelector The selector to use when reverting.
+     */
     function _ensureAllRequiredCriteriaResolved(
         uint256 orderIndex,
         ConsiderationItem[] memory items,
@@ -254,6 +266,15 @@ contract CriteriaResolution is CriteriaResolutionErrors {
         }
     }
 
+    /**
+     * @dev Internal pure function to perform a function cast from a function
+     *      that accepts consideration items to a function that accepts offer
+     *      items, used by _ensureAllRequiredCriteriaResolved to ensure that
+     *      all necessary criteria items have been resolved for an order.
+     *
+     * @param inFn  The function that accepts consideration items.
+     * @param outFn The function that accepts offer items.
+     */
     function _toOfferItemArgumentType(
         function(
             uint256,

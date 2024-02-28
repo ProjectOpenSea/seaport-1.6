@@ -147,8 +147,8 @@ contract TokenTransferrer is TokenTransferrerErrors {
             let success :=
                 and(
                     // Set success to whether the call reverted, if not check it
-                    // either returned exactly 1 (can't just be non-zero data), or
-                    // had no return data.
+                    // either returned exactly 1 (can't just be non-zero data),
+                    // or had no return data.
                     or(
                         and(eq(mload(0), 1), gt(returndatasize(), 31)),
                         iszero(returndatasize())
@@ -199,7 +199,10 @@ contract TokenTransferrer is TokenTransferrerErrors {
                                             cost,
                                             add(
                                                 mul(
-                                                    sub(returnDataWords, msizeWords),
+                                                    sub(
+                                                        returnDataWords,
+                                                        msizeWords
+                                                    ),
                                                     CostPerWord
                                                 ),
                                                 shr(
@@ -209,7 +212,10 @@ contract TokenTransferrer is TokenTransferrerErrors {
                                                             returnDataWords,
                                                             returnDataWords
                                                         ),
-                                                        mul(msizeWords, msizeWords)
+                                                        mul(
+                                                            msizeWords,
+                                                            msizeWords
+                                                        )
                                                     )
                                                 )
                                             )
@@ -409,7 +415,10 @@ contract TokenTransferrer is TokenTransferrerErrors {
                                     shr(
                                         MemoryExpansionCoefficientShift,
                                         sub(
-                                            mul(returnDataWords, returnDataWords),
+                                            mul(
+                                                returnDataWords,
+                                                returnDataWords
+                                            ),
                                             mul(msizeWords, msizeWords)
                                         )
                                     )
@@ -560,7 +569,10 @@ contract TokenTransferrer is TokenTransferrerErrors {
                                     shr(
                                         MemoryExpansionCoefficientShift,
                                         sub(
-                                            mul(returnDataWords, returnDataWords),
+                                            mul(
+                                                returnDataWords,
+                                                returnDataWords
+                                            ),
                                             mul(msizeWords, msizeWords)
                                         )
                                     )
@@ -681,7 +693,10 @@ contract TokenTransferrer is TokenTransferrerErrors {
                 // Get the total number of supplied ids.
                 let idsLength :=
                     calldataload(
-                        add(elementPtr, ConduitBatch1155Transfer_ids_length_offset)
+                        add(
+                            elementPtr,
+                            ConduitBatch1155Transfer_ids_length_offset
+                        )
                     )
 
                 // Determine the expected offset for the amounts array.
@@ -698,7 +713,9 @@ contract TokenTransferrer is TokenTransferrerErrors {
                             // ids.length == amounts.length
                             eq(
                                 idsLength,
-                                calldataload(add(elementPtr, expectedAmountsOffset))
+                                calldataload(
+                                    add(elementPtr, expectedAmountsOffset)
+                                )
                             ),
                             and(
                                 // ids_offset == 0xa0
@@ -778,7 +795,8 @@ contract TokenTransferrer is TokenTransferrerErrors {
                 // Determine the total calldata size for the call to transfer.
                 let transferDataSize :=
                     add(
-                        BatchTransfer1155Params_calldata_baseSize, idsAndAmountsSize
+                        BatchTransfer1155Params_calldata_baseSize,
+                        idsAndAmountsSize
                     )
 
                 // Copy second section of calldata (including dynamic values).
@@ -810,7 +828,10 @@ contract TokenTransferrer is TokenTransferrerErrors {
                         // Start by computing word size of returndata and
                         // allocated memory. Round up to the nearest full word.
                         let returnDataWords :=
-                            shr(OneWordShift, add(returndatasize(), ThirtyOneBytes))
+                            shr(
+                                OneWordShift,
+                                add(returndatasize(), ThirtyOneBytes)
+                            )
 
                         // Note: use transferDataSize in place of msize() to
                         // work around a Yul warning that prevents accessing
@@ -839,7 +860,8 @@ contract TokenTransferrer is TokenTransferrerErrors {
                                             MemoryExpansionCoefficientShift,
                                             sub(
                                                 mul(
-                                                    returnDataWords, returnDataWords
+                                                    returnDataWords,
+                                                    returnDataWords
                                                 ),
                                                 mul(msizeWords, msizeWords)
                                             )

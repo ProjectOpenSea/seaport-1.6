@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import { OrderParameters } from "seaport-types/src/lib/ConsiderationStructs.sol";
+import {
+    OrderParameters
+} from "seaport-types/src/lib/ConsiderationStructs.sol";
 
 import { GettersAndDerivers } from "./GettersAndDerivers.sol";
 
@@ -15,7 +17,7 @@ import {
     AddressDirtyUpperBitThreshold,
     BasicOrder_additionalRecipients_head_cdPtr,
     BasicOrder_additionalRecipients_head_ptr,
-    BasicOrder_additionalRecipients_length_cdPtr,
+    BasicOrder_addlRecipients_length_cdPtr,
     BasicOrder_basicOrderType_cdPtr,
     BasicOrder_basicOrderType_range,
     BasicOrder_considerationToken_cdPtr,
@@ -154,12 +156,12 @@ contract Assertions is
                 and(
                     and(
                         and(
-                            // Order parameters at cd 0x04 must have offset of 0x20.
+                            // Order parameters at cd 0x04 offset = 0x20.
                             eq(
                                 calldataload(BasicOrder_parameters_cdPtr),
                                 BasicOrder_parameters_ptr
                             ),
-                            // Additional recipients (cd 0x224) arr offset == 0x240.
+                            // Additional recipients at cd 0x224 offset = 0x240.
                             eq(
                                 calldataload(
                                     BasicOrder_additionalRecipients_head_cdPtr
@@ -167,19 +169,19 @@ contract Assertions is
                                 BasicOrder_additionalRecipients_head_ptr
                             )
                         ),
-                        // Signature offset == 0x260 + (recipients.length * 0x40).
+                        // Signature offset = 0x260 + recipients.length * 0x40.
                         eq(
                             // Load signature offset from calldata 0x244.
                             calldataload(BasicOrder_signature_cdPtr),
-                            // Expected offset is start of recipients + len * 64.
+                            // Expected offset = start of recipients + len * 64.
                             add(
                                 BasicOrder_signature_ptr,
                                 shl(
-                                    // Each additional recipient has length of 0x40.
+                                    // Each additional recipient length = 0x40.
                                     AdditionalRecipient_size_shift,
                                     // Additional recipients length at cd 0x264.
                                     calldataload(
-                                        BasicOrder_additionalRecipients_length_cdPtr
+                                        BasicOrder_addlRecipients_length_cdPtr
                                     )
                                 )
                             )
@@ -188,25 +190,25 @@ contract Assertions is
                     and(
                         // Ensure BasicOrderType parameter is less than 0x18.
                         lt(
-                            // BasicOrderType parameter at calldata offset 0x124.
+                            // BasicOrderType parameter = calldata offset 0x124.
                             calldataload(BasicOrder_basicOrderType_cdPtr),
                             // Value should be less than 24.
                             BasicOrder_basicOrderType_range
                         ),
-                        // Ensure no dirty upper bits are present on offerer, zone,
-                        // offer token, or consideration token.
+                        // Ensure no dirty upper bits are present on offerer,
+                        // zone, offer token, or consideration token.
                         lt(
                             or(
                                 or(
-                                    // Offerer parameter at calldata offset 0x84.
+                                    // Offerer parameter = calldata offset 0x84.
                                     calldataload(BasicOrder_offerer_cdPtr),
-                                    // Zone parameter at calldata offset 0xa4.
+                                    // Zone parameter = calldata offset 0xa4.
                                     calldataload(BasicOrder_zone_cdPtr)
                                 ),
                                 or(
-                                    // Offer token parameter at cd offset 0xc4.
+                                    // Offer token parameter = cd offset 0xc4.
                                     calldataload(BasicOrder_offerToken_cdPtr),
-                                    // Consideration token parameter at offset 0x24.
+                                    // Consideration parameter = offset 0x24.
                                     calldataload(
                                         BasicOrder_considerationToken_cdPtr
                                     )

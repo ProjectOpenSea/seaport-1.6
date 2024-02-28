@@ -8,6 +8,7 @@ import {
     authorizeOrder_zoneParameters_offset,
     BasicOrder_additionalRecipients_length_cdPtr,
     BasicOrder_common_params_size,
+    BasicOrder_consideration_offset_from_offer,
     BasicOrder_offerer_cdPtr,
     BasicOrder_startTime_cdPtr,
     BasicOrder_startTimeThroughZoneHash_size,
@@ -192,7 +193,9 @@ contract ConsiderationEncoder {
         }
 
         // Write offset to maximumSpent.
-        dstHead.offset(generateOrder_maximumSpent_head_offset).write(tailOffset);
+        dstHead.offset(generateOrder_maximumSpent_head_offset).write(
+            tailOffset
+        );
 
         // Get memory pointer to `orderParameters.consideration.length`.
         MemoryPointer srcConsiderationPointer = src.offset(
@@ -457,15 +460,19 @@ contract ConsiderationEncoder {
 
         unchecked {
             // Copy extraData.
-            uint256 extraDataSize =
-                _encodeBytes(toMemoryPointer(extraData), dstHead.offset(tailOffset));
+            uint256 extraDataSize =_encodeBytes(
+                toMemoryPointer(extraData),
+                dstHead.offset(tailOffset)
+            );
 
             // Increment tail offset, now used to populate orderHashes array.
             tailOffset += extraDataSize;
         }
 
         // Write offset to orderHashes.
-        dstHead.offset(ZoneParameters_orderHashes_head_offset).write(tailOffset);
+        dstHead.offset(ZoneParameters_orderHashes_head_offset).write(
+            tailOffset
+        );
 
         // Encode the order hashes array.
         MemoryPointer orderHashesLengthLocation = dstHead.offset(tailOffset);
@@ -527,7 +534,9 @@ contract ConsiderationEncoder {
     ) internal view returns (MemoryPointer dst, uint256 size) {
         dst = MemoryPointer.wrap(salt >> 128);
         size = (salt >> 64) & OffsetOrLengthMask;
-        MemoryPointer orderHashesLengthLocation = MemoryPointer.wrap(salt & OffsetOrLengthMask);
+        MemoryPointer orderHashesLengthLocation = MemoryPointer.wrap(
+            salt & OffsetOrLengthMask
+        );
 
         // Write validateOrder selector.
         dst.write(validateOrder_selector);
@@ -544,7 +553,9 @@ contract ConsiderationEncoder {
 
     /**
      * @dev Takes an order hash and BasicOrderParameters struct (from calldata)
-     *      and encodes it as `authorizeOrder` calldata.
+     *      and encodes it as `authorizeOrder` calldata. Note that data is
+     *      copied from event data, so this function will need to be modified if
+     *      the layout of that event data changes.
      *
      * @param orderHash  The order hash.
      *
@@ -564,7 +575,7 @@ contract ConsiderationEncoder {
 
         MemoryPointer dst = ptr;
 
-        // Write validateOrder selector and get pointer to start of calldata.
+        // Write authorizeOrder selector and get pointer to start of calldata.
         dst.write(authorizeOrder_selector);
         dst = dst.offset(authorizeOrder_selector_offset);
 
@@ -599,7 +610,7 @@ contract ConsiderationEncoder {
         unchecked {
             // Write consideration offset next (located 5 words after offer).
             dstHead.offset(ZoneParameters_consideration_head_offset).write(
-                tailOffset + BasicOrder_common_params_size
+                tailOffset + BasicOrder_consideration_offset_from_offer
             );
 
             // Retrieve the offset to the length of additional recipients.
@@ -635,9 +646,13 @@ contract ConsiderationEncoder {
         }
 
         // Write offset to orderHashes.
-        dstHead.offset(ZoneParameters_orderHashes_head_offset).write(tailOffset);
+        dstHead.offset(ZoneParameters_orderHashes_head_offset).write(
+            tailOffset
+        );
 
-        memoryLocationForOrderHashes = MemoryPointer.unwrap(dstHead.offset(tailOffset));
+        memoryLocationForOrderHashes = MemoryPointer.unwrap(
+            dstHead.offset(tailOffset)
+        );
 
         // Write length = 0 to the orderHashes array.
         dstHead.offset(tailOffset).write(0);

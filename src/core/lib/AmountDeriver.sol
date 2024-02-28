@@ -76,8 +76,8 @@ contract AmountDeriver is AmountDerivationErrors {
                 amount :=
                     mul(
                         iszero(iszero(totalBeforeDivision)),
-                        // Subtract 1 from the numerator and add 1 to the result if
-                        // roundUp is true to get the proper rounding direction.
+                        // Subtract 1 from the numerator and add 1 to the result
+                        // if roundUp is true to get proper rounding direction.
                         // Division is performed with no zero check as duration
                         // cannot be zero as long as startTime < endTime.
                         add(
@@ -137,7 +137,7 @@ contract AmountDeriver is AmountDerivationErrors {
         // Multiply the numerator by the value and ensure no overflow occurs.
         uint256 valueTimesNumerator = value * numerator;
 
-        // Divide and check for remainder. Note that denominator cannot be zero.
+        // Divide by the denominator (note that denominator cannot be zero).
         assembly {
             // Perform division without zero check.
             newValue := div(valueTimesNumerator, denominator)

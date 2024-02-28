@@ -62,8 +62,10 @@ contract Verifiers is Assertions, SignatureVerification {
     ) internal view returns (bool valid) {
         // Mark as valid if order has started and has not already ended.
         assembly {
-            valid :=
-                and(iszero(gt(startTime, timestamp())), gt(endTime, timestamp()))
+            valid := and(
+                iszero(gt(startTime, timestamp())),
+                gt(endTime, timestamp())
+            )
         }
 
         // Only revert on invalid if revertOnInvalid has been supplied as true.

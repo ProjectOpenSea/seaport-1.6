@@ -92,7 +92,10 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
             ) {
                 // Store left-padded selector with push4 (reduces bytecode),
                 // mem[28:32] = selector
-                mstore(0, OfferAndConsiderationRequiredOnFulfillment_error_selector)
+                mstore(
+                    0,
+                    OfferAndConsiderationRequiredOnFulfillment_error_selector
+                )
 
                 // revert(abi.encodeWithSignature(
                 //     "OfferAndConsiderationRequiredOnFulfillment()"
@@ -157,7 +160,10 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
             ) {
                 // Store left-padded selector with push4 (reduces bytecode),
                 // mem[28:32] = selector
-                mstore(0, MismatchedOfferAndConsiderationComponents_error_selector)
+                mstore(
+                    0,
+                    MismatchedOfferAndConsiderationComponents_error_selector
+                )
 
                 // Store fulfillment index argument.
                 mstore(
@@ -199,9 +205,13 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
             // execution.item.amount >= considerationItem.amount.
             unchecked {
                 // Add excess offer item amount to the original array of orders.
-                advancedOrders[targetComponent.orderIndex].parameters.offer[targetComponent
-                    .itemIndex].startAmount =
-                    (executionItem.amount - considerationItem.amount);
+                advancedOrders[
+                    targetComponent.orderIndex
+                ].parameters.offer[
+                    targetComponent.itemIndex
+                ].startAmount = (
+                    executionItem.amount - considerationItem.amount
+                );
             }
 
             // Reduce total offer amount to equal the consideration amount.
@@ -320,8 +330,10 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                 let fulfillmentHeadPtr := offerComponents
 
                 // Get position one word past last element in head of array.
-                let endPtr :=
-                    add(offerComponents, shl(OneWordShift, mload(offerComponents)))
+                let endPtr := add(
+                    offerComponents,
+                    shl(OneWordShift, mload(offerComponents))
+                )
             } lt(fulfillmentHeadPtr, endPtr) { } {
                 // Increment position in considerationComponents head.
                 fulfillmentHeadPtr := add(fulfillmentHeadPtr, OneWord)
@@ -337,7 +349,7 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                 // Read advancedOrders[orderIndex] pointer from its array head.
                 let orderPtr :=
                     mload(
-                        // Calculate head position of advancedOrders[orderIndex].
+                        // Calculate head position of advancedOrders[orderIndex]
                         add(
                             add(advancedOrders, OneWord),
                             shl(OneWordShift, orderIndex)
@@ -350,7 +362,10 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                 // Retrieve item index using an offset of fulfillment pointer.
                 let itemIndex :=
                     mload(
-                        add(mload(fulfillmentHeadPtr), Fulfillment_itemIndex_offset)
+                        add(
+                            mload(fulfillmentHeadPtr),
+                            Fulfillment_itemIndex_offset
+                        )
                     )
 
                 let offerItemPtr
@@ -374,7 +389,7 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                             add(
                                 // Get pointer to beginning of receivedItem.
                                 add(offerArrPtr, OneWord),
-                                // Calculate offset to pointer for desired order.
+                                // Calculate offset to pointer for the order.
                                 shl(OneWordShift, itemIndex)
                             )
                         )
@@ -600,7 +615,7 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                 // Read advancedOrders[orderIndex] pointer from its array head.
                 let orderPtr :=
                     mload(
-                        // Calculate head position of advancedOrders[orderIndex].
+                        // Derive head position of advancedOrders[orderIndex].
                         add(
                             add(advancedOrders, OneWord),
                             shl(OneWordShift, orderIndex)
@@ -610,7 +625,10 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                 // Retrieve item index using an offset of fulfillment pointer.
                 let itemIndex :=
                     mload(
-                        add(mload(fulfillmentHeadPtr), Fulfillment_itemIndex_offset)
+                        add(
+                            mload(fulfillmentHeadPtr),
+                            Fulfillment_itemIndex_offset
+                        )
                     )
 
                 let considerationItemPtr
@@ -619,7 +637,7 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                     let considerationArrPtr :=
                         mload(
                             add(
-                                // Read OrderParameters pointer from AdvancedOrder.
+                                // Read OrderParameters pointer from the order.
                                 mload(orderPtr),
                                 OrderParameters_consideration_head_offset
                             )
@@ -640,7 +658,7 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                             add(
                                 // Get pointer to beginning of receivedItem.
                                 add(considerationArrPtr, OneWord),
-                                // Calculate offset to pointer for desired order.
+                                // Calculate offset to pointer for the order.
                                 shl(OneWordShift, itemIndex)
                             )
                         )
