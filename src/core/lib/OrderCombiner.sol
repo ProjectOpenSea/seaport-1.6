@@ -512,7 +512,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         advancedOrder.numerator,
                         advancedOrder.denominator,
                         _revertOnFailedUpdate(
-                            advancedOrder.parameters.orderType,
+                            advancedOrder.parameters,
                             revertOnInvalid
                         )
                     )) {
@@ -1187,25 +1187,32 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
     }
 
     /**
-     * @dev Internal pure function to determine whether a status update failure
+     * @dev Internal view function to determine whether a status update failure
      *      should cause a revert or allow a skipped order. The call must revert
-     *      if an authorizeOrder call has been successfully performed and the
+     *      if an `authorizeOrder` call has been successfully performed and the
      *      status update cannot be performed, regardless of whether the order
-     *      could be otherwise marked as skipped.
+     *      could be otherwise marked as skipped. Note that a revert is not
+     *      required on a failed update if the call originates from the zone, as
+     *      no `authorizeOrder` call is performed in that case.
      *
-     * @param orderType       The order type.
+     * @param orderParameters The order parameters in question.
      * @param revertOnInvalid A boolean indicating whether the call should
      *                        revert for non-restricted order types.
      *
-     * @return revertOnFailedUpdate A boolean indicating whether the order should
-     *                              revert on a failed status update.
+     * @return revertOnFailedUpdate A boolean indicating whether the order
+     *                              should revert on a failed status update.
      */
     function _revertOnFailedUpdate(
-        OrderType orderType,
+        OrderParameters memory orderParameters,
         bool revertOnInvalid
-    ) internal pure returns (bool revertOnFailedUpdate) {
+    ) internal view returns (bool revertOnFailedUpdate) {
+        OrderType orderType = orderParameters.orderType;
+        address zone = orderParameters.zone;
         assembly {
-            revertOnFailedUpdate := or(revertOnInvalid, gt(orderType, 1))
+            revertOnFailedUpdate := or(
+                revertOnInvalid,
+                and(gt(orderType, 1), iszero(eq(caller(), zone)))
+            )
         }
     }
 }
