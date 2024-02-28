@@ -106,18 +106,6 @@ contract ConsiderationErrors is BaseOrderTest, ConsiderationErrorsWrapper {
         this.__revertInvalidTime(6, 7);
     }
 
-    function test_revertMismatchedFulfillmentOfferAndConsiderationComponents()
-        public
-    {
-        vm.expectRevert(
-            abi.encodeWithSignature(
-                "MismatchedFulfillmentOfferAndConsiderationComponents(uint256)",
-                8
-            )
-        );
-        this.__revertMismatchedFulfillmentOfferAndConsiderationComponents(8);
-    }
-
     function test_revertMissingOriginalConsiderationItems() public {
         vm.expectRevert(
             abi.encodeWithSignature("MissingOriginalConsiderationItems()")
@@ -133,15 +121,6 @@ contract ConsiderationErrors is BaseOrderTest, ConsiderationErrorsWrapper {
     function test_revertNoSpecifiedOrdersAvailable() public {
         vm.expectRevert(abi.encodeWithSignature("NoSpecifiedOrdersAvailable()"));
         this.__revertNoSpecifiedOrdersAvailable();
-    }
-
-    function test_revertOfferAndConsiderationRequiredOnFulfillment() public {
-        vm.expectRevert(
-            abi.encodeWithSignature(
-                "OfferAndConsiderationRequiredOnFulfillment()"
-            )
-        );
-        this.__revertOfferAndConsiderationRequiredOnFulfillment();
     }
 
     function test_revertOrderAlreadyFilled() public {
@@ -181,24 +160,6 @@ contract ConsiderationErrors is BaseOrderTest, ConsiderationErrorsWrapper {
             abi.encodeWithSignature("PartialFillsNotEnabledForOrder()")
         );
         this.__revertPartialFillsNotEnabledForOrder();
-    }
-
-    function test_revertUnresolvedConsiderationCriteria() public {
-        vm.expectRevert(
-            abi.encodeWithSignature(
-                "UnresolvedConsiderationCriteria(uint256,uint256)", 9, 10
-            )
-        );
-        this.__revertUnresolvedConsiderationCriteria(9, 10);
-    }
-
-    function test_revertUnresolvedOfferCriteria() public {
-        vm.expectRevert(
-            abi.encodeWithSignature(
-                "UnresolvedOfferCriteria(uint256,uint256)", 11, 12
-            )
-        );
-        this.__revertUnresolvedOfferCriteria(11, 12);
     }
 
     function test_revertUnusedItemParameters() public {

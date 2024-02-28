@@ -379,38 +379,6 @@ function _revertInvalidTime(uint256 startTime, uint256 endTime) pure {
 }
 
 /**
- * @dev Reverts execution with a
- *      "MismatchedFulfillmentOfferAndConsiderationComponents" error message.
- *
- * @param fulfillmentIndex         The index of the fulfillment that caused the
- *                                 error.
- */
-function _revertMismatchedFulfillmentOfferAndConsiderationComponents(
-    uint256 fulfillmentIndex
-) pure {
-    assembly {
-        // Store left-padded selector with push4 (reduces bytecode),
-        // mem[28:32] = selector
-        mstore(0, MismatchedOfferAndConsiderationComponents_error_selector)
-
-        // Store fulfillment index argument.
-        mstore(
-            MismatchedOfferAndConsiderationComponents_error_idx_ptr,
-            fulfillmentIndex
-        )
-
-        // revert(abi.encodeWithSignature(
-        //     "MismatchedFulfillmentOfferAndConsiderationComponents(uint256)",
-        //     fulfillmentIndex
-        // ))
-        revert(
-            Error_selector_offset,
-            MismatchedOfferAndConsiderationComponents_error_length
-        )
-    }
-}
-
-/**
  * @dev Reverts execution with a "MissingFulfillmentComponentOnAggregation"
  *       error message.
  *
@@ -483,26 +451,6 @@ function _revertNoSpecifiedOrdersAvailable() pure {
 
         // revert(abi.encodeWithSignature("NoSpecifiedOrdersAvailable()"))
         revert(Error_selector_offset, NoSpecifiedOrdersAvailable_error_length)
-    }
-}
-
-/**
- * @dev Reverts execution with a "OfferAndConsiderationRequiredOnFulfillment"
- *      error message.
- */
-function _revertOfferAndConsiderationRequiredOnFulfillment() pure {
-    assembly {
-        // Store left-padded selector with push4 (reduces bytecode),
-        // mem[28:32] = selector
-        mstore(0, OfferAndConsiderationRequiredOnFulfillment_error_selector)
-
-        // revert(abi.encodeWithSignature(
-        //     "OfferAndConsiderationRequiredOnFulfillment()"
-        // ))
-        revert(
-            Error_selector_offset,
-            OfferAndConsiderationRequiredOnFulfillment_error_length
-        )
     }
 }
 
@@ -613,61 +561,6 @@ function _revertPartialFillsNotEnabledForOrder() pure {
         revert(
             Error_selector_offset, PartialFillsNotEnabledForOrder_error_length
         )
-    }
-}
-
-/**
- * @dev Reverts execution with an "UnresolvedConsiderationCriteria" error
- *      message.
- */
-function _revertUnresolvedConsiderationCriteria(
-    uint256 orderIndex,
-    uint256 considerationIndex
-) pure {
-    assembly {
-        // Store left-padded selector with push4 (reduces bytecode),
-        // mem[28:32] = selector
-        mstore(0, UnresolvedConsiderationCriteria_error_selector)
-
-        // Store orderIndex and considerationIndex arguments.
-        mstore(UnresolvedConsiderationCriteria_error_orderIndex_ptr, orderIndex)
-        mstore(
-            UnresolvedConsiderationCriteria_error_considerationIdx_ptr,
-            considerationIndex
-        )
-
-        // revert(abi.encodeWithSignature(
-        //     "UnresolvedConsiderationCriteria(uint256, uint256)",
-        //     orderIndex,
-        //     considerationIndex
-        // ))
-        revert(
-            Error_selector_offset, UnresolvedConsiderationCriteria_error_length
-        )
-    }
-}
-
-/**
- * @dev Reverts execution with an "UnresolvedOfferCriteria" error message.
- */
-function _revertUnresolvedOfferCriteria(uint256 orderIndex, uint256 offerIndex)
-    pure
-{
-    assembly {
-        // Store left-padded selector with push4 (reduces bytecode),
-        // mem[28:32] = selector
-        mstore(0, UnresolvedOfferCriteria_error_selector)
-
-        // Store arguments.
-        mstore(UnresolvedOfferCriteria_error_orderIndex_ptr, orderIndex)
-        mstore(UnresolvedOfferCriteria_error_offerIndex_ptr, offerIndex)
-
-        // revert(abi.encodeWithSignature(
-        //     "UnresolvedOfferCriteria(uint256, uint256)",
-        //     orderIndex,
-        //     offerIndex
-        // ))
-        revert(Error_selector_offset, UnresolvedOfferCriteria_error_length)
     }
 }
 
