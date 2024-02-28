@@ -453,9 +453,12 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
         // Apply criteria resolvers to each order as applicable.
         _applyCriteriaResolvers(advancedOrders, criteriaResolvers);
 
-        // Emit an event for each order signifying that it has been fulfilled.
+        // Iterate over each order to check authorization status (for restricted
+        // orders), generate orders (for contract orders), and emit events (for
+        // all available orders) signifying that they have been fulfilled.
         // Skip overflow checks as all for loops are indexed starting at zero.
         unchecked {
+            // Declare stack variable outside of the loop to track order hash.
             bytes32 orderHash;
 
             // Iterate over each order.
