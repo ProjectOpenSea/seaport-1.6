@@ -88,12 +88,13 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
      *         to the documentation for a more comprehensive summary of how to
      *         utilize this method and what orders are compatible with it.
      *
-     * @custom:param parameters Additional information on the fulfilled order. Note
-     *                   that the offerer and the fulfiller must first approve
-     *                   this contract (or their chosen conduit if indicated)
-     *                   before any tokens can be transferred. Also note that
-     *                   contract recipients of ERC1155 consideration items must
-     *                   implement `onERC1155Received` to receive those items.
+     * @custom:param parameters Additional information on the fulfilled order.
+     *                          Note that the offerer and the fulfiller must
+     *                          first approve this contract (or their chosen
+     *                          conduit if indicated) before any tokens can be
+     *                          transferred. Also note that contract recipients
+     *                          of ERC1155 consideration items must implement
+     *                          `onERC1155Received` to receive those items.
      *
      * @return fulfilled A boolean indicating whether the order has been
      *                   successfully fulfilled.
@@ -131,12 +132,13 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
      *         the zero bytes in the function selector (0x00000000) which also
      *         results in earlier function dispatch.
      *
-     * @custom:param parameters Additional information on the fulfilled order. Note
-     *                   that the offerer and the fulfiller must first approve
-     *                   this contract (or their chosen conduit if indicated)
-     *                   before any tokens can be transferred. Also note that
-     *                   contract recipients of ERC1155 consideration items must
-     *                   implement `onERC1155Received` to receive those items.
+     * @custom:param parameters Additional information on the fulfilled order.
+     *                          Note that the offerer and the fulfiller must
+     *                          first approve this contract (or their chosen
+     *                          conduit if indicated) before any tokens can be
+     *                          transferred. Also note that contract recipients
+     *                          of ERC1155 consideration items must implement
+     *                          `onERC1155Received` to receive those items.
      *
      * @return fulfilled A boolean indicating whether the order has been
      *                   successfully fulfilled.
@@ -636,10 +638,14 @@ contract Consideration is ConsiderationInterface, OrderCombiner {
                 CalldataStart.pptr()
             ),
             _toCriteriaResolversReturnType(_decodeCriteriaResolvers)(
-                CalldataStart.pptrOffset(Offset_matchAdvancedOrders_criteriaResolvers)
+                CalldataStart.pptrOffset(
+                    Offset_matchAdvancedOrders_criteriaResolvers
+                )
             ),
             _toFulfillmentsReturnType(_decodeFulfillments)(
-                CalldataStart.pptrOffset(Offset_matchAdvancedOrders_fulfillments)
+                CalldataStart.pptrOffset(
+                    Offset_matchAdvancedOrders_fulfillments
+                )
             ),
             _substituteCallerForEmptyRecipient(recipient)
         );

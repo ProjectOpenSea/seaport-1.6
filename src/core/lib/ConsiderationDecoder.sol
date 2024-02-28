@@ -985,7 +985,10 @@ contract ConsiderationDecoder {
                     FreeMemoryPointerSlot,
                     add(
                         mPtrLength,
-                        add(OneWord, mul(length, OfferItem_size_with_head_pointer))
+                        add(
+                            OneWord,
+                            mul(length, OfferItem_size_with_head_pointer)
+                        )
                     )
                 )
 
@@ -1001,22 +1004,33 @@ contract ConsiderationDecoder {
                     shl(OneWordShift, add(1, originalOfferLength))
                 )
 
-                let headSizeToCompareWithLength := shl(OneWordShift, add(1, min(length, originalOfferLength)))
+                let headSizeToCompareWithLength := shl(
+                    OneWordShift,
+                    add(1, min(length, originalOfferLength))
+                )
 
-                // Iterate over each new element with a corresponding original item
-                // For each original offer item, check that:
+                // Iterate over each new element with a corresponding original
+                // item. For each original offer item, check that:
                 // - There is a corresponding new spent item.
                 // - The original and new items match with compareItems.
-                // - The new offer's amount is greater than or equal to the original amount.
+                // - The new offer item amount >= original amount.
                 invalidSpentItems := gt(originalOfferLength, length)
-                for { } lt(headOffsetFromLength, headSizeToCompareWithLength) { } {
+                for { } lt(
+                    headOffsetFromLength, headSizeToCompareWithLength
+                ) { } {
                     // Write the memory pointer to the accompanying head offset.
                     mstore(add(mPtrLength, headOffsetFromLength), mPtrTailNext)
 
                     // Copy itemType, token, identifier and amount.
-                    returndatacopy(mPtrTailNext, rdPtrHeadSpentItems, SpentItem_size)
+                    returndatacopy(
+                        mPtrTailNext,
+                        rdPtrHeadSpentItems,
+                        SpentItem_size
+                    )
 
-                    let newAmount := mload(add(mPtrTailNext, Common_amount_offset))
+                    let newAmount := mload(
+                        add(mPtrTailNext, Common_amount_offset)
+                    )
 
                     // Copy amount to endAmount.
                     mstore(
@@ -1024,7 +1038,9 @@ contract ConsiderationDecoder {
                         newAmount
                     )
 
-                    let originalAmount := mload(add(mPtrTailOriginalNext, Common_amount_offset))
+                    let originalAmount := mload(
+                        add(mPtrTailOriginalNext, Common_amount_offset)
+                    )
                     invalidSpentItems := or(
                         invalidSpentItems,
                         or(
@@ -1035,19 +1051,29 @@ contract ConsiderationDecoder {
 
                     // Update read pointer, next tail pointer for new and
                     // original, and head offset.
-                    rdPtrHeadSpentItems := add(rdPtrHeadSpentItems, SpentItem_size)
+                    rdPtrHeadSpentItems := add(
+                        rdPtrHeadSpentItems,
+                        SpentItem_size
+                    )
                     mPtrTailNext := add(mPtrTailNext, OfferItem_size)
-                    mPtrTailOriginalNext := add(mPtrTailOriginalNext, OfferItem_size)
+                    mPtrTailOriginalNext := add(
+                        mPtrTailOriginalNext,
+                        OfferItem_size
+                    )
                     headOffsetFromLength := add(headOffsetFromLength, OneWord)
                 }
 
-                // Iterate over each element without a corresponding original item
+                // Iterate over each element without corresponding original item
                 for { } lt(headOffsetFromLength, headSizeWithLength) { } {
                     // Write the memory pointer to the accompanying head offset.
                     mstore(add(mPtrLength, headOffsetFromLength), mPtrTailNext)
 
                     // Copy itemType, token, identifier and amount.
-                    returndatacopy(mPtrTailNext, rdPtrHeadSpentItems, SpentItem_size)
+                    returndatacopy(
+                        mPtrTailNext,
+                        rdPtrHeadSpentItems,
+                        SpentItem_size
+                    )
 
                     // Copy amount to endAmount.
                     mstore(
@@ -1056,7 +1082,10 @@ contract ConsiderationDecoder {
                     )
 
                     // Update read pointer, next tail pointer, and head offset.
-                    rdPtrHeadSpentItems := add(rdPtrHeadSpentItems, SpentItem_size)
+                    rdPtrHeadSpentItems := add(
+                        rdPtrHeadSpentItems,
+                        SpentItem_size
+                    )
                     mPtrTailNext := add(mPtrTailNext, OfferItem_size)
                     headOffsetFromLength := add(headOffsetFromLength, OneWord)
                 }
@@ -1100,13 +1129,16 @@ contract ConsiderationDecoder {
                     add(1, min(length, originalConsiderationLength))
                 )
 
-                // Iterate over each new element with a corresponding original item.
-                // For each new received item, check that:
-                // - The new item and corresponding original item match with compareItems.
-                // - The new amount is less than or equal to the original amount.
-                // - The items have the same recipient if the original's was not null.
+                // Iterate over each new element with a corresponding original
+                // item. For each new received item, check that:
+                // - The new & original items match according to compareItems.
+                // - The new consideration item amount <= the original amount.
+                // - The items have the same recipient if original != null.
                 invalidReceivedItems := gt(length, originalConsiderationLength)
-                for { } lt(headOffsetFromLength, headSizeToCompareWithLength) { } {
+                for { } lt(
+                    headOffsetFromLength,
+                    headSizeToCompareWithLength
+                ) { } {
                     // Write the memory pointer to the accompanying head offset.
                     mstore(add(mPtrLength, headOffsetFromLength), mPtrTailNext)
 
@@ -1124,13 +1156,19 @@ contract ConsiderationDecoder {
                         OneWord
                     )
 
-                    let newAmount := mload(add(mPtrTailNext, Common_amount_offset))
-                    let originalAmount := mload(add(mPtrTailOriginalNext, Common_amount_offset))
+                    let newAmount := mload(
+                        add(mPtrTailNext, Common_amount_offset)
+                    )
+                    let originalAmount := mload(
+                        add(mPtrTailOriginalNext, Common_amount_offset)
+                    )
 
-                    // Compare items' item type, token, and identifier, ensure they have the same
-                    // recipient and that the new amount is less than or equal to the original amount.
-                    // The original recipient must already be present at the ReceivedItem recipient
-                    // offset rather than at the initial ConsiderationItem recipient offset.
+                    // Compare items' item type, token, and identifier, ensure
+                    // they have the same recipient and that the new amount is
+                    // less than or equal to the original amount. The original
+                    // recipient must already be present at the ReceivedItem
+                    // recipient offset rather than at the initial
+                    // ConsiderationItem recipient offset.
                     invalidReceivedItems := or(
                         invalidReceivedItems,
                         or(
@@ -1138,21 +1176,37 @@ contract ConsiderationDecoder {
                             or(
                                 gt(newAmount, originalAmount),
                                 checkRecipients(
-                                    mload(add(mPtrTailOriginalNext, ReceivedItem_recipient_offset)),
-                                    mload(add(mPtrTailNext, ReceivedItem_recipient_offset))
+                                    mload(
+                                        add(
+                                            mPtrTailOriginalNext,
+                                            ReceivedItem_recipient_offset
+                                        )
+                                    ),
+                                    mload(
+                                        add(
+                                            mPtrTailNext,
+                                            ReceivedItem_recipient_offset
+                                        )
+                                    )
                                 )
                             )
                         )
                     )
 
                     // Update read pointer, next tail pointer, and head offset.
-                    rdPtrHeadReceivedItems := add(rdPtrHeadReceivedItems, ReceivedItem_size)
+                    rdPtrHeadReceivedItems := add(
+                        rdPtrHeadReceivedItems,
+                        ReceivedItem_size
+                    )
                     mPtrTailNext := add(mPtrTailNext, ConsiderationItem_size)
-                    mPtrTailOriginalNext := add(mPtrTailOriginalNext, ConsiderationItem_size)
+                    mPtrTailOriginalNext := add(
+                        mPtrTailOriginalNext,
+                        ConsiderationItem_size
+                    )
                     headOffsetFromLength := add(headOffsetFromLength, OneWord)
                 }
 
-                // Iterate over each new element without a corresponding original item
+                // Iterate over new elements with no corresponding original item
                 for { } lt(headOffsetFromLength, headSizeWithLength) { } {
                     // Write the memory pointer to the accompanying head offset.
                     mstore(add(mPtrLength, headOffsetFromLength), mPtrTailNext)
@@ -1172,7 +1226,10 @@ contract ConsiderationDecoder {
                     )
 
                     // Update read pointer, next tail pointer, and head offset.
-                    rdPtrHeadReceivedItems := add(rdPtrHeadReceivedItems, ReceivedItem_size)
+                    rdPtrHeadReceivedItems := add(
+                        rdPtrHeadReceivedItems,
+                        ReceivedItem_size
+                    )
                     mPtrTailNext := add(mPtrTailNext, ConsiderationItem_size)
                     headOffsetFromLength := add(headOffsetFromLength, OneWord)
                 }
@@ -1180,26 +1237,33 @@ contract ConsiderationDecoder {
 
             /**
              * @dev Yul function to check the compatibility of two offer or
-             *      consideration items for contract orders.  Note that the itemType
-             *      and identifier are reset in cases where criteria = 0 (collection-
-             *      wide offers), which means that a contract offerer has full latitude
-             *      to choose any identifier it wants mid-flight, in contrast to the
-             *      normal behavior, where the fulfiller can pick which identifier to
+             *      consideration items for contract orders.  Note that the
+             *      itemType and identifier are reset in cases where criteria is
+             *      equal to 0 (collection-wide or "wildcard" items), which
+             *      means that a contract offerer has full latitude to choose
+             *      any identifier it wants mid-flight, in contrast to the usual
+             *      behavior, where the fulfiller can pick which identifier to
              *      receive by providing a CriteriaResolver.
              *
              * @param originalItem The original offer or consideration item.
              * @param newItem      The new offer or consideration item.
              *
-             * @return isInvalid Error buffer indicating if items are incompatible.
+             * @return isInvalid Error buffer indicating whether or not the
+             *                   items are incompatible.
              */
             function compareItems(originalItem, newItem) -> isInvalid {
                 let itemType := mload(originalItem)
-                let identifier := mload(add(originalItem, Common_identifier_offset))
+                let identifier := mload(
+                    add(originalItem, Common_identifier_offset)
+                )
 
-                // Set returned identifier for criteria-based items w/ criteria = 0
+                // Use returned identifier for criteria-based items with a
+                // criteria value of 0 (collection-wide or "wildcard" items).
                 if and(gt(itemType, 3), iszero(identifier)) {
-                    // replace item type
-                    itemType := sub(3, eq(itemType, 4))
+                    // Replace item type with non-criteria equivalent.
+                    itemType := sub(itemType, 2)
+
+                    // Replace identifier with the returned identifier.
                     identifier := mload(add(newItem, Common_identifier_offset))
                 }
 
@@ -1210,7 +1274,9 @@ contract ConsiderationDecoder {
                             // originalItem.itemType == newItem.itemType
                             and(
                                 eq(
-                                    mload(add(originalItem, Common_token_offset)),
+                                    mload(
+                                        add(originalItem, Common_token_offset)
+                                    ),
                                     mload(add(newItem, Common_token_offset))
                                 ),
                                 eq(itemType, mload(newItem))
@@ -1226,16 +1292,21 @@ contract ConsiderationDecoder {
             }
 
             /**
-             * @dev Internal pure function to check the compatibility of two recipients
-             *      on consideration items for contract orders. This check is skipped if
-             *      no recipient is originally supplied.
+             * @dev Internal pure function to check the compatibility of two
+             *      recipients on consideration items for contract orders. This
+             *      check is skipped if no recipient is originally supplied.
              *
-             * @param originalRecipient The original consideration item recipient.
+             * @param originalRecipient The original consideration item
+             *                          recipient.
              * @param newRecipient      The new consideration item recipient.
              *
-             * @return isInvalid Error buffer indicating if recipients are incompatible.
+             * @return isInvalid Error buffer indicating whether or not the
+             *                   two recipients are incompatible.
              */
-            function checkRecipients(originalRecipient, newRecipient) -> isInvalid {
+            function checkRecipients(
+                originalRecipient,
+                newRecipient
+            ) -> isInvalid {
                 isInvalid :=
                     iszero(
                         or(
@@ -1270,8 +1341,14 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(OfferItem[] memory, ConsiderationItem[] memory) internal pure returns (uint256, OfferItem[] memory, ConsiderationItem[] memory)
-                outFn
+            function(
+                OfferItem[] memory,
+                ConsiderationItem[] memory
+            ) internal pure returns (
+                uint256,
+                OfferItem[] memory,
+                ConsiderationItem[] memory
+            ) outFn
         )
     {
         assembly {
@@ -1291,13 +1368,22 @@ contract ConsiderationDecoder {
      *               and bytes types.
      */
     function _toOfferItemInput(
-        function(ReceivedItem memory, address, bytes32, bytes memory)
-            internal inFn
+        function(
+            ReceivedItem memory,
+            address,
+            bytes32,
+            bytes memory
+        ) internal inFn
     )
         internal
         pure
         returns (
-            function(OfferItem memory, address, bytes32, bytes memory) internal outFn
+            function(
+                OfferItem memory,
+                address,
+                bytes32,
+                bytes memory
+            ) internal outFn
         )
     {
         assembly {
@@ -1317,14 +1403,22 @@ contract ConsiderationDecoder {
      *               bytes32, and bytes types.
      */
     function _toConsiderationItemInput(
-        function(ReceivedItem memory, address, bytes32, bytes memory)
-            internal inFn
+        function(
+            ReceivedItem memory,
+            address,
+            bytes32,
+            bytes memory
+        ) internal inFn
     )
         internal
         pure
         returns (
-            function(ConsiderationItem memory, address, bytes32, bytes memory) internal
-                outFn
+            function(
+                ConsiderationItem memory,
+                address,
+                bytes32,
+                bytes memory
+            ) internal outFn
         )
     {
         assembly {
@@ -1349,8 +1443,11 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer) internal pure returns (bytes memory)
-                outFn
+            function(
+                CalldataPointer
+            ) internal pure returns (
+                bytes memory
+            ) outFn
         )
     {
         assembly {
@@ -1375,8 +1472,11 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer) internal pure returns (OrderParameters memory)
-                outFn
+            function(
+                CalldataPointer
+            ) internal pure returns (
+                OrderParameters memory
+            ) outFn
         )
     {
         assembly {
@@ -1401,8 +1501,11 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer) internal  pure returns (AdvancedOrder memory)
-                outFn
+            function(
+                CalldataPointer
+            ) internal pure returns (
+                AdvancedOrder memory
+            )  outFn
         )
     {
         assembly {
@@ -1427,8 +1530,11 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer) internal pure returns (CriteriaResolver[] memory)
-                outFn
+            function(
+                CalldataPointer
+            ) internal pure returns (
+                CriteriaResolver[] memory
+            ) outFn
         )
     {
         assembly {
@@ -1453,7 +1559,11 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer) internal pure returns (Order[] memory) outFn
+            function(
+                CalldataPointer
+            ) internal pure returns (
+                Order[] memory
+            ) outFn
         )
     {
         assembly {
@@ -1480,8 +1590,11 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer) internal pure returns (FulfillmentComponent[][] memory)
-                outFn
+            function(
+                CalldataPointer
+            ) internal pure returns (
+                FulfillmentComponent[][] memory
+            ) outFn
         )
     {
         assembly {
@@ -1506,8 +1619,11 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer) internal pure returns (AdvancedOrder[] memory)
-                outFn
+            function(
+                CalldataPointer
+            ) internal pure returns (
+                AdvancedOrder[] memory
+            ) outFn
         )
     {
         assembly {
@@ -1532,7 +1648,11 @@ contract ConsiderationDecoder {
         internal
         pure
         returns (
-            function(CalldataPointer) internal pure returns (Fulfillment[] memory) outFn
+            function(
+                CalldataPointer
+            ) internal pure returns (
+                Fulfillment[] memory
+            ) outFn
         )
     {
         assembly {
