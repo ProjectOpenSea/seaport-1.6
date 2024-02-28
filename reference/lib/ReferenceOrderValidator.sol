@@ -503,6 +503,10 @@ contract ReferenceOrderValidator is
                         extendedSpentItemOriginalAmounts
                     );
                 }
+            } else {
+                orderToExecute.spentItemOriginalAmounts = new uint256[](
+                    originalOfferLength
+                );
             }
 
             // Loop through each new offer and ensure the new amounts are at
@@ -566,6 +570,10 @@ contract ReferenceOrderValidator is
             if (newConsiderationLength > originalConsiderationArray.length) {
                 revert InvalidContractOrder(orderHash);
             }
+
+            orderToExecute.receivedItemOriginalAmounts = new uint256[](
+                newConsiderationLength
+            );
 
             // Loop through and check consideration.
             for (uint256 i = 0; i < newConsiderationLength; ++i) {
