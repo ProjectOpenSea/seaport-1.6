@@ -57,6 +57,33 @@ jobs:
       #     fi
       #   id: update
 
+  forge-moat-reference:
+    name: Run Forge Tests (via_ir = true; fuzz_runs = 5000)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install forge dependencies
+        run: forge install
+
+      - name: Precompile reference using 0.8.24 and via-ir=false
+        run: FOUNDRY_PROFILE=reference forge build
+
+      - name: Precompile optimized using 0.8.24 and via-ir=true
+        run: FOUNDRY_PROFILE=optimized forge build
+
+      - name: Run tests
+        run: FOUNDRY_PROFILE=reference MOAT_PROFILE=reference forge test --match-test test_fuzz_generateOrders -vvv
+
   forge-offerers:
     name: Run Contract Offerer Forge Tests (via_ir = false; fuzz_runs = 1000)
     runs-on: ubuntu-latest
