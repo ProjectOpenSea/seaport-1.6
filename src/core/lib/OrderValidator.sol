@@ -105,7 +105,7 @@ contract OrderValidator is Executor, ZoneInteraction {
             orderHash,
             orderStatus,
             true, // Only allow unused orders when fulfilling basic orders.
-            _runTimeConstantTrue() // Signifies to revert if the order is invalid.
+            _runTimeConstantTrue() // Signifies to revert if order is invalid.
         );
 
         // If the order is not already validated, verify the supplied signature.
@@ -276,7 +276,10 @@ contract OrderValidator is Executor, ZoneInteraction {
                 // Shift and mask to calculate the current filled numerator.
                 filledNumerator :=
                     and(
-                        shr(OrderStatus_filledNumerator_offset, filledNumerator),
+                        shr(
+                            OrderStatus_filledNumerator_offset,
+                            filledNumerator
+                        ),
                         MaxUint120
                     )
 
@@ -408,9 +411,12 @@ contract OrderValidator is Executor, ZoneInteraction {
      *      fraction to the remaining amount (e.g., if there is not enough
      *      of the order remaining to fill the supplied fraction, or if the
      *      fractions cannot be represented by two uint120 values).
-     * @param orderHash The hash of the order.
-     * @param numerator The numerator of the fraction filled to write to the order status.
-     * @param denominator The denominator of the fraction filled to write to the order status.
+     * 
+     * @param orderHash       The hash of the order.
+     * @param numerator       The numerator of the fraction filled to write to
+     *                        the order status.
+     * @param denominator     The denominator of the fraction filled to write to
+     *                        the order status.
      * @param revertOnInvalid Whether to revert if an order is already filled.
      */
     function _updateStatus(
@@ -449,7 +455,10 @@ contract OrderValidator is Executor, ZoneInteraction {
                 // Shift and mask to calculate the current filled numerator.
                 filledNumerator :=
                     and(
-                        shr(OrderStatus_filledNumerator_offset, filledNumerator),
+                        shr(
+                            OrderStatus_filledNumerator_offset,
+                            filledNumerator
+                        ),
                         MaxUint120
                     )
 
@@ -567,7 +576,10 @@ contract OrderValidator is Executor, ZoneInteraction {
                 or(
                     OrderStatus_ValidatedAndNotCancelled,
                     or(
-                        shl(OrderStatus_filledNumerator_offset, filledNumerator),
+                        shl(
+                            OrderStatus_filledNumerator_offset,
+                            filledNumerator
+                        ),
                         shl(OrderStatus_filledDenominator_offset, denominator)
                     )
                 )
@@ -731,7 +743,10 @@ contract OrderValidator is Executor, ZoneInteraction {
                             or(
                                 eq(orderType, 4),
                                 iszero(
-                                    or(eq(caller(), offerer), eq(caller(), zone))
+                                    or(
+                                        eq(caller(), offerer),
+                                        eq(caller(), zone)
+                                    )
                                 )
                             )
                         )
@@ -827,7 +842,7 @@ contract OrderValidator is Executor, ZoneInteraction {
                     orderHash,
                     orderStatus,
                     false, // Signifies that partially filled orders are valid.
-                    _runTimeConstantTrue() // Signifies to revert if the order is invalid.
+                    _runTimeConstantTrue() // Revert if order is invalid.
                 );
 
                 // If the order has not already been validated...
