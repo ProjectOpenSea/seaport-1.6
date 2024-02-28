@@ -278,9 +278,6 @@ contract OrderValidator is Executor, ZoneInteraction {
                     // Set the fill size to the current size.
                     denominator := filledDenominator
 
-                    // Set the filled amount to the current size.
-                    filledNumerator := filledDenominator
-
                     // Exit the "loop" early.
                     break
                 }
@@ -300,9 +297,6 @@ contract OrderValidator is Executor, ZoneInteraction {
 
                     // reduce the amount to fill by the excess.
                     numerator := sub(numerator, carry)
-
-                    // Reduce the filled amount by the excess as well.
-                    filledNumerator := sub(filledNumerator, carry)
 
                     // Exit the "loop" early.
                     break
@@ -333,10 +327,8 @@ contract OrderValidator is Executor, ZoneInteraction {
                 // Reduce the filled amount by the excess as well.
                 filledNumerator := sub(filledNumerator, carry)
 
-                // Check filledNumerator and denominator for uint120 overflow.
-                if or(
-                    gt(filledNumerator, MaxUint120), gt(denominator, MaxUint120)
-                ) {
+                // Check denominator for uint120 overflow.
+                if gt(denominator, MaxUint120) {
                     // Derive greatest common divisor using euclidean algorithm.
                     function gcd(_a, _b) -> out {
                         // "Loop" until only one non-zero value remains.
@@ -362,16 +354,12 @@ contract OrderValidator is Executor, ZoneInteraction {
                     // Ensure that the divisor is at least one.
                     let safeScaleDown := add(scaleDown, iszero(scaleDown))
 
-                    // Scale all fractional values down by gcd.
+                    // Scale fractional values down by gcd.
                     numerator := div(numerator, safeScaleDown)
-                    filledNumerator := div(filledNumerator, safeScaleDown)
                     denominator := div(denominator, safeScaleDown)
 
                     // Perform the overflow check a second time.
-                    if or(
-                        gt(filledNumerator, MaxUint120),
-                        gt(denominator, MaxUint120)
-                    ) {
+                    if gt(denominator, MaxUint120) {
                         // Store the Panic error signature.
                         mstore(0, Panic_error_selector)
                         // Store the arithmetic (0x11) panic code.
