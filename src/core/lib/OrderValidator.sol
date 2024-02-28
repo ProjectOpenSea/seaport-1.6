@@ -412,7 +412,7 @@ contract OrderValidator is Executor, ZoneInteraction {
         // Retrieve the order status using the derived order hash.
         OrderStatus storage orderStatus = _orderStatus[orderHash];
 
-        bool hasCarryOrNoNumerator = numerator == 0;
+        bool hasCarry = false;
 
         uint256 orderStatusSlot;
         uint256 filledNumerator;
@@ -443,29 +443,12 @@ contract OrderValidator is Executor, ZoneInteraction {
                         MaxUint120
                     )
 
-                // If denominator of 1 supplied, fill entire remaining amount.
-                if eq(denominator, 1) {
-                    // Set the amount to fill to the remaining amount.
-                    numerator := sub(filledDenominator, filledNumerator)
-
-                    hasCarryOrNoNumerator := iszero(numerator)
-
-                    // Set the fill size to the current size.
-                    denominator := filledDenominator
-
-                    // Set the filled amount to the current size.
-                    filledNumerator := filledDenominator
-
-                    // Exit the "loop" early.
-                    break
-                }
-
                 // If supplied denominator is equal to the current one:
                 if eq(denominator, filledDenominator) {
                     // Increment the filled numerator by the new numerator.
                     filledNumerator := add(numerator, filledNumerator)
 
-                    hasCarryOrNoNumerator := gt(filledNumerator, denominator)
+                    hasCarry := gt(filledNumerator, denominator)
 
                     // Exit the "loop" early.
                     break
@@ -482,7 +465,7 @@ contract OrderValidator is Executor, ZoneInteraction {
                 // Increment the filled numerator by the new numerator.
                 filledNumerator := add(numerator, filledNumerator)
 
-                hasCarryOrNoNumerator := gt(filledNumerator, denominator)
+                hasCarry := gt(filledNumerator, denominator)
 
                 // Check filledNumerator and denominator for uint120 overflow.
                 if or(
@@ -540,7 +523,7 @@ contract OrderValidator is Executor, ZoneInteraction {
             }
         }
 
-        if (hasCarryOrNoNumerator) {
+        if (hasCarry) {
             if (revertOnInvalid) {
                 revert OrderAlreadyFilled(orderHash);
             } else {
