@@ -41,6 +41,7 @@ import {
     OrderStatus_filledDenominator_offset,
     OrderStatus_filledNumerator_offset,
     OrderStatus_ValidatedAndNotCancelled,
+    OrderStatus_ValidatedAndNotCancelledAndFullyFilled,
     ReceivedItem_recipient_offset
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
@@ -113,12 +114,18 @@ contract OrderValidator is Executor, ZoneInteraction {
         }
     }
 
+    /**
+     * @dev Internal function to update the status of a basic order, assuming
+     *      all validation has already been performed.
+     *
+     * @param orderStatus A storage pointer referencing the order status.
+     */
     function _updateBasicOrderStatus(OrderStatus storage orderStatus) internal {
-        // Update order status as fully filled, packing struct values.
-        orderStatus.isValidated = true;
-        orderStatus.isCancelled = false;
-        orderStatus.numerator = 1;
-        orderStatus.denominator = 1;     
+        // Utilize assembly to efficiently update the order status.
+        assembly {
+            // Update order status as validated, not cancelled, and fully filled.
+            orderStatus.slot := OrderStatus_ValidatedAndNotCancelledAndFullyFilled
+        }  
     }
 
     /**
