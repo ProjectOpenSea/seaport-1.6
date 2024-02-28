@@ -292,14 +292,8 @@ contract ReferenceOrderValidator is
 
         // If order currently has a non-zero denominator it is partially filled.
         if (filledDenominator != 0) {
-            // If denominator of 1 supplied, fill all remaining amount on order.
-            if (denominator == 1) {
-                // Scale numerator & denominator to match current denominator.
-                numerator = filledDenominator;
-                denominator = filledDenominator;
-            }
-            // Otherwise, if supplied denominator differs from current one...
-            else if (filledDenominator != denominator) {
+            // if supplied denominator differs from current one...
+            if (filledDenominator != denominator) {
                 // scale current numerator by the supplied denominator, then...
                 filledNumerator *= denominator;
 
@@ -391,6 +385,7 @@ contract ReferenceOrderValidator is
      *      identifierOrCriteria = 0, Seaport does not expect a corresponding
      *      CriteriaResolver, and will revert if one is provided.
      *
+     * @param orderToExecute  The order to execute.
      * @param orderParameters The parameters for the order.
      * @param context         The context for generating the order.
      * @param revertOnInvalid Whether to revert on invalid input.
@@ -398,14 +393,14 @@ contract ReferenceOrderValidator is
      * @return orderHash   The order hash.
      */
     function _getGeneratedOrder(
+        OrderToExecute memory orderToExecute,
         OrderParameters memory orderParameters,
         bytes memory context,
         bool revertOnInvalid
     )
         internal
         returns (
-            bytes32 orderHash,
-            OrderToExecute memory orderToExecute
+            bytes32 orderHash
         )
     {
         // Ensure that consideration array length is equal to the total original
@@ -418,13 +413,10 @@ contract ReferenceOrderValidator is
         }
 
         // Convert offer and consideration to spent and received items.
-        (
-            SpentItem[] memory originalOfferItems,
-            SpentItem[] memory originalConsiderationItems
-        ) = _convertToSpent(
-                orderParameters.offer,
-                orderParameters.consideration
-            );
+        SpentItem[] memory originalOfferItems = orderToExecute.spentItems;
+        SpentItem[] memory originalConsiderationItems = _convertToSpent(
+            orderToExecute.receivedItems
+        );
 
         // Create arrays for returned offer and consideration items.
         SpentItem[] memory offer;
@@ -473,13 +465,12 @@ contract ReferenceOrderValidator is
                 }
             } else {
                 // If the call fails, revert or return empty.
-                return _revertOrReturnEmpty(revertOnInvalid, orderHash);
+                (orderHash, orderToExecute) = _revertOrReturnEmpty(revertOnInvalid, orderHash);
+                return orderHash;
             }
         }
 
         {
-            orderToExecute = _convertAdvancedToOrder(orderParameters, 1);
-
             // Designate lengths.
             uint256 originalOfferLength = orderParameters.offer.length;
             uint256 newOfferLength = offer.length;
@@ -489,19 +480,7 @@ contract ReferenceOrderValidator is
                 revert InvalidContractOrder(orderHash);
             } else if (newOfferLength > originalOfferLength) {
                 {
-                    // If new offer items are added, extend the original offer.
-                    OfferItem[] memory extendedOffer = new OfferItem[](
-                        newOfferLength
-                    );
-                    // Copy original offer items to new array.
-                    for (uint256 i = 0; i < originalOfferLength; ++i) {
-                        extendedOffer[i] = orderParameters.offer[i];
-                    }
-                    // Update order parameters with extended offer.
-                    orderParameters.offer = extendedOffer;
-                }
-                {
-                    // Do the same for ordersToExecute arrays.
+                    // Extend the ordersToExecute array.
                     SpentItem[] memory extendedSpent = new SpentItem[](
                         newOfferLength
                     );
@@ -530,7 +509,7 @@ contract ReferenceOrderValidator is
             // least as much as the respective original amounts.
             for (uint256 i = 0; i < originalOfferLength; ++i) {
                 // Designate original and new offer items.
-                OfferItem memory originalOffer = orderParameters.offer[i];
+                SpentItem memory originalOffer = orderToExecute.spentItems[i];
                 SpentItem memory newOffer = offer[i];
 
                 // Set returned identifier for criteria-based items with
@@ -540,46 +519,33 @@ contract ReferenceOrderValidator is
                 // fulfiller can pick which identifier to receive by providing a
                 // CriteriaResolver.
                 if (
-                    uint256(originalOffer.itemType) > 3
+                    uint256(originalOffer.itemType) > 3 &&
+                    originalOffer.identifier == 0
                 ) {
-                    if (newOffer.identifier != 0) {
-                        // TODO: better error message
-                        revert("");
-                    }
-
                     originalOffer.itemType = ItemType(
                         uint256(originalOffer.itemType) - 2
                     );
-                    originalOffer.identifierOrCriteria = newOffer.identifier;
+                    originalOffer.identifier = newOffer.identifier;
                 }
 
                 // Ensure the original and generated items are compatible.
                 if (
-                    originalOffer.endAmount > newOffer.amount ||
+                    originalOffer.amount > newOffer.amount ||
                     originalOffer.itemType != newOffer.itemType ||
                     originalOffer.token != newOffer.token ||
-                    originalOffer.identifierOrCriteria != newOffer.identifier
+                    originalOffer.identifier != newOffer.identifier
                 ) {
                     revert InvalidContractOrder(orderHash);
                 }
 
                 // Update the original amounts to use the generated amounts.
-                originalOffer.startAmount = newOffer.amount;
-                originalOffer.endAmount = newOffer.amount;
-                orderToExecute.spentItems[i].amount = newOffer.amount;
+                originalOffer.amount = newOffer.amount;
                 orderToExecute.spentItemOriginalAmounts[i] = newOffer.amount;
             }
 
             // Add new offer items if there are more than original.
             for (uint256 i = originalOfferLength; i < newOfferLength; ++i) {
-                OfferItem memory originalOffer = orderParameters.offer[i];
                 SpentItem memory newOffer = offer[i];
-
-                originalOffer.itemType = newOffer.itemType;
-                originalOffer.token = newOffer.token;
-                originalOffer.identifierOrCriteria = newOffer.identifier;
-                originalOffer.startAmount = newOffer.amount;
-                originalOffer.endAmount = newOffer.amount;
 
                 orderToExecute.spentItems[i].itemType = newOffer.itemType;
                 orderToExecute.spentItems[i].token = newOffer.token;
@@ -591,8 +557,8 @@ contract ReferenceOrderValidator is
 
         {
             // Designate lengths & memory locations.
-            ConsiderationItem[] memory originalConsiderationArray = (
-                orderParameters.consideration
+            ReceivedItem[] memory originalConsiderationArray = (
+                orderToExecute.receivedItems
             );
             uint256 newConsiderationLength = consideration.length;
 
@@ -604,18 +570,18 @@ contract ReferenceOrderValidator is
             // Loop through and check consideration.
             for (uint256 i = 0; i < newConsiderationLength; ++i) {
                 ReceivedItem memory newConsideration = consideration[i];
-                ConsiderationItem memory originalConsideration = (
+                ReceivedItem memory originalConsideration = (
                     originalConsiderationArray[i]
                 );
 
                 if (
                     uint256(originalConsideration.itemType) > 3 &&
-                    originalConsideration.identifierOrCriteria == 0
+                    originalConsideration.identifier == 0
                 ) {
                     originalConsideration.itemType = ItemType(
                         uint256(originalConsideration.itemType) - 2
                     );
-                    originalConsideration.identifierOrCriteria = (
+                    originalConsideration.identifier = (
                         newConsideration.identifier
                     );
                 }
@@ -624,11 +590,11 @@ contract ReferenceOrderValidator is
                 // for the amount (which may be reduced by the contract offerer)
                 // and the recipient if some non-zero address has been provided.
                 if (
-                    newConsideration.amount > originalConsideration.endAmount ||
+                    newConsideration.amount > originalConsideration.amount ||
                     originalConsideration.itemType !=
                     newConsideration.itemType ||
                     originalConsideration.token != newConsideration.token ||
-                    originalConsideration.identifierOrCriteria !=
+                    originalConsideration.identifier !=
                     newConsideration.identifier ||
                     (originalConsideration.recipient != address(0) &&
                         originalConsideration.recipient !=
@@ -638,36 +604,12 @@ contract ReferenceOrderValidator is
                 }
 
                 // Update the original amounts to use the generated amounts.
-                originalConsideration.startAmount = newConsideration.amount;
-                originalConsideration.endAmount = newConsideration.amount;
+                originalConsideration.amount = newConsideration.amount;
                 originalConsideration.recipient = newConsideration.recipient;
 
-                orderToExecute.receivedItems[i].amount = (
-                    newConsideration.amount
-                );
-                orderToExecute.receivedItems[i].recipient = (
-                    newConsideration.recipient
-                );
                 orderToExecute.receivedItemOriginalAmounts[i] = (
                     newConsideration.amount
                 );
-            }
-
-            {
-                // Shorten original consideration array if longer than new array.
-                ConsiderationItem[] memory shortenedConsiderationArray = (
-                    new ConsiderationItem[](newConsiderationLength)
-                );
-
-                // Iterate over original consideration array and copy to new.
-                for (uint256 i = 0; i < newConsiderationLength; ++i) {
-                    shortenedConsiderationArray[i] = (
-                        originalConsiderationArray[i]
-                    );
-                }
-
-                // Replace original consideration array with new shortend array.
-                orderParameters.consideration = shortenedConsiderationArray;
             }
 
             {
@@ -699,8 +641,8 @@ contract ReferenceOrderValidator is
             );
         }
 
-        // Return the order hash, the numerator, and the denominator.
-        return (orderHash, orderToExecute);
+        // Return the order hash.
+        return orderHash;
     }
 
     /**
@@ -925,60 +867,33 @@ contract ReferenceOrderValidator is
     }
 
     /**
-     * @dev Internal pure function to convert both offer and consideration items
-     *      to spent items.
+     * @dev Internal pure function to convert received items to spent items.
      *
-     * @param offer          The offer items to convert.
      * @param consideration  The consideration items to convert.
      *
-     * @return spentItems    The converted spent items.
      * @return receivedItems The converted received items.
      */
-    function _convertToSpent(
-        OfferItem[] memory offer,
-        ConsiderationItem[] memory consideration
-    )
+    function _convertToSpent(ReceivedItem[] memory consideration)
         internal
         pure
         returns (
-            SpentItem[] memory spentItems,
             SpentItem[] memory receivedItems
         )
     {
-        // Create an array of spent items equal to the offer length.
-        spentItems = new SpentItem[](offer.length);
-
-        // Iterate over each offer item on the order.
-        for (uint256 i = 0; i < offer.length; ++i) {
-            // Retrieve the offer item.
-            OfferItem memory offerItem = offer[i];
-
-            // Create spent item for event based on the offer item.
-            SpentItem memory spentItem = SpentItem(
-                offerItem.itemType,
-                offerItem.token,
-                offerItem.identifierOrCriteria,
-                offerItem.startAmount
-            );
-
-            // Add to array of spent items.
-            spentItems[i] = spentItem;
-        }
-
         // Create an array of received items equal to the consideration length.
         receivedItems = new SpentItem[](consideration.length);
 
-        // Iterate over each consideration item on the order.
+        // Iterate over each received item on the order.
         for (uint256 i = 0; i < consideration.length; ++i) {
             // Retrieve the consideration item.
-            ConsiderationItem memory considerationItem = (consideration[i]);
+            ReceivedItem memory considerationItem = (consideration[i]);
 
             // Create spent item for event based on the consideration item.
             SpentItem memory receivedItem = SpentItem(
                 considerationItem.itemType,
                 considerationItem.token,
-                considerationItem.identifierOrCriteria,
-                considerationItem.startAmount
+                considerationItem.identifier,
+                considerationItem.amount
             );
 
             // Add to array of received items.
