@@ -1100,25 +1100,37 @@ contract ConsiderationDecoder {
                 // Cache the original consideration array length
                 let originalConsiderationLength := mload(mPtrLengthOriginal)
 
-                // Allocate memory for the array.
+                // Ensure returned array length does not exceed original length.
+                invalidReceivedItems := gt(length, originalConsiderationLength)
+
+                // Derive the length of the new array in memory, capped by the
+                // original consideration array length.
+                let newLength := min(length, originalConsiderationLength)
+
+                // Allocate memory for the array. Note that memory does not need
+                // to be allocated for new elements without a corresponding
+                // original item as the new array will be invalid if its length
+                // exceeds the original array length. 
                 mstore(
                     FreeMemoryPointerSlot,
                     add(
                         mPtrLength,
                         add(
                             OneWord,
-                            mul(length, ConsiderationItem_size_with_length)
+                            mul(newLength, ConsiderationItem_size_with_length)
                         )
                     )
                 )
 
                 // Write the length of the array to the start of free memory.
-                mstore(mPtrLength, length)
+                mstore(mPtrLength, newLength)
 
                 // Use offset from length to minimize stack depth.
                 let headOffsetFromLength := OneWord
-                let headSizeWithLength := shl(OneWordShift, add(1, length))
-                let mPtrTailNext := add(mPtrLength, headSizeWithLength)
+                let mPtrTailNext := add(
+                    mPtrLength,
+                    shl(OneWordShift, add(1, newLength))
+                )
                 let mPtrTailOriginalNext := add(
                     mPtrLengthOriginal,
                     shl(OneWordShift, add(1, originalConsiderationLength))
@@ -1126,7 +1138,7 @@ contract ConsiderationDecoder {
 
                 let headSizeToCompareWithLength := shl(
                     OneWordShift,
-                    add(1, min(length, originalConsiderationLength))
+                    add(1, newLength)
                 )
 
                 // Iterate over each new element with a corresponding original
@@ -1134,7 +1146,6 @@ contract ConsiderationDecoder {
                 // - The new & original items match according to compareItems.
                 // - The new consideration item amount <= the original amount.
                 // - The items have the same recipient if original != null.
-                invalidReceivedItems := gt(length, originalConsiderationLength)
                 for { } lt(
                     headOffsetFromLength,
                     headSizeToCompareWithLength
@@ -1156,6 +1167,7 @@ contract ConsiderationDecoder {
                         OneWord
                     )
 
+                    // Retrieve both the new and original item amounts.
                     let newAmount := mload(
                         add(mPtrTailNext, Common_amount_offset)
                     )
@@ -1206,33 +1218,9 @@ contract ConsiderationDecoder {
                     headOffsetFromLength := add(headOffsetFromLength, OneWord)
                 }
 
-                // Iterate over new elements with no corresponding original item
-                for { } lt(headOffsetFromLength, headSizeWithLength) { } {
-                    // Write the memory pointer to the accompanying head offset.
-                    mstore(add(mPtrLength, headOffsetFromLength), mPtrTailNext)
-
-                    // Copy itemType, token, identifier, amount and recipient.
-                    returndatacopy(
-                        mPtrTailNext,
-                        rdPtrHeadReceivedItems,
-                        ReceivedItem_size
-                    )
-
-                    // Copy amount to consideration item's recipient offset.
-                    returndatacopy(
-                        add(mPtrTailNext, ConsiderationItem_recipient_offset),
-                        add(rdPtrHeadReceivedItems, Common_amount_offset),
-                        OneWord
-                    )
-
-                    // Update read pointer, next tail pointer, and head offset.
-                    rdPtrHeadReceivedItems := add(
-                        rdPtrHeadReceivedItems,
-                        ReceivedItem_size
-                    )
-                    mPtrTailNext := add(mPtrTailNext, ConsiderationItem_size)
-                    headOffsetFromLength := add(headOffsetFromLength, OneWord)
-                }
+                // Note: skip copying new elements without a corresponding
+                // original item as the new array will be invalid if its length
+                // exceeds the original array length.
             }
 
             /**
