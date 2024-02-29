@@ -7,7 +7,7 @@ pid=$!
 # execute foundry script to deploy seaport
 FOUNDRY_PROFILE=optimized forge script TstorishDeploy --rpc-url http://localhost:8545 --slow --skip-simulation --broadcast --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 # get code of 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
-seaport=$(curl -X POST --data '{"jsonrpc":"2.0","method":"eth_getCode","params":["0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", "latest"],"id":1}' -H "Content-Type: application/json" http://localhost:8545)
+seaport=$(curl -sX POST --data '{"jsonrpc":"2.0","method":"eth_getCode","params":["0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", "latest"],"id":1}' -H "Content-Type: application/json" http://localhost:8545 | jq '.result')
 # exit anvil
 echo $seaport
 kill $pid
