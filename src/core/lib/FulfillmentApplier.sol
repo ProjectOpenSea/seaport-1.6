@@ -463,8 +463,6 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                     // fulfillment can be added back to the first item.
                     let firstFulfillmentHeadPtr := add(offerComponents, OneWord)
                     if xor(firstFulfillmentHeadPtr, fulfillmentHeadPtr) {
-                        let firstFulfillmentPtr :=
-                            mload(firstFulfillmentHeadPtr)
                         let fulfillmentPtr := mload(fulfillmentHeadPtr)
                         mstore(firstFulfillmentHeadPtr, fulfillmentPtr)
                     }
@@ -739,8 +737,6 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                     let firstFulfillmentHeadPtr :=
                         add(considerationComponents, OneWord)
                     if xor(firstFulfillmentHeadPtr, fulfillmentHeadPtr) {
-                        let firstFulfillmentPtr :=
-                            mload(firstFulfillmentHeadPtr)
                         let fulfillmentPtr := mload(fulfillmentHeadPtr)
                         mstore(firstFulfillmentHeadPtr, fulfillmentPtr)
                     }
