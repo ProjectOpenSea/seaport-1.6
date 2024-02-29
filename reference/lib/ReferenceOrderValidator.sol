@@ -481,21 +481,6 @@ contract ReferenceOrderValidator is
             // Explicitly specified offer items cannot be removed.
             if (originalOfferLength > newOfferLength) {
                 revert InvalidContractOrder(orderHash);
-            } else if (newOfferLength > originalOfferLength) {
-                {
-                    // Extend the ordersToExecute array.
-                    SpentItem[] memory extendedSpent = new SpentItem[](
-                        newOfferLength
-                    );
-
-                    // Copy original spent items to new array.
-                    for (uint256 i = 0; i < originalOfferLength; ++i) {
-                        extendedSpent[i] = orderToExecute.spentItems[i];
-                    }
-
-                    // Update order to execute with extended items.
-                    orderToExecute.spentItems = extendedSpent;
-                }
             }
 
             // Loop through each new offer and ensure the new amounts are at
@@ -604,8 +589,6 @@ contract ReferenceOrderValidator is
                 );
             }
         }
-
-        orderToExecute.numerator = 1;
 
         // Return the order hash.
         return orderHash;

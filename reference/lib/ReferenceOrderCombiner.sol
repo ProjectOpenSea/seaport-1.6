@@ -785,16 +785,14 @@ contract ReferenceOrderCombiner is
 
             {
                 // Retrieve offer items.
-                OfferItem[] memory offer = parameters.offer;
+                SpentItem[] memory offer = orderToExecute.spentItems;
 
                 // Read length of offer array & place on the stack.
                 uint256 totalOfferItems = offer.length;
 
                 // Iterate over each offer item to restore it.
                 for (uint256 j = 0; j < totalOfferItems; ++j) {
-                    SpentItem memory offerSpentItem = (
-                        orderToExecute.spentItems[j]
-                    );
+                    SpentItem memory offerSpentItem = offer[j];
 
                     // Retrieve remaining amount on the offer item.
                     uint256 unspentAmount = offerSpentItem.amount;
@@ -842,19 +840,6 @@ contract ReferenceOrderCombiner is
                     // Restore original amount.
                     consideration[j].amount = (
                         orderToExecute.receivedItemOriginalAmounts[j]
-                    );
-                }
-            }
-
-            {
-                // Get offer items as well.
-                SpentItem[] memory offer = orderToExecute.spentItems;
-
-                // Iterate over each consideration item to ensure it is met.
-                for (uint256 j = 0; j < offer.length; ++j) {
-                    // Restore original amount.
-                    offer[j].amount = (
-                        orderToExecute.spentItemOriginalAmounts[j]
                     );
                 }
             }
