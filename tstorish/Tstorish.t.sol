@@ -22,7 +22,7 @@ contract TstorishTest is Test {
 
     function testActivate() public {
         vm.etch(
-            0xcafac3dd18ac6c6e92c921884f9e4176737c052c,
+            0xCafac3dD18aC6c6e92c921884f9E4176737C052c,
             hex"3d5c"
         );
 
