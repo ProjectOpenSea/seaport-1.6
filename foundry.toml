@@ -48,7 +48,6 @@ script = 'reference'
 # specify something so it doesn't try to compile the files in test/foundry
 test = 'test/foundry'
 cache_path = 'reference-cache'
-evm_version = 'cancun'
 
 [profile.optimized]
 src = 'src'
@@ -86,9 +85,6 @@ src = 'offerers'
 test = 'offerers'
 out = 'offerers-out'
 script = 'offerers'
-
-[profile.tstorish]
-test = 'tstorish'
 
 [fmt]
 line_length = 80
