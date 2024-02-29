@@ -45,6 +45,9 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
     // Declare an immutable variable to store the initial TSTORE support status.
     bool private immutable _tstoreInitialSupport;
 
+    // Declare an immutable variable to store the tstore test contract address.
+    address private immutable _tloadTestContract;
+
     /**
      * @dev Initialize the reentrancy guard during deployment. This involves
      *      attempting to deploy a contract that utilizes TLOAD as part of the
@@ -53,8 +56,19 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
      *      result.
      */
     constructor() {
-        // Determine if TSTORE is supported & store the result in an immutable.
-        _tstoreInitialSupport = _testTload();
+        // Deploy the contract testing TLOAD support and store the address.
+        address tloadTestContract = _prepareTloadTest();
+        
+        // Ensure the deployment was successful.
+        if (tloadTestContract == address(0)) {
+            revert TloadTestContractDeploymentFailed();
+        }
+
+        // Determine if TSTORE is supported & store the result as an immutable.
+        _tstoreInitialSupport = _testTload(tloadTestContract);
+
+        // Set the address of the deployed TLOAD test contract as an immutable.
+        _tloadTestContract = tloadTestContract;
 
         // Initialize the reentrancy guard in a cleared state.
         _clearReentrancyGuard();
@@ -83,7 +97,7 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
         }
 
         // Determine if TSTORE can be activated and revert if not.
-        if (!_testTload()) {
+        if (!_testTload(_tloadTestContract)) {
             revert TStoreNotSupported();
         }
 
@@ -404,26 +418,33 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
     }
 
     /**
-     * @dev Internal function to determine if TSTORE/TLOAD are supported by the
-     *      current EVM implementation by attempting to create a contract that
-     *      utilizes TLOAD as part of the contract construction bytecode.
+     * @dev Internal function to deploy a test contract that utilizes TLOAD as
+     *      part of its fallback logic.
      */
-    function _testTload() private returns (bool success) {
+    function _prepareTloadTest() private returns (address contractAddress) {
         // Utilize assembly to deploy a contract testing TLOAD support.
         assembly {
             // Write the contract deployment code payload to scratch space.
             mstore(0, _TLOAD_TEST_PAYLOAD)
 
-            // Deploy the contract and return the success status.
-            success := iszero(
-                iszero(
-                    create(
-                        0,
-                        _TLOAD_TEST_PAYLOAD_OFFSET,
-                        _TLOAD_TEST_PAYLOAD_LENGTH
-                    )
+            // Deploy the contract.
+            contractAddress := create(
+                    0,
+                    _TLOAD_TEST_PAYLOAD_OFFSET,
+                    _TLOAD_TEST_PAYLOAD_LENGTH
                 )
-            )
         }
+    }
+
+    /**
+     * @dev Internal function to determine if TSTORE/TLOAD are supported by the
+     *      current EVM implementation by attempting to call the test contract,
+     *      which utilizes TLOAD as part of its fallback logic.
+     */
+    function _testTload(address tloadTestContract) private returns (bool ok) {
+        // Call the test contract, which will perform a TLOAD test. If the call
+        // does not revert, then TLOAD/TSTORE is supported. Do not forward all
+        // available gas, as all forwarded gas will be consumed on revert.
+        (ok, ) = tloadTestContract.call{gas: gasleft() / 10}("");
     }
 }
