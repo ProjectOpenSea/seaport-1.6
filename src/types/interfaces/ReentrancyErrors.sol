@@ -24,4 +24,10 @@ interface ReentrancyErrors {
      *      in an EVM environment that does not support it.
      */  
     error TStoreNotSupported();
+
+    /**
+     * @dev Revert with an error when deployment of the contract for testing
+     *      TSTORE support fails.
+     */
+    error TloadTestContractDeploymentFailed();
 }
