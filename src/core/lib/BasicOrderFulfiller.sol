@@ -566,12 +566,20 @@ contract BasicOrderFulfiller is OrderValidator {
                     calldataload(BasicOrder_additionalRecipients_length_cdPtr)
 
                 // Calculate pointer to length of OrderFulfilled consideration
-                // array.
-                let eventConsiderationArrPtr :=
-                    add(
-                        OrderFulfilled_consideration_length_baseOffset,
-                        shl(OneWordShift, totalAdditionalRecipients)
+                // array. Note that this is based on total original additional
+                // recipients and not the supplied additional recipients, since
+                // the pointer only needs to be offset based on the size of the
+                // EIP-712 hashes used to derive the order hash (and the order
+                // hash does not take tips into account as part of derivation).
+                let eventConsiderationArrPtr := add(
+                    OrderFulfilled_consideration_length_baseOffset,
+                    shl(
+                        OneWordShift,
+                        calldataload(
+                            BasicOrder_totalOriginalAdditionalRecipients_cdPtr
+                        )
                     )
+                )
 
                 // Set the length of the consideration array to the number of
                 // additional recipients, plus one for the primary consideration
