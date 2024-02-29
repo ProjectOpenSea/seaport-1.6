@@ -19,7 +19,7 @@ remappings = [
     'seaport-types/=src/types/',
     'seaport-core/src/=src/core/',
     'seaport-core/=src/core/',
-    'seaport/=src/main/'
+    'seaport/=src/main/',
 ]
 optimizer_runs = 4_294_967_295
 fs_permissions = [
@@ -28,7 +28,7 @@ fs_permissions = [
     { access = "write", path = "./call-metrics.txt" },
     { access = "write", path = "./mutation-metrics.txt" },
     { access = "write", path = "./assume-metrics.txt" },
-    { access = "write", path = "./fuzz_debug.json" }
+    { access = "write", path = "./fuzz_debug.json" },
 ]
 
 [profile.validator]
@@ -47,7 +47,8 @@ out = 'reference-out'
 script = 'reference'
 # specify something so it doesn't try to compile the files in test/foundry
 test = 'test/foundry'
-cache_path='reference-cache'
+cache_path = 'reference-cache'
+evm_version = 'cancun'
 
 [profile.optimized]
 src = 'src'
@@ -57,14 +58,14 @@ out = 'optimized-out'
 script = 'script'
 bytecode_hash = 'none'
 # no need to compile tests with via-ir since they load optimized bytecode directly by default
-test ='src/main'
+test = 'src/main'
 evm_version = 'cancun'
-cache_path='optimized-cache'
-extra_output_files=['irOptimized']
+cache_path = 'optimized-cache'
+extra_output_files = ['irOptimized']
 
 [profile.test]
 src = 'test/foundry'
-cache_path='test-cache'
+cache_path = 'test-cache'
 
 [profile.test.fuzz]
 runs = 1_000
@@ -81,10 +82,13 @@ optimizer = false
 test = 'test/foundry/new'
 
 [profile.offerers]
-src='offerers'
-test='offerers'
+src = 'offerers'
+test = 'offerers'
 out = 'offerers-out'
 script = 'offerers'
+
+[profile.tstorish]
+test = 'tstorish'
 
 [fmt]
 line_length = 80
