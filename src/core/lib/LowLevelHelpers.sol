@@ -16,7 +16,10 @@ import {
     MemoryPointerLib
 } from "seaport-types/src/helpers/PointerLibraries.sol";
 
-import { AdvancedOrder } from "seaport-types/src/lib/ConsiderationStructs.sol";
+import {
+    AdvancedOrder,
+    Execution
+} from "seaport-types/src/lib/ConsiderationStructs.sol";
 
 /**
  * @title LowLevelHelpers
@@ -131,6 +134,32 @@ contract LowLevelHelpers {
             AdvancedOrder[] memory,
             uint256
         ) internal pure returns (AdvancedOrder memory) fn2
+    ) {
+        function (
+            MemoryPointer,
+            uint256
+        ) internal pure returns (
+            MemoryPointer
+        ) fn1 = MemoryPointerLib.pptrOffset;
+
+        assembly {
+            fn2 := fn1
+        }
+    }
+
+    /**
+     * @dev Internal pure function to cast the `pptrOffset` function from
+     *      `MemoryPointerLib` to a function that takes a memory array of
+     *      `Execution` and an offset in memory and returns the
+     *      `Execution` whose pointer is stored at that offset from the
+     *      array length.
+     */
+    function _getReadExecutionByOffset(
+    ) internal pure returns (
+        function (
+            Execution[] memory,
+            uint256
+        ) internal pure returns (Execution memory) fn2
     ) {
         function (
             MemoryPointer,
