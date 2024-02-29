@@ -473,7 +473,8 @@ contract ReferenceOrderCombiner is
 
                 orderHashes[i] = orderHash;
  
-                if (orderHashes[i] == bytes32(0)) {
+                if (orderHash == bytes32(0)) {
+                    ordersToExecute[i].numerator = 0;
                     continue;
                 }
             }
