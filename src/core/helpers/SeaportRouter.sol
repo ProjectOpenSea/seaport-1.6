@@ -120,8 +120,11 @@ contract SeaportRouter is SeaportRouterInterface, ReentrancyGuard {
             // This is wrapped in a try/catch in case a single order is
             // executed that is no longer available, leading to a revert
             // with `NoSpecifiedOrdersAvailable()` that can be ignored.
-            try SeaportInterface(params.seaportContracts[i])
-                .fulfillAvailableAdvancedOrders{ value: orderParams.etherValue }(
+            try SeaportInterface(
+                params.seaportContracts[i]
+            ).fulfillAvailableAdvancedOrders{
+                    value: orderParams.etherValue
+            }(
                 calldataParams.advancedOrders,
                 calldataParams.criteriaResolvers,
                 calldataParams.offerFulfillments,

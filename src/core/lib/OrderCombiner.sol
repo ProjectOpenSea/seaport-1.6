@@ -503,7 +503,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                     continue;
                 }
 
-                // Update order status as long as there is some fraction available.
+                // Update order status as long as some fraction is available.
                 if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
                     if (
                         !_checkRestrictedAdvancedOrderAuthorization(
@@ -863,8 +863,12 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                             // make offerItem compatible with the ReceivedItem
                             // input to _transfer & cache the original endAmount
                             // so it can be restored after the transfer.
-                            uint256 originalEndAmount =
-                            _replaceEndAmountWithRecipient(offerItem, recipient);
+                            uint256 originalEndAmount = (
+                                _replaceEndAmountWithRecipient(
+                                    offerItem,
+                                    recipient
+                                )
+                            );
 
                             // Transfer excess offer item amount to recipient.
                             _toOfferItemInput(_transfer)(

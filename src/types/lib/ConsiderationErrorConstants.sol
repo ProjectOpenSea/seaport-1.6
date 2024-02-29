@@ -102,8 +102,7 @@ uint256 constant UnresolvedOfferCriteria_error_length = 0x44;
  */
 uint256 constant UnresolvedConsiderationCriteria_error_selector = 0xa8930e9a;
 uint256 constant UnresolvedConsiderationCriteria_error_orderIndex_ptr = 0x20;
-uint256 constant UnresolvedConsiderationCriteria_error_considerationIdx_ptr =
-    (0x40);
+uint256 constant UnresolvedConsiderationCriteria_error_itemIndex_ptr = 0x40;
 uint256 constant UnresolvedConsiderationCriteria_error_length = 0x44;
 
 /*

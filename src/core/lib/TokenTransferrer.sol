@@ -812,7 +812,7 @@ contract TokenTransferrer is TokenTransferrerErrors {
                         gas(),
                         token,
                         0,
-                        ConduitBatch1155Transfer_from_offset, // Data portion start.
+                        ConduitBatch1155Transfer_from_offset, // Data start.
                         transferDataSize, // Location of the length of callData.
                         0,
                         0
