@@ -18,8 +18,6 @@ pid=$!
 sleep 5
 # call setCode on the 0xe7f address with the $seaport var
 curl -X POST --data '{"jsonrpc":"2.0","method":"anvil_setCode","params":["0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512", '"$seaport"'],"id":1}' -H "Content-Type: application/json" http://localhost:8545
-# call setCode on the 0xcafac3dd18ac6c6e92c921884f9e4176737c052c address with 0x3d5c
-curl -X POST --data '{"jsonrpc":"2.0","method":"anvil_setCode","params":["0xcafac3dd18ac6c6e92c921884f9e4176737c052c", "0x3d5c"],"id":1}' -H "Content-Type: application/json" http://localhost:8545
 # mine a block
 # execute Tstorish test
 FOUNDRY_PROFILE=tstorish forge test -vvvv --fork-url http://localhost:8545
