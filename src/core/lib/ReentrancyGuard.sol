@@ -37,20 +37,23 @@ import {
 /**
  * @title ReentrancyGuard
  * @author 0age
- * @notice ReentrancyGuard contains a storage variable and related functionality
- *         for protecting against reentrancy.
+ * @notice ReentrancyGuard contains a storage variable (or a transient storage
+ *         variable in EVM environments that support it once activated) and
+ *         related functionality for protecting against reentrancy.
  */
 contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
+    // Declare an immutable variable to store the initial TSTORE support status.
     bool private immutable _tstoreInitialSupport;
 
-    error TStoreAlreadyActivated();
-    error TStoreNotSupported();
-
     /**
-     * @dev Initialize the reentrancy guard during deployment.
+     * @dev Initialize the reentrancy guard during deployment. This involves
+     *      attempting to deploy a contract that utilizes TLOAD as part of the
+     *      contract construction bytecode, and configuring initial support for
+     *      using TSTORE in place of SSTORE for the reentrancy lock based on the
+     *      result.
      */
     constructor() {
-        // Determine if TSTORE is supported and store the result in an immutable.
+        // Determine if TSTORE is supported & store the result in an immutable.
         _tstoreInitialSupport = _testTload();
 
         // Initialize the reentrancy guard in a cleared state.
@@ -59,6 +62,10 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
 
     /**
      * @dev External function to activate TSTORE usage for the reentrancy guard.
+     *      Does not need to be called if TSTORE is supported from deployment,
+     *      and only needs to be called once. Reverts if TSTORE has already been
+     *      activated, if the opcode is not available, or if the reentrancy
+     *      guard is currently set.
      */
     function __activateTstore() external {
         // Ensure that the reentrancy guard is not currently set.
@@ -230,7 +237,7 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
 
     /**
      * @dev Internal view function to ensure that a sentinel value for the
-     *         reentrancy guard is not currently set.
+     *      reentrancy guard is not currently set.
      */
     function _assertNonReentrant() internal view {
         // Place immutable variable on the stack access within inline assembly.
@@ -240,11 +247,11 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
         assembly {
             // "Loop" over three possible cases for setting the reentrancy guard
             // based on tstore support and state, exiting once the respective
-            // state has been identified and a corresponding guard has been set.
+            // state has been identified and a corresponding guard checked.
             for {} 1 {} {
                 // 1: handle case where tstore is supported from the start.
                 if tstoreInitialSupport {
-                    // Ensure that the reentrancy guard is not already set.
+                    // Ensure that the reentrancy guard is not currently set.
                     if iszero(eq(tload(_REENTRANCY_GUARD_SLOT), _NOT_ENTERED)) {
                         // Store left-padded selector with push4,
                         // mem[28:32] = selector
@@ -263,7 +270,7 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
 
                 // 2: handle tstore support that was activated post-deployment.
                 if sload(_TSTORE_SUPPORTED_SLOT) {
-                    // Ensure that the reentrancy guard is not already set.
+                    // Ensure that the reentrancy guard is not currently set.
                     if iszero(eq(tload(_REENTRANCY_GUARD_SLOT), _NOT_ENTERED)) {
                         // Store left-padded selector with push4,
                         // mem[28:32] = selector
@@ -281,7 +288,7 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
                 }
 
                 // 3: handle case where tstore support has not been activated.
-                // Ensure that the reentrancy guard is not already set.
+                // Ensure that the reentrancy guard is not currently set.
                 if iszero(eq(sload(_REENTRANCY_GUARD_SLOT), _NOT_ENTERED)) {
                     // Store left-padded selector with push4 (reduces bytecode),
                     // mem[28:32] = selector
@@ -404,7 +411,7 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
     function _testTload() private returns (bool success) {
         // Utilize assembly to deploy a contract testing TLOAD support.
         assembly {
-            // Write the contract deployment code payload to memory.
+            // Write the contract deployment code payload to scratch space.
             mstore(0, _TLOAD_TEST_PAYLOAD)
 
             // Deploy the contract and return the success status.
