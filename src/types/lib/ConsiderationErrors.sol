@@ -74,7 +74,6 @@ import {
     OrderPartiallyFilled_error_selector,
     PartialFillsNotEnabledForOrder_error_length,
     PartialFillsNotEnabledForOrder_error_selector,
-    UnresolvedConsiderationCriteria_error_considerationIdx_ptr,
     UnresolvedConsiderationCriteria_error_length,
     UnresolvedConsiderationCriteria_error_orderIndex_ptr,
     UnresolvedConsiderationCriteria_error_selector,

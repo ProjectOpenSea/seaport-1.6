@@ -37,9 +37,9 @@ import {
     ConsiderationCriteriaResolverOutOfRange_err_selector,
     Error_selector_offset,
     OfferCriteriaResolverOutOfRange_error_selector,
+    UnresolvedConsiderationCriteria_error_itemIndex_ptr,
     UnresolvedConsiderationCriteria_error_length,
     UnresolvedConsiderationCriteria_error_orderIndex_ptr,
-    UnresolvedConsiderationCriteria_error_considerationIdx_ptr,
     UnresolvedConsiderationCriteria_error_selector,
     UnresolvedOfferCriteria_error_selector
 } from "seaport-types/src/lib/ConsiderationErrorConstants.sol";
@@ -163,7 +163,11 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                     }
 
                     // Apply the criteria resolver to the item in question.
-                    _updateCriteriaItem(items, componentIndex, criteriaResolver);
+                    _updateCriteriaItem(
+                        items,
+                        componentIndex,
+                        criteriaResolver
+                    );
                 }
             }
 
@@ -207,8 +211,8 @@ contract CriteriaResolution is CriteriaResolutionErrors {
      *
      * @param orderIndex     The index of the order being examined.
      * @param items          The items to examine. These are consideration items
-     *                       in the default case, but offer items are also casted
-     *                       to consideration items as required.
+     *                       in the default case, but offer items are also
+     *                       casted to consideration items as required.
      * @param orderType      The type of order being examined.
      * @param revertSelector The selector to use when reverting.
      */
@@ -248,15 +252,12 @@ contract CriteriaResolution is CriteriaResolutionErrors {
                         orderIndex
                     )
                     mstore(
-                        UnresolvedConsiderationCriteria_error_considerationIdx_ptr,
+                        UnresolvedConsiderationCriteria_error_itemIndex_ptr,
                         i
                     )
 
-                    // revert(abi.encodeWithSignature(
-                    //     "Unresolved[Offer|Consideration]Criteria(uint256, uint256)",
-                    //     orderIndex,
-                    //     i
-                    // ))
+                    // Revert with appropriate UnresolvedCriteria error message.
+                    // Unresolved[Offer|Consideration]Criteria(uint256, uint256)
                     revert(
                         Error_selector_offset,
                         UnresolvedConsiderationCriteria_error_length

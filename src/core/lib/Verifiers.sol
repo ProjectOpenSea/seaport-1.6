@@ -107,7 +107,10 @@ contract Verifiers is Assertions, SignatureVerification {
         bytes32 domainSeparator = _domainSeparator();
 
         // Derive original EIP-712 digest using domain separator and order hash.
-        bytes32 originalDigest = _deriveEIP712Digest(domainSeparator, orderHash);
+        bytes32 originalDigest = _deriveEIP712Digest(
+            domainSeparator,
+            orderHash
+        );
 
         // Read the length of the signature from memory and place on the stack.
         uint256 originalSignatureLength = signature.length;

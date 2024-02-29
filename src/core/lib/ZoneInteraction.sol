@@ -393,10 +393,8 @@ contract ZoneInteraction is
      * @dev Calls the specified target with the given data and checks the status
      *      of the call. Revert reasons will be "bubbled up" if one is returned,
      *      otherwise reverting calls will throw a generic error based on the
-     *      supplied error handler.
-     *
-     *      Note: The custom error selector must already be in memory at the zero
-     *            slot when this function is called.
+     *      supplied error handler. Note that the custom error selector must
+     *      already be in memory at the zero slot when this function is called.
      *
      * @param target        The address of the contract to call.
      * @param orderHash     The hash of the order associated with the call.

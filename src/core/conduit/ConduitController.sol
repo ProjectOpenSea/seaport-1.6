@@ -265,7 +265,11 @@ contract ConduitController is ConduitControllerInterface {
         _conduits[conduit].potentialOwner = address(0);
 
         // Emit an event indicating conduit ownership has been transferred.
-        emit OwnershipTransferred(conduit, _conduits[conduit].owner, msg.sender);
+        emit OwnershipTransferred(
+            conduit,
+            _conduits[conduit].owner,
+            msg.sender
+        );
 
         // Set the caller as the owner of the conduit.
         _conduits[conduit].owner = msg.sender;

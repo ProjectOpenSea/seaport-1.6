@@ -171,10 +171,7 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                     fulfillmentIndex
                 )
 
-                // revert(abi.encodeWithSignature(
-                //     "MismatchedFulfillmentOfferAndConsiderationComponents(uint256)",
-                //     fulfillmentIndex
-                // ))
+                // Revert: `MismatchedOfferAndConsiderationComponents(uint256)`
                 revert(
                     Error_selector_offset,
                     MismatchedOfferAndConsiderationComponents_error_length
