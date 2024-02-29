@@ -561,7 +561,9 @@ contract BasicOrderFulfiller is OrderValidator {
                  * item to the consideration array in OrderFulfilled.
                  */
 
-                // Get the length of the additional recipients array.
+                // Get the additional recipients array length from calldata.
+                // This variable will later be repurposed to track the total
+                // original additional recipients instead of the total supplied.
                 let totalAdditionalRecipients :=
                     calldataload(BasicOrder_additionalRecipients_length_cdPtr)
 
@@ -636,8 +638,9 @@ contract BasicOrderFulfiller is OrderValidator {
                 // be combined to guard against providing dirty upper bits.
                 let combinedAdditionalRecipients
 
-                // Read length of the additionalRecipients array from calldata
-                // and iterate.
+                // Only iterate over the total original additional recipients
+                // (not the total supplied additional recipients) when deriving
+                // the order hash.
                 totalAdditionalRecipients := calldataload(
                     BasicOrder_totalOriginalAdditionalRecipients_cdPtr
                 )
@@ -1009,7 +1012,7 @@ contract BasicOrderFulfiller is OrderValidator {
                     shl(
                         OneWordShift,
                         calldataload(
-                            BasicOrder_additionalRecipients_length_cdPtr
+                            BasicOrder_totalOriginalAdditionalRecipients_cdPtr
                         )
                     )
                 )
