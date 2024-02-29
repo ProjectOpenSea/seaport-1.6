@@ -2,11 +2,11 @@
 pragma solidity ^0.8.17;
 
 import { Test } from "forge-std/Test.sol";
+
 import {
-    Consideration,
-    ConsiderationInterface
-} from "seaport-core/src/lib/Consideration.sol";
-import { ReentrancyGuard } from "seaport-core/src/lib/ReentrancyGuard.sol";
+    ReentrancyGuard,
+    ReentrancyErrors
+} from "seaport-core/src/lib/ReentrancyGuard.sol";
 
 contract TstorishTest is Test {
     ReentrancyGuard seaport;
@@ -28,7 +28,7 @@ contract TstorishTest is Test {
             vm.accesses(address(seaport));
         assertEq(writes.length, 1);
         // second call reverts
-        vm.expectRevert(ReentrancyGuard.TStoreAlreadyActivated.selector);
+        vm.expectRevert(ReentrancyErrors.TStoreAlreadyActivated.selector);
         seaport.__activateTstore();
     }
 }
