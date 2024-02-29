@@ -115,10 +115,10 @@ contract SignatureVerification is
                     if lenDiff {
                         // Extract yParity from highest bit of vs and add 27 to
                         // get v.
-                        v :=
-                            add(
-                                shr(MaxUint8, originalSignatureS), Signature_lower_v
-                            )
+                        v := add(
+                            shr(MaxUint8, originalSignatureS),
+                            Signature_lower_v
+                        )
 
                         // Extract canonical s from vs, all but the highest bit.
                         // Temporarily overwrite the original `s` value in the
@@ -189,8 +189,10 @@ contract SignatureVerification is
                 )
 
                 // Get pointer to use for the selector of `isValidSignature`.
-                let selectorPtr :=
-                    sub(signature, EIP1271_isValidSignature_selector_negativeOffset)
+                let selectorPtr := sub(
+                    signature,
+                    EIP1271_isValidSignature_selector_negativeOffset
+                )
 
                 // Cache the value currently stored at the selector pointer.
                 let cachedWordOverwrittenBySelector := mload(selectorPtr)

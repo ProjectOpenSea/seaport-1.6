@@ -41,6 +41,7 @@ import {
     OrderStatus_filledDenominator_offset,
     OrderStatus_filledNumerator_offset,
     OrderStatus_ValidatedAndNotCancelled,
+    OrderStatus_ValidatedAndNotCancelledAndFullyFilled,
     ReceivedItem_recipient_offset
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
@@ -104,7 +105,7 @@ contract OrderValidator is Executor, ZoneInteraction {
             orderHash,
             orderStatus,
             true, // Only allow unused orders when fulfilling basic orders.
-            _runTimeConstantTrue() // Signifies to revert if the order is invalid.
+            _runTimeConstantTrue() // Signifies to revert if order is invalid.
         );
 
         // If the order is not already validated, verify the supplied signature.
@@ -113,12 +114,21 @@ contract OrderValidator is Executor, ZoneInteraction {
         }
     }
 
+    /**
+     * @dev Internal function to update the status of a basic order, assuming
+     *      all validation has already been performed.
+     *
+     * @param orderStatus A storage pointer referencing the order status.
+     */
     function _updateBasicOrderStatus(OrderStatus storage orderStatus) internal {
-        // Update order status as fully filled, packing struct values.
-        orderStatus.isValidated = true;
-        orderStatus.isCancelled = false;
-        orderStatus.numerator = 1;
-        orderStatus.denominator = 1;     
+        // Utilize assembly to efficiently update the order status.
+        assembly {
+            // Update order status as validated, not cancelled, & fully filled.
+            sstore(
+                orderStatus.slot,
+                OrderStatus_ValidatedAndNotCancelledAndFullyFilled
+            )
+        }  
     }
 
     /**
@@ -266,7 +276,10 @@ contract OrderValidator is Executor, ZoneInteraction {
                 // Shift and mask to calculate the current filled numerator.
                 filledNumerator :=
                     and(
-                        shr(OrderStatus_filledNumerator_offset, filledNumerator),
+                        shr(
+                            OrderStatus_filledNumerator_offset,
+                            filledNumerator
+                        ),
                         MaxUint120
                     )
 
@@ -277,9 +290,6 @@ contract OrderValidator is Executor, ZoneInteraction {
 
                     // Set the fill size to the current size.
                     denominator := filledDenominator
-
-                    // Set the filled amount to the current size.
-                    filledNumerator := filledDenominator
 
                     // Exit the "loop" early.
                     break
@@ -300,9 +310,6 @@ contract OrderValidator is Executor, ZoneInteraction {
 
                     // reduce the amount to fill by the excess.
                     numerator := sub(numerator, carry)
-
-                    // Reduce the filled amount by the excess as well.
-                    filledNumerator := sub(filledNumerator, carry)
 
                     // Exit the "loop" early.
                     break
@@ -333,10 +340,8 @@ contract OrderValidator is Executor, ZoneInteraction {
                 // Reduce the filled amount by the excess as well.
                 filledNumerator := sub(filledNumerator, carry)
 
-                // Check filledNumerator and denominator for uint120 overflow.
-                if or(
-                    gt(filledNumerator, MaxUint120), gt(denominator, MaxUint120)
-                ) {
+                // Check denominator for uint120 overflow.
+                if gt(denominator, MaxUint120) {
                     // Derive greatest common divisor using euclidean algorithm.
                     function gcd(_a, _b) -> out {
                         // "Loop" until only one non-zero value remains.
@@ -362,16 +367,12 @@ contract OrderValidator is Executor, ZoneInteraction {
                     // Ensure that the divisor is at least one.
                     let safeScaleDown := add(scaleDown, iszero(scaleDown))
 
-                    // Scale all fractional values down by gcd.
+                    // Scale fractional values down by gcd.
                     numerator := div(numerator, safeScaleDown)
-                    filledNumerator := div(filledNumerator, safeScaleDown)
                     denominator := div(denominator, safeScaleDown)
 
                     // Perform the overflow check a second time.
-                    if or(
-                        gt(filledNumerator, MaxUint120),
-                        gt(denominator, MaxUint120)
-                    ) {
+                    if gt(denominator, MaxUint120) {
                         // Store the Panic error signature.
                         mstore(0, Panic_error_selector)
                         // Store the arithmetic (0x11) panic code.
@@ -398,9 +399,12 @@ contract OrderValidator is Executor, ZoneInteraction {
      *      fraction to the remaining amount (e.g., if there is not enough
      *      of the order remaining to fill the supplied fraction, or if the
      *      fractions cannot be represented by two uint120 values).
-     * @param orderHash The hash of the order.
-     * @param numerator The numerator of the fraction filled to write to the order status.
-     * @param denominator The denominator of the fraction filled to write to the order status.
+     * 
+     * @param orderHash       The hash of the order.
+     * @param numerator       The numerator of the fraction filled to write to
+     *                        the order status.
+     * @param denominator     The denominator of the fraction filled to write to
+     *                        the order status.
      * @param revertOnInvalid Whether to revert if an order is already filled.
      */
     function _updateStatus(
@@ -412,7 +416,7 @@ contract OrderValidator is Executor, ZoneInteraction {
         // Retrieve the order status using the derived order hash.
         OrderStatus storage orderStatus = _orderStatus[orderHash];
 
-        bool hasCarryOrNoNumerator = numerator == 0;
+        bool hasCarry = false;
 
         uint256 orderStatusSlot;
         uint256 filledNumerator;
@@ -439,33 +443,19 @@ contract OrderValidator is Executor, ZoneInteraction {
                 // Shift and mask to calculate the current filled numerator.
                 filledNumerator :=
                     and(
-                        shr(OrderStatus_filledNumerator_offset, filledNumerator),
+                        shr(
+                            OrderStatus_filledNumerator_offset,
+                            filledNumerator
+                        ),
                         MaxUint120
                     )
-
-                // If denominator of 1 supplied, fill entire remaining amount.
-                if eq(denominator, 1) {
-                    // Set the amount to fill to the remaining amount.
-                    numerator := sub(filledDenominator, filledNumerator)
-
-                    hasCarryOrNoNumerator := iszero(numerator)
-
-                    // Set the fill size to the current size.
-                    denominator := filledDenominator
-
-                    // Set the filled amount to the current size.
-                    filledNumerator := filledDenominator
-
-                    // Exit the "loop" early.
-                    break
-                }
 
                 // If supplied denominator is equal to the current one:
                 if eq(denominator, filledDenominator) {
                     // Increment the filled numerator by the new numerator.
                     filledNumerator := add(numerator, filledNumerator)
 
-                    hasCarryOrNoNumerator := gt(filledNumerator, denominator)
+                    hasCarry := gt(filledNumerator, denominator)
 
                     // Exit the "loop" early.
                     break
@@ -482,7 +472,7 @@ contract OrderValidator is Executor, ZoneInteraction {
                 // Increment the filled numerator by the new numerator.
                 filledNumerator := add(numerator, filledNumerator)
 
-                hasCarryOrNoNumerator := gt(filledNumerator, denominator)
+                hasCarry := gt(filledNumerator, denominator)
 
                 // Check filledNumerator and denominator for uint120 overflow.
                 if or(
@@ -540,7 +530,7 @@ contract OrderValidator is Executor, ZoneInteraction {
             }
         }
 
-        if (hasCarryOrNoNumerator) {
+        if (hasCarry) {
             if (revertOnInvalid) {
                 revert OrderAlreadyFilled(orderHash);
             } else {
@@ -557,7 +547,10 @@ contract OrderValidator is Executor, ZoneInteraction {
                 or(
                     OrderStatus_ValidatedAndNotCancelled,
                     or(
-                        shl(OrderStatus_filledNumerator_offset, filledNumerator),
+                        shl(
+                            OrderStatus_filledNumerator_offset,
+                            filledNumerator
+                        ),
                         shl(OrderStatus_filledDenominator_offset, denominator)
                     )
                 )
@@ -721,7 +714,10 @@ contract OrderValidator is Executor, ZoneInteraction {
                             or(
                                 eq(orderType, 4),
                                 iszero(
-                                    or(eq(caller(), offerer), eq(caller(), zone))
+                                    or(
+                                        eq(caller(), offerer),
+                                        eq(caller(), zone)
+                                    )
                                 )
                             )
                         )
@@ -817,7 +813,7 @@ contract OrderValidator is Executor, ZoneInteraction {
                     orderHash,
                     orderStatus,
                     false, // Signifies that partially filled orders are valid.
-                    _runTimeConstantTrue() // Signifies to revert if the order is invalid.
+                    _runTimeConstantTrue() // Revert if order is invalid.
                 );
 
                 // If the order has not already been validated...

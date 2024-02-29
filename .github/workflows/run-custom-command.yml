@@ -1,0 +1,29 @@
+name: Run Custom Command
+
+on:
+  workflow_dispatch:
+    inputs:
+      cmd:
+        description: cli cmd to run
+        required: true
+
+jobs:
+  run-custom-command:
+    name: Run Custom Command
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install forge dependencies
+        run: forge install
+
+      - name: Run custom command
+        run: ${{ github.event.inputs.cmd }}

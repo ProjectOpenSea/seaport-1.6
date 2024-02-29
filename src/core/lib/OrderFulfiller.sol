@@ -167,6 +167,16 @@ contract OrderFulfiller is
         return true;
     }
 
+    /**
+     * @dev Internal function to derive the amount to transfer for each item in
+     *      a given order based on the fraction to fill and the current time.
+     *
+     * @param orderParameters     The parameters for the fulfilled order.
+     * @param numerator           A value indicating the portion of the order
+     *                            that should be filled.
+     * @param denominator         A value indicating the total order size.
+     * @param recipient           The intended recipient for all received items.
+     */
     function _applyFractions(
         OrderParameters memory orderParameters,
         uint256 numerator,
@@ -258,9 +268,9 @@ contract OrderFulfiller is
                 assembly {
                     invalidNativeOfferItem :=
                         and(
-                            // Note that this check requires that there are no order
-                            // types beyond the current set (0-4).  It will need to
-                            // be modified if more order types are added.
+                            // Note that this check requires that there are no
+                            // order types beyond the current set (0-4). It will
+                            // need to be modified when adding more order types.
                             lt(orderType, 4),
                             anyNativeItems
                         )
@@ -333,6 +343,18 @@ contract OrderFulfiller is
         }
     }
 
+    /**
+     * @dev Internal function to transfer each item contained in a given single
+     *      order fulfillment.
+     *
+     * @param orderParameters     The parameters for the fulfilled order.
+     * @param fulfillerConduitKey A bytes32 value indicating what conduit, if
+     *                            any, to source the fulfiller's token approvals
+     *                            from. The zero hash signifies that no conduit
+     *                            should be used, with direct approvals set on
+     *                            Consideration.
+     * @param recipient           The intended recipient for all received items.
+     */
     function _transferEach(
         OrderParameters memory orderParameters,
         bytes32 fulfillerConduitKey,

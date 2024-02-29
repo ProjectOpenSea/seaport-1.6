@@ -299,33 +299,57 @@ contract BasicOrderFulfiller is OrderValidator {
             if (route == BasicOrderRouteType.ERC20_TO_ERC721) {
                 // Transfer ERC721 to caller using offerer's conduit preference.
                 _transferERC721(
-                    CalldataPointer.wrap(BasicOrder_offerToken_cdPtr).readAddress(),
-                    CalldataPointer.wrap(BasicOrder_offerer_cdPtr).readAddress(),
+                    CalldataPointer.wrap(
+                        BasicOrder_offerToken_cdPtr
+                    ).readAddress(),
+                    CalldataPointer.wrap(
+                        BasicOrder_offerer_cdPtr
+                    ).readAddress(),
                     msg.sender,
-                    CalldataPointer.wrap(BasicOrder_offerIdentifier_cdPtr).readUint256(),
-                    CalldataPointer.wrap(BasicOrder_offerAmount_cdPtr).readUint256(),
+                    CalldataPointer.wrap(
+                        BasicOrder_offerIdentifier_cdPtr
+                    ).readUint256(),
+                    CalldataPointer.wrap(
+                        BasicOrder_offerAmount_cdPtr
+                    ).readUint256(),
                     conduitKey,
                     accumulator
                 );
             } else if (route == BasicOrderRouteType.ERC20_TO_ERC1155) {
                 // Transfer ERC1155 to caller with offerer's conduit preference.
                 _transferERC1155(
-                    CalldataPointer.wrap(BasicOrder_offerToken_cdPtr).readAddress(),
-                    CalldataPointer.wrap(BasicOrder_offerer_cdPtr).readAddress(),
+                    CalldataPointer.wrap(
+                        BasicOrder_offerToken_cdPtr
+                    ).readAddress(),
+                    CalldataPointer.wrap(
+                        BasicOrder_offerer_cdPtr
+                    ).readAddress(),
                     msg.sender,
-                    CalldataPointer.wrap(BasicOrder_offerIdentifier_cdPtr).readUint256(),
-                    CalldataPointer.wrap(BasicOrder_offerAmount_cdPtr).readUint256(),
+                    CalldataPointer.wrap(
+                        BasicOrder_offerIdentifier_cdPtr
+                    ).readUint256(),
+                    CalldataPointer.wrap(
+                        BasicOrder_offerAmount_cdPtr
+                    ).readUint256(),
                     conduitKey,
                     accumulator
                 );
             } else if (route == BasicOrderRouteType.ERC721_TO_ERC20) {
                 // Transfer ERC721 to offerer using caller's conduit preference.
                 _transferERC721(
-                    CalldataPointer.wrap(BasicOrder_considerationToken_cdPtr).readAddress(),
+                    CalldataPointer.wrap(
+                        BasicOrder_considerationToken_cdPtr
+                    ).readAddress(),
                     msg.sender,
-                    CalldataPointer.wrap(BasicOrder_offerer_cdPtr).readAddress(),
-                    CalldataPointer.wrap(BasicOrder_considerationIdentifier_cdPtr).readUint256(),
-                    CalldataPointer.wrap(BasicOrder_considerationAmount_cdPtr).readUint256(),
+                    CalldataPointer.wrap(
+                        BasicOrder_offerer_cdPtr
+                    ).readAddress(),
+                    CalldataPointer.wrap(
+                        BasicOrder_considerationIdentifier_cdPtr
+                    ).readUint256(),
+                    CalldataPointer.wrap(
+                        BasicOrder_considerationAmount_cdPtr
+                    ).readUint256(),
                     conduitKey,
                     accumulator
                 );
@@ -334,11 +358,19 @@ contract BasicOrderFulfiller is OrderValidator {
 
                 // Transfer ERC1155 to offerer with caller's conduit preference.
                 _transferERC1155(
-                    CalldataPointer.wrap(BasicOrder_considerationToken_cdPtr).readAddress(),
+                    CalldataPointer.wrap(
+                        BasicOrder_considerationToken_cdPtr
+                    ).readAddress(),
                     msg.sender,
-                    CalldataPointer.wrap(BasicOrder_offerer_cdPtr).readAddress(),
-                    CalldataPointer.wrap(BasicOrder_considerationIdentifier_cdPtr).readUint256(),
-                    CalldataPointer.wrap(BasicOrder_considerationAmount_cdPtr).readUint256(),
+                    CalldataPointer.wrap(
+                        BasicOrder_offerer_cdPtr
+                    ).readAddress(),
+                    CalldataPointer.wrap(
+                        BasicOrder_considerationIdentifier_cdPtr
+                    ).readUint256(),
+                    CalldataPointer.wrap(
+                        BasicOrder_considerationAmount_cdPtr
+                    ).readUint256(),
                     conduitKey,
                     accumulator
                 );
@@ -354,7 +386,11 @@ contract BasicOrderFulfiller is OrderValidator {
         }
 
         // Determine whether order is restricted and, if so, that it is valid.
-        _assertRestrictedBasicOrderValidity(orderHash, orderType, callDataPointer);
+        _assertRestrictedBasicOrderValidity(
+            orderHash,
+            orderType,
+            callDataPointer
+        );
 
         // Clear the reentrancy guard.
         _clearReentrancyGuard();
@@ -594,8 +630,9 @@ contract BasicOrderFulfiller is OrderValidator {
 
                 // Read length of the additionalRecipients array from calldata
                 // and iterate.
-                totalAdditionalRecipients :=
-                    calldataload(BasicOrder_totalOriginalAdditionalRecipients_cdPtr)
+                totalAdditionalRecipients := calldataload(
+                    BasicOrder_totalOriginalAdditionalRecipients_cdPtr
+                )
                 let i := 0
                 for { } lt(i, totalAdditionalRecipients) { i := add(i, 1) } {
                     /*
@@ -963,7 +1000,9 @@ contract BasicOrderFulfiller is OrderValidator {
                     OrderFulfilled_baseOffset,
                     shl(
                         OneWordShift,
-                        calldataload(BasicOrder_additionalRecipients_length_cdPtr)
+                        calldataload(
+                            BasicOrder_additionalRecipients_length_cdPtr
+                        )
                     )
                 )
 
@@ -992,7 +1031,9 @@ contract BasicOrderFulfiller is OrderValidator {
                 add(
                     OrderFulfilled_baseSize,
                     mul(
-                        calldataload(BasicOrder_additionalRecipients_length_cdPtr),
+                        calldataload(
+                            BasicOrder_additionalRecipients_length_cdPtr
+                        ),
                         ReceivedItem_size
                     )
                 )
@@ -1019,7 +1060,7 @@ contract BasicOrderFulfiller is OrderValidator {
             mstore(FreeMemoryPointerSlot, add(eventDataPtr, dataSize))
         }
 
-        // Verify and update the status of the derived order.
+        // Verify the status of the derived order.
         OrderStatus storage orderStatus = _validateBasicOrder(
             orderHash,
             _toBytesReturnType(_decodeBytes)(
@@ -1038,7 +1079,10 @@ contract BasicOrderFulfiller is OrderValidator {
         );
 
         // Determine whether order is restricted and, if so, that it is valid.
-        callDataPointer = _assertRestrictedBasicOrderAuthorization(orderHash, orderType);
+        callDataPointer = _assertRestrictedBasicOrderAuthorization(
+            orderHash,
+            orderType
+        );
 
         // Update the status of the order and mark as fully filled.
         _updateBasicOrderStatus(orderStatus);

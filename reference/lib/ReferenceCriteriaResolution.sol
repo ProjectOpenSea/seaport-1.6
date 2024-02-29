@@ -157,12 +157,8 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
         // Retrieve length of orders array and place on stack.
         arraySize = ordersToExecute.length;
 
-        // Iterate over each order to execute, skipping contract orders.
+        // Iterate over each order to execute.
         for (uint256 i = 0; i < arraySize; ++i) {
-            if (advancedOrders[i].parameters.orderType == OrderType.CONTRACT) {
-                continue;
-            }
-
             // Retrieve the order to execute.
             OrderToExecute memory orderToExecute = ordersToExecute[i];
 
@@ -180,7 +176,12 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
                 if (
                     _isItemWithCriteria(orderToExecute.spentItems[j].itemType)
                 ) {
-                    revert UnresolvedOfferCriteria(i, j);
+                    if (
+                        advancedOrders[i].parameters.orderType != OrderType.CONTRACT ||
+                        orderToExecute.spentItems[j].identifier != 0
+                    ) {
+                        revert UnresolvedOfferCriteria(i, j);
+                    }
                 }
             }
 
@@ -195,7 +196,12 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
                         orderToExecute.receivedItems[j].itemType
                     )
                 ) {
-                    revert UnresolvedConsiderationCriteria(i, j);
+                    if (
+                        advancedOrders[i].parameters.orderType != OrderType.CONTRACT ||
+                        orderToExecute.receivedItems[j].identifier != 0
+                    ) {
+                        revert UnresolvedConsiderationCriteria(i, j);
+                    }
                 }
             }
         }
@@ -317,12 +323,6 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
             }
         }
 
-        // Skip validating criteria resolvers for considerationItems on contract
-        // orders, since contract offerers may resolve wildcard items themselves.
-        if (advancedOrder.parameters.orderType == OrderType.CONTRACT) {
-            return;
-        }
-
         // Validate Criteria on order has been resolved
 
         // Read consideration length from memory and place on stack.
@@ -336,7 +336,12 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
                     advancedOrder.parameters.consideration[i].itemType
                 )
             ) {
-                revert UnresolvedConsiderationCriteria(0, i);
+                if (
+                    advancedOrder.parameters.orderType != OrderType.CONTRACT ||
+                    advancedOrder.parameters.consideration[i].identifierOrCriteria != 0
+                ) {
+                    revert UnresolvedConsiderationCriteria(0, i);
+                }
             }
         }
 
@@ -349,7 +354,12 @@ contract ReferenceCriteriaResolution is CriteriaResolutionErrors {
             if (
                 _isItemWithCriteria(advancedOrder.parameters.offer[i].itemType)
             ) {
-                revert UnresolvedOfferCriteria(0, i);
+                if (
+                    advancedOrder.parameters.orderType != OrderType.CONTRACT ||
+                    advancedOrder.parameters.offer[i].identifierOrCriteria != 0
+                ) {
+                    revert UnresolvedOfferCriteria(0, i);
+                }
             }
         }
     }

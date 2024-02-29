@@ -44,7 +44,11 @@ import {
     TwoWords
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
-import { MemoryPointer, MemoryPointerLib, ZeroSlotPtr } from "seaport-types/src/helpers/PointerLibraries.sol";
+import {
+    MemoryPointer,
+    MemoryPointerLib,
+    ZeroSlotPtr
+} from "seaport-types/src/helpers/PointerLibraries.sol";
 
 /**
  * @title OrderCombiner
@@ -252,10 +256,12 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
             // Iterate over each order.
             for (uint256 i = OneWord; i < terminalMemoryOffset; i += OneWord) {
                 // Retrieve order using pointer libraries to bypass out-of-range
-                // check and a cast function to avoid additional memory allocation.
-                AdvancedOrder memory advancedOrder = _getReadAdvancedOrderByOffset(
-                    // MemoryPointerLib.pptrOffset
-                )(advancedOrders, i);
+                // check & cast function to avoid additional memory allocation.
+                AdvancedOrder memory advancedOrder = (
+                    _getReadAdvancedOrderByOffset(
+                        // MemoryPointerLib.pptrOffset
+                    )(advancedOrders, i)
+                );
 
                 // Validate it, update status, and determine fraction to fill.
                 (bytes32 orderHash, uint256 numerator, uint256 denominator) =
@@ -359,7 +365,9 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                 }
 
                 // Retrieve array of consideration items for order in question.
-                ConsiderationItem[] memory consideration = (advancedOrder.parameters.consideration);
+                ConsiderationItem[] memory consideration = (
+                    advancedOrder.parameters.consideration
+                );
 
                 // Read length of consideration array and place on the stack.
                 uint256 totalConsiderationItems = consideration.length;
@@ -453,16 +461,22 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
         // Apply criteria resolvers to each order as applicable.
         _applyCriteriaResolvers(advancedOrders, criteriaResolvers);
 
-        // Emit an event for each order signifying that it has been fulfilled.
+        // Iterate over each order to check authorization status (for restricted
+        // orders), generate orders (for contract orders), and emit events (for
+        // all available orders) signifying that they have been fulfilled.
         // Skip overflow checks as all for loops are indexed starting at zero.
         unchecked {
+            // Declare stack variable outside of the loop to track order hash.
             bytes32 orderHash;
 
             // Iterate over each order.
             for (uint256 i = OneWord; i < terminalMemoryOffset; i += OneWord) {
-                AdvancedOrder memory advancedOrder = _getReadAdvancedOrderByOffset(
-                    // MemoryPointerLib.pptrOffset
-                )(advancedOrders, i);
+                AdvancedOrder memory advancedOrder = (
+                    _getReadAdvancedOrderByOffset(
+                        // MemoryPointerLib.pptrOffset
+                    )(advancedOrders, i)
+                );
+
                 assembly {
                     orderHash := mload(add(orderHashes, i))
                 }
@@ -491,9 +505,15 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
 
                 // Update order status as long as there is some fraction available.
                 if (advancedOrder.parameters.orderType != OrderType.CONTRACT) {
-                    if (!_checkRestrictedAdvancedOrderAuthorization(
-                        advancedOrder, orderHashes, orderHash, (i >> OneWordShift) - 1, revertOnInvalid
-                    )) {
+                    if (
+                        !_checkRestrictedAdvancedOrderAuthorization(
+                            advancedOrder,
+                            orderHashes,
+                            orderHash,
+                            (i >> OneWordShift) - 1,
+                            revertOnInvalid
+                        )
+                    ) {
                         assembly {
                             mstore(add(orderHashes, i), 0)
                         }
@@ -507,7 +527,10 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         orderHash,
                         advancedOrder.numerator,
                         advancedOrder.denominator,
-                        revertOnInvalid
+                        _revertOnFailedUpdate(
+                            advancedOrder.parameters,
+                            revertOnInvalid
+                        )
                     )) {
                         assembly {
                             mstore(add(orderHashes, i), 0)
@@ -518,11 +541,13 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         continue;
                     }
                 } else {
-                    // Return the generated order based on the order params and the
-                    // provided extra data. If revertOnInvalid is true, the function
-                    // will revert if the input is invalid.
+                    // Return the generated order based on the order params and
+                    // the provided extra data. If revertOnInvalid is true, the
+                    // function will revert if the input is invalid.
                     orderHash = _getGeneratedOrder(
-                        advancedOrder.parameters, advancedOrder.extraData, revertOnInvalid
+                        advancedOrder.parameters,
+                        advancedOrder.extraData,
+                        revertOnInvalid
                     );
 
                     assembly {
@@ -834,10 +859,10 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         // Note that the transfer will not be reflected in the
                         // executions array.
                         if (offerItem.startAmount != 0) {
-                            // Replace the endAmount parameter with the recipient to
-                            // make offerItem compatible with the ReceivedItem input
-                            // to _transfer and cache the original endAmount so it
-                            // can be restored after the transfer.
+                            // Replace endAmount parameter with the recipient to
+                            // make offerItem compatible with the ReceivedItem
+                            // input to _transfer & cache the original endAmount
+                            // so it can be restored after the transfer.
                             uint256 originalEndAmount =
                             _replaceEndAmountWithRecipient(offerItem, recipient);
 
@@ -1167,15 +1192,46 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                 and(
                     // Determine if offerer and recipient are the same address.
                     eq(
-                        // Retrieve the recipient's address from the received item.
+                        // Retrieve recipient's address from the received item.
                         mload(add(item, ReceivedItem_recipient_offset)),
                         // Retrieve the offerer's address from the execution.
                         mload(add(execution, Execution_offerer_offset))
                     ),
-                    // Determine if received item's item type is non-zero, thereby
-                    // indicating that the execution does not involve native tokens.
+                    // Determine if received item's item type is non-zero,
+                    // thereby indicating that the execution does not involve
+                    // native tokens.
                     iszero(iszero(mload(item)))
                 )
+        }
+    }
+
+    /**
+     * @dev Internal view function to determine whether a status update failure
+     *      should cause a revert or allow a skipped order. The call must revert
+     *      if an `authorizeOrder` call has been successfully performed and the
+     *      status update cannot be performed, regardless of whether the order
+     *      could be otherwise marked as skipped. Note that a revert is not
+     *      required on a failed update if the call originates from the zone, as
+     *      no `authorizeOrder` call is performed in that case.
+     *
+     * @param orderParameters The order parameters in question.
+     * @param revertOnInvalid A boolean indicating whether the call should
+     *                        revert for non-restricted order types.
+     *
+     * @return revertOnFailedUpdate A boolean indicating whether the order
+     *                              should revert on a failed status update.
+     */
+    function _revertOnFailedUpdate(
+        OrderParameters memory orderParameters,
+        bool revertOnInvalid
+    ) internal view returns (bool revertOnFailedUpdate) {
+        OrderType orderType = orderParameters.orderType;
+        address zone = orderParameters.zone;
+        assembly {
+            revertOnFailedUpdate := or(
+                revertOnInvalid,
+                and(gt(orderType, 1), iszero(eq(caller(), zone)))
+            )
         }
     }
 }

@@ -405,8 +405,9 @@ contract ReferenceOrderCombiner is
         // Apply criteria resolvers to each order as applicable.
         _applyCriteriaResolvers(advancedOrders, ordersToExecute, criteriaResolvers);
 
-        // Emit an event for each order signifying that it has been fulfilled.
-        // Iterate over each order.
+        // Iterate over each order to check authorization status (for restricted
+        // orders), generate orders (for contract orders), and emit events (for
+        // all available orders) signifying that they have been fulfilled.
         for (uint256 i = 0; i < advancedOrders.length; ++i) {
             // Do not emit an event if no order hash is present.
             if (orderHashes[i] == bytes32(0)) {
@@ -452,24 +453,25 @@ contract ReferenceOrderCombiner is
                         orderHashes[i],
                         storedFractions[i].storedNumerator,
                         storedFractions[i].storedDenominator,
-                        orderValidationParams.revertOnInvalid
+                        _revertOnFailedUpdate(
+                            orderParameters,
+                            orderValidationParams.revertOnInvalid
+                        )
                     )
                 ) {
                     orderHashes[i] = bytes32(0);
+                    ordersToExecute[i].numerator = 0;
                     continue;
                 }
             } else {
-                (
-                    bytes32 orderHash,
-                    OrderToExecute memory orderToExecute
-                ) = _getGeneratedOrder(
+                bytes32 orderHash = _getGeneratedOrder(
+                    ordersToExecute[i],
                     orderParameters,
                     advancedOrders[i].extraData,
                     orderValidationParams.revertOnInvalid
                 );
 
                 orderHashes[i] = orderHash;
-                ordersToExecute[i] = orderToExecute;
  
                 if (orderHashes[i] == bytes32(0)) {
                     continue;
@@ -783,16 +785,14 @@ contract ReferenceOrderCombiner is
 
             {
                 // Retrieve offer items.
-                OfferItem[] memory offer = parameters.offer;
+                SpentItem[] memory offer = orderToExecute.spentItems;
 
                 // Read length of offer array & place on the stack.
                 uint256 totalOfferItems = offer.length;
 
                 // Iterate over each offer item to restore it.
                 for (uint256 j = 0; j < totalOfferItems; ++j) {
-                    SpentItem memory offerSpentItem = (
-                        orderToExecute.spentItems[j]
-                    );
+                    SpentItem memory offerSpentItem = offer[j];
 
                     // Retrieve remaining amount on the offer item.
                     uint256 unspentAmount = offerSpentItem.amount;
@@ -840,19 +840,6 @@ contract ReferenceOrderCombiner is
                     // Restore original amount.
                     consideration[j].amount = (
                         orderToExecute.receivedItemOriginalAmounts[j]
-                    );
-                }
-            }
-
-            {
-                // Get offer items as well.
-                SpentItem[] memory offer = orderToExecute.spentItems;
-
-                // Iterate over each consideration item to ensure it is met.
-                for (uint256 j = 0; j < offer.length; ++j) {
-                    // Restore original amount.
-                    offer[j].amount = (
-                        orderToExecute.spentItemOriginalAmounts[j]
                     );
                 }
             }
@@ -1106,5 +1093,37 @@ contract ReferenceOrderCombiner is
 
         // Return executions.
         return executions;
+    }
+
+    /**
+     * @dev Internal view function to determine whether a status update failure
+     *      should cause a revert or allow a skipped order. The call must revert
+     *      if an `authorizeOrder` call has been successfully performed and the
+     *      status update cannot be performed, regardless of whether the order
+     *      could be otherwise marked as skipped. Note that a revert is not
+     *      required on a failed update if the call originates from the zone, as
+     *      no `authorizeOrder` call is performed in that case.
+     *
+     * @param orderParameters The order parameters in question.
+     * @param revertOnInvalid A boolean indicating whether the call should
+     *                        revert for non-restricted order types.
+     *
+     * @return revertOnFailedUpdate A boolean indicating whether the order
+     *                              should revert on a failed status update.
+     */
+    function _revertOnFailedUpdate(
+        OrderParameters memory orderParameters,
+        bool revertOnInvalid
+    ) internal view returns (bool revertOnFailedUpdate) {
+        OrderType orderType = orderParameters.orderType;
+        address zone = orderParameters.zone;
+        return (
+            revertOnInvalid || (
+                (
+                    orderType == OrderType.FULL_RESTRICTED ||
+                    orderType == OrderType.PARTIAL_RESTRICTED
+                ) && zone != msg.sender
+            )
+        );
     }
 }

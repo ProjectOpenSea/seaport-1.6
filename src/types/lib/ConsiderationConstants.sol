@@ -86,7 +86,7 @@ uint256 constant SpentItem_size = 0x80;
 uint256 constant SpentItem_size_shift = 0x7;
 
 uint256 constant OfferItem_size = 0xa0;
-uint256 constant OfferItem_size_with_length = 0xc0;
+uint256 constant OfferItem_size_with_head_pointer = 0xc0;
 
 uint256 constant ReceivedItem_size_excluding_recipient = 0x80;
 uint256 constant ReceivedItem_size = 0xa0;
@@ -128,6 +128,9 @@ uint256 constant AdvancedOrder_extraData_offset = 0x80;
 uint256 constant OrderStatus_ValidatedAndNotCancelled = 1;
 uint256 constant OrderStatus_filledNumerator_offset = 0x10;
 uint256 constant OrderStatus_filledDenominator_offset = 0x88;
+uint256 constant OrderStatus_ValidatedAndNotCancelledAndFullyFilled = (
+    0x0000000000000000000000000000010000000000000000000000000000010001
+);
 
 uint256 constant ThirtyOneBytes = 0x1f;
 uint256 constant OneWord = 0x20;
@@ -149,13 +152,13 @@ uint256 constant DefaultFreeMemoryPointer = 0x80;
 uint256 constant Slot0x80 = 0x80;
 uint256 constant Slot0xA0 = 0xa0;
 
-// uint256 constant BasicOrder_endAmount_cdPtr = 0x104;
 uint256 constant BasicOrder_common_params_size = 0xa0;
 uint256 constant BasicOrder_considerationHashesArray_ptr = 0x160;
 uint256 constant BasicOrder_receivedItemByteMap =
     (0x0000010102030000000000000000000000000000000000000000000000000000);
 uint256 constant BasicOrder_offeredItemByteMap =
     (0x0203020301010000000000000000000000000000000000000000000000000000);
+uint256 constant BasicOrder_consideration_offset_from_offer = 0xa0;
 
 bytes32 constant OrdersMatchedTopic0 =
     (0x4b9f2d36e1b4c93de62cc077b00b1a91d84b6c31b4a14e012718dcca230689e7);
@@ -319,6 +322,7 @@ uint256 constant BasicOrder_totalOriginalAdditionalRecipients_cdPtr = 0x204;
 uint256 constant BasicOrder_additionalRecipients_head_cdPtr = 0x224;
 uint256 constant BasicOrder_signature_cdPtr = 0x244;
 uint256 constant BasicOrder_additionalRecipients_length_cdPtr = 0x264;
+uint256 constant BasicOrder_addlRecipients_length_cdPtr = 0x264;
 uint256 constant BasicOrder_additionalRecipients_data_cdPtr = 0x284;
 uint256 constant BasicOrder_parameters_ptr = 0x20;
 uint256 constant BasicOrder_basicOrderType_range = 0x18; // 24 values

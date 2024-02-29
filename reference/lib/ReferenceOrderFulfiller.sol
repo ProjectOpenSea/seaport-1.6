@@ -130,14 +130,14 @@ contract ReferenceOrderFulfiller is
                 true
             );
         } else {
-            (bytes32 orderHash, OrderToExecute memory orderToExecute) = _getGeneratedOrder(
+            bytes32 orderHash = _getGeneratedOrder(
+                orderValidation.orderToExecute,
                 advancedOrder.parameters,
                 advancedOrder.extraData,
                 true
             );
 
             orderValidation.orderHash = orderHash;
-            orderValidation.orderToExecute = orderToExecute;
         }
 
         // Transfer each item contained in the order.

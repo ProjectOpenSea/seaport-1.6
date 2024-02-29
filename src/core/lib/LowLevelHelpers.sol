@@ -11,7 +11,10 @@ import {
     ThirtyOneBytes
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
-import { MemoryPointer, MemoryPointerLib } from "seaport-types/src/helpers/PointerLibraries.sol";
+import {
+    MemoryPointer,
+    MemoryPointerLib
+} from "seaport-types/src/helpers/PointerLibraries.sol";
 
 import { AdvancedOrder } from "seaport-types/src/lib/ConsiderationStructs.sol";
 
@@ -53,7 +56,10 @@ contract LowLevelHelpers {
                         add(
                             cost,
                             add(
-                                mul(sub(returnDataWords, msizeWords), CostPerWord),
+                                mul(
+                                    sub(returnDataWords, msizeWords),
+                                    CostPerWord
+                                ),
                                 shr(
                                     MemoryExpansionCoefficientShift,
                                     sub(
@@ -121,9 +127,18 @@ contract LowLevelHelpers {
      */
     function _getReadAdvancedOrderByOffset(
     ) internal pure returns (
-        function (AdvancedOrder[] memory, uint256) internal pure returns (AdvancedOrder memory) fn2
+        function (
+            AdvancedOrder[] memory,
+            uint256
+        ) internal pure returns (AdvancedOrder memory) fn2
     ) {
-        function (MemoryPointer, uint256) internal pure returns (MemoryPointer) fn1 = MemoryPointerLib.pptrOffset;
+        function (
+            MemoryPointer,
+            uint256
+        ) internal pure returns (
+            MemoryPointer
+        ) fn1 = MemoryPointerLib.pptrOffset;
+
         assembly {
             fn2 := fn1
         }
