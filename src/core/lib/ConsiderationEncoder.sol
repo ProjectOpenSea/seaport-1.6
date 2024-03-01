@@ -12,6 +12,7 @@ import {
     BasicOrder_offerer_cdPtr,
     BasicOrder_startTime_cdPtr,
     BasicOrder_startTimeThroughZoneHash_size,
+    BasicOrder_totalOriginalAdditionalRecipients_cdPtr,
     Common_amount_offset,
     Common_identifier_offset,
     Common_token_offset,
@@ -613,14 +614,19 @@ contract ConsiderationEncoder {
                 tailOffset + BasicOrder_consideration_offset_from_offer
             );
 
-            // Retrieve the offset to the length of additional recipients.
+            // Retrieve the length of additional recipients.
             uint256 additionalRecipientsLength = CalldataPointer.wrap(
                 BasicOrder_additionalRecipients_length_cdPtr
             ).readUint256();
 
+            // Retrieve the length of additional recipients.
+            uint256 totalOriginalAdditionalRecipientsLength = CalldataPointer.wrap(
+                BasicOrder_totalOriginalAdditionalRecipients_cdPtr
+            ).readUint256();
+
             // Derive offset to event data using base offset & total recipients.
             uint256 offerDataOffset = OrderFulfilled_offer_length_baseOffset
-                + (additionalRecipientsLength << OneWordShift);
+                + (totalOriginalAdditionalRecipientsLength << OneWordShift);
 
             // Derive size of offer and consideration data.
             // 2 words (lengths) + 4 (offer data) + 5 (consideration 1) + 5 * ar

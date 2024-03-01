@@ -874,35 +874,6 @@ contract BasicOrderFulfiller is OrderValidator {
                  *   `keccak256(abi.encodePacked(offerItemHashes))`
                  */
                 mstore(BasicOrder_order_offerHashes_ptr, keccak256(0, OneWord))
-
-                /*
-                 * 3. Write SpentItem to offer array in OrderFulfilled event.
-                 */
-                let eventConsiderationArrPtr :=
-                    add(
-                        OrderFulfilled_offer_length_baseOffset,
-                        shl(
-                            OneWordShift,
-                            calldataload(
-                                BasicOrder_additionalRecipients_length_cdPtr
-                            )
-                        )
-                    )
-
-                // Set a length of 1 for the offer array.
-                mstore(eventConsiderationArrPtr, 1)
-
-                // Write itemType to the SpentItem struct.
-                mstore(add(eventConsiderationArrPtr, OneWord), offeredItemType)
-
-                // Copy calldata region with (offerToken, offerIdentifier,
-                // offerAmount) from OrderParameters to (token, identifier,
-                // amount) in SpentItem struct.
-                calldatacopy(
-                    add(eventConsiderationArrPtr, AdditionalRecipient_size),
-                    BasicOrder_offerToken_cdPtr,
-                    ThreeWords
-                )
             }
         }
 
@@ -1033,6 +1004,21 @@ contract BasicOrderFulfiller is OrderValidator {
                 // ReceivedItem array offset
                 add(eventDataPtr, OrderFulfilled_consideration_head_offset),
                 OrderFulfilled_consideration_body_offset
+            )
+
+            // Set a length of 1 for the offer array.
+            mstore(add(eventDataPtr, 0x80), 1)
+
+            // Write itemType to the SpentItem struct.
+            mstore(add(eventDataPtr, 0xa0), offeredItemType)
+
+            // Copy calldata region with (offerToken, offerIdentifier,
+            // offerAmount) from OrderParameters to (token, identifier,
+            // amount) in SpentItem struct.
+            calldatacopy(
+                add(eventDataPtr, 0xc0),
+                BasicOrder_offerToken_cdPtr,
+                ThreeWords
             )
 
             // Derive total data size including SpentItem and ReceivedItem data.
