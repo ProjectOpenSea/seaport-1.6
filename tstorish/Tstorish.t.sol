@@ -20,10 +20,15 @@ contract TstorishTest is Test {
         );
     }
 
-    function testActivate() public {
+    function test_activate() public {
         vm.etch(
             0xCafac3dD18aC6c6e92c921884f9E4176737C052c,
             hex"3d5c"
+        );
+
+        assertEq(
+            address(0xCafac3dD18aC6c6e92c921884f9E4176737C052c).codehash,
+            keccak256(hex"3d5c")
         );
 
         // first call updates storage

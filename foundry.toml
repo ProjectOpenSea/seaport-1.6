@@ -88,6 +88,14 @@ script = 'offerers'
 
 [profile.tstorish]
 test = 'tstorish'
+evm_version = 'cancun'
+
+[profile.tstorishLegacy]
+src = 'tstorishLegacy'
+test = 'tstorishLegacy'
+out = 'tstorishLegacy-out'
+script = 'tstorishLegacy'
+evm_version = 'shanghai'
 
 [fmt]
 line_length = 80
