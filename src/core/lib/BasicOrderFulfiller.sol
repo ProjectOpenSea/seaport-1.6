@@ -561,17 +561,27 @@ contract BasicOrderFulfiller is OrderValidator {
                  * item to the consideration array in OrderFulfilled.
                  */
 
-                // Get the length of the additional recipients array.
+                // Get the additional recipients array length from calldata.
+                // This variable will later be repurposed to track the total
+                // original additional recipients instead of the total supplied.
                 let totalAdditionalRecipients :=
                     calldataload(BasicOrder_additionalRecipients_length_cdPtr)
 
                 // Calculate pointer to length of OrderFulfilled consideration
-                // array.
-                let eventConsiderationArrPtr :=
-                    add(
-                        OrderFulfilled_consideration_length_baseOffset,
-                        shl(OneWordShift, totalAdditionalRecipients)
+                // array. Note that this is based on total original additional
+                // recipients and not the supplied additional recipients, since
+                // the pointer only needs to be offset based on the size of the
+                // EIP-712 hashes used to derive the order hash (and the order
+                // hash does not take tips into account as part of derivation).
+                let eventConsiderationArrPtr := add(
+                    OrderFulfilled_consideration_length_baseOffset,
+                    shl(
+                        OneWordShift,
+                        calldataload(
+                            BasicOrder_totalOriginalAdditionalRecipients_cdPtr
+                        )
                     )
+                )
 
                 // Set the length of the consideration array to the number of
                 // additional recipients, plus one for the primary consideration
@@ -628,8 +638,9 @@ contract BasicOrderFulfiller is OrderValidator {
                 // be combined to guard against providing dirty upper bits.
                 let combinedAdditionalRecipients
 
-                // Read length of the additionalRecipients array from calldata
-                // and iterate.
+                // Only iterate over the total original additional recipients
+                // (not the total supplied additional recipients) when deriving
+                // the order hash.
                 totalAdditionalRecipients := calldataload(
                     BasicOrder_totalOriginalAdditionalRecipients_cdPtr
                 )
@@ -863,35 +874,6 @@ contract BasicOrderFulfiller is OrderValidator {
                  *   `keccak256(abi.encodePacked(offerItemHashes))`
                  */
                 mstore(BasicOrder_order_offerHashes_ptr, keccak256(0, OneWord))
-
-                /*
-                 * 3. Write SpentItem to offer array in OrderFulfilled event.
-                 */
-                let eventConsiderationArrPtr :=
-                    add(
-                        OrderFulfilled_offer_length_baseOffset,
-                        shl(
-                            OneWordShift,
-                            calldataload(
-                                BasicOrder_additionalRecipients_length_cdPtr
-                            )
-                        )
-                    )
-
-                // Set a length of 1 for the offer array.
-                mstore(eventConsiderationArrPtr, 1)
-
-                // Write itemType to the SpentItem struct.
-                mstore(add(eventConsiderationArrPtr, OneWord), offeredItemType)
-
-                // Copy calldata region with (offerToken, offerIdentifier,
-                // offerAmount) from OrderParameters to (token, identifier,
-                // amount) in SpentItem struct.
-                calldatacopy(
-                    add(eventConsiderationArrPtr, AdditionalRecipient_size),
-                    BasicOrder_offerToken_cdPtr,
-                    ThreeWords
-                )
             }
         }
 
@@ -1001,7 +983,7 @@ contract BasicOrderFulfiller is OrderValidator {
                     shl(
                         OneWordShift,
                         calldataload(
-                            BasicOrder_additionalRecipients_length_cdPtr
+                            BasicOrder_totalOriginalAdditionalRecipients_cdPtr
                         )
                     )
                 )
@@ -1022,6 +1004,21 @@ contract BasicOrderFulfiller is OrderValidator {
                 // ReceivedItem array offset
                 add(eventDataPtr, OrderFulfilled_consideration_head_offset),
                 OrderFulfilled_consideration_body_offset
+            )
+
+            // Set a length of 1 for the offer array.
+            mstore(add(eventDataPtr, 0x80), 1)
+
+            // Write itemType to the SpentItem struct.
+            mstore(add(eventDataPtr, 0xa0), offeredItemType)
+
+            // Copy calldata region with (offerToken, offerIdentifier,
+            // offerAmount) from OrderParameters to (token, identifier,
+            // amount) in SpentItem struct.
+            calldatacopy(
+                add(eventDataPtr, 0xc0),
+                BasicOrder_offerToken_cdPtr,
+                ThreeWords
             )
 
             // Derive total data size including SpentItem and ReceivedItem data.
