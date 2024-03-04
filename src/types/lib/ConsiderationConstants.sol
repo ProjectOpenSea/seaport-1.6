@@ -96,7 +96,7 @@ uint256 constant ReceivedItem_recipient_offset = 0x80;
 uint256 constant ReceivedItem_CommonParams_size = 0x60;
 
 uint256 constant ConsiderationItem_size = 0xc0;
-uint256 constant ConsiderationItem_size_with_length = 0xe0;
+uint256 constant ConsiderationItem_size_with_head_pointer = 0xe0;
 
 uint256 constant ConsiderationItem_recipient_offset = 0xa0;
 // Store the same constant in an abbreviated format for a line length fix.
