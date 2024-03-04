@@ -242,7 +242,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                 and(NonMatchSelector_MagicMask, calldataload(0))
         }
 
-        // Declare variables for later use.
+        // Declare "terminal memory offset" variable for use in efficient loops.
         uint256 terminalMemoryOffset;
 
         unchecked {
@@ -258,6 +258,9 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
 
         // Skip overflow checks as all for loops are indexed starting at zero.
         unchecked {
+            // Declare variable to track if an order is not a contract order.
+            bool isNonContract;
+
             // Iterate over each order.
             for (uint256 i = OneWord; i < terminalMemoryOffset; i += OneWord) {
                 // Retrieve order using pointer libraries to bypass out-of-range
@@ -302,11 +305,9 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                     // types beyond the current set (0-4) and will need to be
                     // modified if more order types are added.
                     assembly {
-                        // Declare a variable indicating if the order is not a
-                        // contract order. Cache in scratch space to avoid stack
-                        // depth errors.
-                        let isNonContract := lt(orderType, 4)
-                        mstore(0, isNonContract)
+                        // Assign the variable indicating if the order is not a
+                        // contract order.
+                        isNonContract := lt(orderType, 4)
 
                         // Update the variable indicating if the order is not an
                         // open order, remaining set if it has been set already.
@@ -332,7 +333,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                         invalidNativeOfferItemErrorBuffer :=
                             or(
                                 invalidNativeOfferItemErrorBuffer,
-                                lt(mload(offerItem), mload(0))
+                                lt(mload(offerItem), isNonContract)
                             )
                     }
 
