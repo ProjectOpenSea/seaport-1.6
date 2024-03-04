@@ -326,7 +326,7 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                 // Create variable to track position in offerComponents head.
                 let fulfillmentHeadPtr := offerComponents
 
-                // Get position one word past last element in head of array.
+                // Get position of the last element in head of array.
                 let endPtr := add(
                     offerComponents,
                     shl(OneWordShift, mload(offerComponents))
@@ -589,7 +589,7 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                 // Track position in considerationComponents head.
                 let fulfillmentHeadPtr := considerationComponents
 
-                // Get position one word past last element in head of array.
+                // Get position of the last element in head of array.
                 let endPtr :=
                     add(
                         considerationComponents,

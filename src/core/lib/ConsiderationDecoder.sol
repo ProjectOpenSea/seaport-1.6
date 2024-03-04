@@ -26,7 +26,7 @@ import {
     Common_identifier_offset,
     Common_token_offset,
     ConsiderationItem_recipient_offset,
-    ConsiderationItem_size_with_length,
+    ConsiderationItem_size_with_head_pointer,
     ConsiderationItem_size,
     CriteriaResolver_criteriaProof_offset,
     CriteriaResolver_fixed_segment_0,
@@ -1117,7 +1117,10 @@ contract ConsiderationDecoder {
                         mPtrLength,
                         add(
                             OneWord,
-                            mul(newLength, ConsiderationItem_size_with_length)
+                            mul(
+                                newLength,
+                                ConsiderationItem_size_with_head_pointer
+                            )
                         )
                     )
                 )
