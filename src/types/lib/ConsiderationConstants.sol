@@ -300,6 +300,40 @@ uint256 constant OrderFulfilled_offer_body_offset = 0x80;
 uint256 constant OrderFulfilled_consideration_head_offset = 0x60;
 uint256 constant OrderFulfilled_consideration_body_offset = 0x120;
 
+/*
+ * 3 memory slots/words for `authorizeOrder` and `validateOrder` calldata
+ * to be used for the extra data/context data and order hashes
+ */
+uint256 constant OrderFulfilled_post_memory_region_reservedBytes = 0x60; 
+
+/*
+ * OrderFulfilled_offer_length_baseOffset - 12 * 0x20
+ * we back up 12 words from where the `OrderFulfilled`'s data
+ * for spent items start to be rewritten for `authorizeOrder`
+ * and `validateOrder`. Let the reference pointer be `ptr`
+ * pointing to the `OrderFulfilled`'s spent item array's length memory
+ * position then we would have:
+ *
+ * ptr - 0x0180 : padded calldata selector 
+ * ptr - 0x0160 : ZoneParameter's struct head (0x20)
+ * ptr - 0x0140 : order hash
+ * ptr - 0x0120 : fulfiller / msg.sender
+ * ptr - 0x0100 : offerer 
+ * ptr - 0x00e0 : spent items' head
+ * ptr - 0x00c0 : received items' head 
+ * ptr - 0x00a0 : extra data / context head
+ * ptr - 0x0080 : order hashes head
+ * ptr - 0x0060 : start time
+ * ptr - 0x0040 : end time
+ * ptr - 0x0020 : zone hash
+ * ptr - 0x0000: offer.length (1)
+ * ...
+ *
+ * Note that the padded calldata selector will be at minimum at the
+ * 0x80 memory slot if no total original additional recipients were provided
+ */
+uint256 constant authorizeOrder_calldata_baseOffset = 0x80; // 0x200 - 0x180
+
 // BasicOrderParameters
 uint256 constant BasicOrder_parameters_cdPtr = 0x04;
 uint256 constant BasicOrder_considerationToken_cdPtr = 0x24;

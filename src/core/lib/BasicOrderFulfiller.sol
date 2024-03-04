@@ -93,6 +93,7 @@ import {
     OrderFulfilled_offer_body_offset,
     OrderFulfilled_offer_head_offset,
     OrderFulfilled_offer_length_baseOffset,
+    OrderFulfilled_post_memory_region_reservedBytes,
     OrderFulfilled_selector,
     ReceivedItem_amount_offset,
     ReceivedItem_size,
@@ -1054,7 +1055,16 @@ contract BasicOrderFulfiller is OrderValidator {
             mstore(ZeroSlot, 0)
 
             // Update the free memory pointer so that event data is persisted.
-            mstore(FreeMemoryPointerSlot, add(eventDataPtr, dataSize))
+            mstore(FreeMemoryPointerSlot, 
+                add(
+                    eventDataPtr, 
+                    // reserve extra 3 words to be used by `authorizeOrder` and
+                    // `validatateOrder` if pre-post exection hook to the zone is
+                    // required. These 3 memory slots will be used for the extra data/context
+                    // and order hashes of the calldata.
+                    add(dataSize, OrderFulfilled_post_memory_region_reservedBytes)
+                )
+            )
         }
 
         // Verify the status of the derived order.
