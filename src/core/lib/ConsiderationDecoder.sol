@@ -37,7 +37,7 @@ import {
     Fulfillment_head_size,
     FulfillmentComponent_mem_tail_size_shift,
     FulfillmentComponent_mem_tail_size,
-    generateOrder_maximum_returndatasize,
+    generateOrder_maximum_returned_array_length,
     OfferItem_size_with_head_pointer,
     OfferItem_size,
     OneWord,
@@ -944,13 +944,14 @@ contract ConsiderationDecoder {
                                 mul(ReceivedItem_size, considerationLength)
                             )
 
-                        // Don't continue if returndatasize exceeds 65535 bytes
-                        // or less than the end offsets.
+                        // Don't continue if either offer or consideration
+                        // length exceeds 65535 or if returndatasize is less
+                        // than the end offsets.
                         invalidEncoding :=
                             or(
                                 gt(
                                     or(offerLength, considerationLength),
-                                    generateOrder_maximum_returndatasize
+                                    generateOrder_maximum_returned_array_length
                                 ),
                                 or(
                                     lt(returndatasize(), offerEndOffset),
