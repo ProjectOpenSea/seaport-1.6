@@ -574,17 +574,19 @@ contract ConsiderationEncoder {
         uint256 size,
         uint256 memoryLocationForOrderHashes
     ) {
-        // Derive offset to pre `OrderFulfilled`'s spent item event data
-        // using base offset & total original recipients.
-        ptr = MemoryPointer.wrap(
-            authorizeOrder_calldata_baseOffset +
-            (
-                CalldataPointer.wrap(
-                    BasicOrder_totalOriginalAdditionalRecipients_cdPtr
-                ).readUint256() << 
-                OneWordShift
-            )
-        );
+        unchecked {
+            // Derive offset to pre `OrderFulfilled`'s spent item event data
+            // using base offset & total original recipients.
+            ptr = MemoryPointer.wrap(
+                authorizeOrder_calldata_baseOffset +
+                (
+                    CalldataPointer.wrap(
+                        BasicOrder_totalOriginalAdditionalRecipients_cdPtr
+                    ).readUint256() << 
+                    OneWordShift
+                )
+            );
+        }
 
         MemoryPointer dst = ptr;
 
