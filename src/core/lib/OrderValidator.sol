@@ -111,25 +111,27 @@ contract OrderValidator is Executor, ZoneInteraction {
             _runTimeConstantTrue() // Signifies to revert if order is invalid.
         );
 
-        // If the order is not already validated, verify the supplied signature.
-        if (!orderStatus.isValidated) {
-            _verifySignature(
-                offerer, 
-                orderHash,
-                _toBytesReturnType(_decodeBytes)(
-                    // Wrap the absolute pointer to the order signature as a
-                    // CalldataPointer.
-                    CalldataPointer.wrap(
-                        // Read the relative pointer to the order signature.
-                        CalldataPointer
-                            .wrap(BasicOrder_signature_cdPtr)
-                            .readMaskedUint256() +
-                            // Add the BasicOrderParameters struct offset to the
-                            // relative pointer.
-                            BasicOrder_basicOrderParameters_cd_offset
+        unchecked {
+            // If the order is not already validated, verify the supplied signature.
+            if (!orderStatus.isValidated) {
+                _verifySignature(
+                    offerer,
+                    orderHash,
+                    _toBytesReturnType(_decodeBytes)(
+                        // Wrap the absolute pointer to the order signature as a
+                        // CalldataPointer.
+                        CalldataPointer.wrap(
+                            // Read the relative pointer to the order signature.
+                            CalldataPointer
+                                .wrap(BasicOrder_signature_cdPtr)
+                                .readMaskedUint256() +
+                                // Add the BasicOrderParameters struct offset to the
+                                // relative pointer.
+                                BasicOrder_basicOrderParameters_cd_offset
+                        )
                     )
-                )
-            );
+                );
+            }
         }
     }
 

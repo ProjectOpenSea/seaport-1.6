@@ -91,6 +91,9 @@ import {
     OrderFulfilled_offer_body_offset,
     OrderFulfilled_offer_head_offset,
     OrderFulfilled_offer_length_baseOffset,
+    OrderFulfilled_offer_length_baseOffset_relativeTo_OrderFulfilled_baseOffset,
+    OrderFulfilled_offer_itemType_baseOffset_relativeTo_OrderFulfilled_baseOffset,
+    OrderFulfilled_offer_token_baseOffset_relativeTo_OrderFulfilled_baseOffset,
     OrderFulfilled_post_memory_region_reservedBytes,
     OrderFulfilled_selector,
     ReceivedItem_amount_offset,
@@ -1006,16 +1009,31 @@ contract BasicOrderFulfiller is OrderValidator {
             )
 
             // Set a length of 1 for the offer array.
-            mstore(add(eventDataPtr, 0x80), 1)
+            mstore(
+                add(
+                    eventDataPtr,
+                    OrderFulfilled_offer_length_baseOffset_relativeTo_OrderFulfilled_baseOffset
+                ),
+                1
+            )
 
             // Write itemType to the SpentItem struct.
-            mstore(add(eventDataPtr, 0xa0), offeredItemType)
+            mstore(
+                add(
+                    eventDataPtr,
+                    OrderFulfilled_offer_itemType_baseOffset_relativeTo_OrderFulfilled_baseOffset
+                ),
+                offeredItemType
+            )
 
             // Copy calldata region with (offerToken, offerIdentifier,
             // offerAmount) from OrderParameters to (token, identifier,
             // amount) in SpentItem struct.
             calldatacopy(
-                add(eventDataPtr, 0xc0),
+                add(
+                    eventDataPtr,
+                    OrderFulfilled_offer_token_baseOffset_relativeTo_OrderFulfilled_baseOffset
+                ),
                 BasicOrder_offerToken_cdPtr,
                 ThreeWords
             )

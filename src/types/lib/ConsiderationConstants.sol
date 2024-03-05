@@ -288,6 +288,10 @@ uint256 constant OrderFulfilled_baseOffset = 0x180;
 uint256 constant OrderFulfilled_consideration_length_baseOffset = 0x2a0;
 uint256 constant OrderFulfilled_offer_length_baseOffset = 0x200;
 
+uint256 constant OrderFulfilled_offer_length_baseOffset_relativeTo_OrderFulfilled_baseOffset = 0x80;
+uint256 constant OrderFulfilled_offer_itemType_baseOffset_relativeTo_OrderFulfilled_baseOffset = 0xa0;
+uint256 constant OrderFulfilled_offer_token_baseOffset_relativeTo_OrderFulfilled_baseOffset = 0xc0;
+
 // Related constants used for restricted order checks on basic orders.
 uint256 constant OrderFulfilled_baseDataSize = 0x160;
 // uint256 constant ValidateOrder_offerDataOffset = 0x184;
@@ -314,10 +318,10 @@ uint256 constant OrderFulfilled_post_memory_region_reservedBytes = 0x60;
  * pointing to the `OrderFulfilled`'s spent item array's length memory
  * position then we would have:
  *
- * ptr - 0x0180 : padded calldata selector 
+ * ptr - 0x0180 : zero-padded calldata selector
  * ptr - 0x0160 : ZoneParameter's struct head (0x20)
  * ptr - 0x0140 : order hash
- * ptr - 0x0120 : fulfiller / msg.sender
+ * ptr - 0x0120 : fulfiller (msg.sender)
  * ptr - 0x0100 : offerer 
  * ptr - 0x00e0 : spent items' head
  * ptr - 0x00c0 : received items' head 
@@ -326,7 +330,7 @@ uint256 constant OrderFulfilled_post_memory_region_reservedBytes = 0x60;
  * ptr - 0x0060 : start time
  * ptr - 0x0040 : end time
  * ptr - 0x0020 : zone hash
- * ptr - 0x0000: offer.length (1)
+ * ptr - 0x0000 : offer.length (1)
  * ...
  *
  * Note that the padded calldata selector will be at minimum at the
