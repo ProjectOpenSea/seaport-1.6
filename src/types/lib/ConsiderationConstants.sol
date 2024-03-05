@@ -306,7 +306,7 @@ uint256 constant OrderFulfilled_consideration_body_offset = 0x120;
 
 /*
  * 3 memory slots/words for `authorizeOrder` and `validateOrder` calldata
- * to be used for the extra data/context data and order hashes
+ * to be used for tails of extra data (length 0) and order hashes (length 1)
  */
 uint256 constant OrderFulfilled_post_memory_region_reservedBytes = 0x60; 
 
@@ -334,9 +334,9 @@ uint256 constant OrderFulfilled_post_memory_region_reservedBytes = 0x60;
  * ...
  *
  * Note that the padded calldata selector will be at minimum at the
- * 0x80 memory slot if no total original additional recipients were provided
+ * 0x80 memory slot.
  */
-uint256 constant authorizeOrder_calldata_baseOffset = 0x80; // 0x200 - 0x180
+uint256 constant authorizeOrder_calldata_baseOffset = OrderFulfilled_offer_length_baseOffset - 0x180;
 
 // BasicOrderParameters
 uint256 constant BasicOrder_parameters_cdPtr = 0x04;
