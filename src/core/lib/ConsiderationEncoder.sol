@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {
+    authorizeOrder_calldata_baseOffset,
     authorizeOrder_head_offset,
     authorizeOrder_selector_offset,
     authorizeOrder_selector,
@@ -554,9 +555,11 @@ contract ConsiderationEncoder {
 
     /**
      * @dev Takes an order hash and BasicOrderParameters struct (from calldata)
-     *      and encodes it as `authorizeOrder` calldata. Note that data is
-     *      copied from event data, so this function will need to be modified if
-     *      the layout of that event data changes.
+     *      and encodes it as `authorizeOrder` calldata. Note that memory data is reused
+     *      from `OrderFulfilled` event data, and the rest of the calldata is prefixed and
+     *      postfixed to this memory region. Importantly the memory region before the 
+     *      `OrderFulfilled`'s spent and received items are overwritten to. So this 
+     *      function will need to be modified if the layout of that event data changes.
      *
      * @param orderHash  The order hash.
      *
@@ -571,8 +574,19 @@ contract ConsiderationEncoder {
         uint256 size,
         uint256 memoryLocationForOrderHashes
     ) {
-        // Get free memory pointer to write calldata to.
-        ptr = getFreeMemoryPointer();
+        unchecked {
+            // Derive offset to pre `OrderFulfilled`'s spent item event data
+            // using base offset & total original recipients.
+            ptr = MemoryPointer.wrap(
+                authorizeOrder_calldata_baseOffset +
+                (
+                    CalldataPointer.wrap(
+                        BasicOrder_totalOriginalAdditionalRecipients_cdPtr
+                    ).readUint256() << 
+                    OneWordShift
+                )
+            );
+        }
 
         MemoryPointer dst = ptr;
 
@@ -619,24 +633,10 @@ contract ConsiderationEncoder {
                 BasicOrder_additionalRecipients_length_cdPtr
             ).readUint256();
 
-            // Retrieve the length of additional recipients.
-            uint256 totalOriginalAdditionalRecipientsLength = CalldataPointer.wrap(
-                BasicOrder_totalOriginalAdditionalRecipients_cdPtr
-            ).readUint256();
-
-            // Derive offset to event data using base offset & total recipients.
-            uint256 offerDataOffset = OrderFulfilled_offer_length_baseOffset
-                + (totalOriginalAdditionalRecipientsLength << OneWordShift);
-
             // Derive size of offer and consideration data.
             // 2 words (lengths) + 4 (offer data) + 5 (consideration 1) + 5 * ar
             uint256 offerAndConsiderationSize = OrderFulfilled_baseDataSize
                 + (additionalRecipientsLength * ReceivedItem_size);
-
-            // Copy offer and consideration data from event data to calldata.
-            MemoryPointer.wrap(offerDataOffset).copy(
-                dstHead.offset(tailOffset), offerAndConsiderationSize
-            );
 
             // Increment tail offset, now used to populate extraData array.
             tailOffset += offerAndConsiderationSize;
@@ -669,9 +669,6 @@ contract ConsiderationEncoder {
 
             // Final size: selector, ZoneParameters pointer, orderHashes & tail.
             size = ZoneParameters_basicOrderFixedElements_length + tailOffset;
-
-            // Update the free memory pointer.
-            setFreeMemoryPointer(dst.offset(size + OneWord));
         }
     }
 
