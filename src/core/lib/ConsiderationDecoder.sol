@@ -31,7 +31,7 @@ import {
     CriteriaResolver_criteriaProof_offset,
     CriteriaResolver_fixed_segment_0,
     CriteriaResolver_head_size,
-    FourWords,
+    ThreeWords,
     FreeMemoryPointerSlot,
     Fulfillment_considerationComponents_offset,
     Fulfillment_head_size,
@@ -886,9 +886,13 @@ contract ConsiderationDecoder {
         )
     {
         assembly {
-            // Check that returndatasize is at least four words: offerOffset,
-            // considerationOffset, offerLength, & considerationLength
-            invalidEncoding := lt(returndatasize(), FourWords)
+            // Check that returndatasize is at least three words: 
+            // 1. offerOffset
+            // 2. considerationOffset
+            // 3. offerLength & considerationLength might occupy just one word
+            //    if offerOffset & considerationOffset would point to the same offset
+            //    and the arrays have length 0.
+            invalidEncoding := lt(returndatasize(), ThreeWords)
 
             let offsetOffer
             let offsetConsideration
@@ -903,10 +907,17 @@ contract ConsiderationDecoder {
                 offsetOffer := mload(0)
                 offsetConsideration := mload(OneWord)
 
-                // If valid length, check that offsets are within returndata.
-                let invalidOfferOffset := gt(offsetOffer, returndatasize())
+                // If valid length, check that offsets word boundaries are within returndata.
+                let invalidOfferOffset :=
+                    gt(
+                        add(offsetOffer, OneWord), 
+                        returndatasize()
+                    )
                 let invalidConsiderationOffset :=
-                    gt(offsetConsideration, returndatasize())
+                    gt(
+                        add(offsetConsideration, OneWord),
+                        returndatasize()
+                    )
 
                 // Only proceed if length (and thus encoding) is valid so far.
                 invalidEncoding :=
@@ -921,28 +932,30 @@ contract ConsiderationDecoder {
                     considerationLength := mload(OneWord)
 
                     {
-                        // Calculate total size of offer & consideration arrays.
-                        let totalOfferSize :=
-                            shl(SpentItem_size_shift, offerLength)
-                        let totalConsiderationSize :=
-                            mul(ReceivedItem_size, considerationLength)
-
-                        // Add 4 words to total size to cover the offset and
-                        // length fields of the two arrays.
-                        let totalSize :=
+                        // Calculate end offsets of offer & consideration arrays.
+                        let offerEndOffset :=
                             add(
-                                FourWords,
-                                add(totalOfferSize, totalConsiderationSize)
+                                add(offsetOffer, OneWord),
+                                shl(SpentItem_size_shift, offerLength)
                             )
+                        let considerationEndOffset :=
+                            add(
+                                add(offsetConsideration, OneWord),
+                                mul(ReceivedItem_size, considerationLength)
+                            )
+
                         // Don't continue if returndatasize exceeds 65535 bytes
-                        // or is greater than the calculated size.
+                        // or less than the end offsets.
                         invalidEncoding :=
                             or(
                                 gt(
                                     or(offerLength, considerationLength),
                                     generateOrder_maximum_returndatasize
                                 ),
-                                gt(totalSize, returndatasize())
+                                or(
+                                    lt(returndatasize(), offerEndOffset),
+                                    lt(returndatasize(), considerationEndOffset)
+                                )
                             )
 
                         // Set first word of scratch space to 0 so length of
