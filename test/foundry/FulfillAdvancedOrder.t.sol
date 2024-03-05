@@ -487,7 +487,7 @@ contract FulfillAdvancedOrder is BaseOrderTest {
             address(0)
         );
 
-        // Assert six-tenths of the order has been fulfilled.
+        // Assert three-fifths of the order has been fulfilled.
         {
             (
                 bool isValidated,
@@ -497,9 +497,9 @@ contract FulfillAdvancedOrder is BaseOrderTest {
             ) = context.consideration.getOrderStatus(orderHash);
             assertTrue(isValidated);
             assertFalse(isCancelled);
-            assertEq(totalFilled, 6);
+            assertEq(totalFilled, 3);
 
-            assertEq(totalSize, 10);
+            assertEq(totalSize, 5);
             assertEq(60, test1155_1.balanceOf(address(this), 1));
         }
     }

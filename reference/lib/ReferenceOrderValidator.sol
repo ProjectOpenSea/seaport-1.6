@@ -323,13 +323,9 @@ contract ReferenceOrderValidator is
                     || denominator > type(uint120).max
             ) {
                 // Derive greatest common divisor using euclidean algorithm.
-                uint256 scaleDown = _greatestCommonDivisor(
-                    numerator,
-                    _greatestCommonDivisor(filledNumerator, denominator)
-                );
+                uint256 scaleDown = _greatestCommonDivisor(filledNumerator, denominator);
 
-                // Scale all fractional values down by gcd.
-                numerator = numerator / scaleDown;
+                // Scale new filled fractional values down by gcd.
                 filledNumerator = filledNumerator / scaleDown;
                 denominator = denominator / scaleDown;
 

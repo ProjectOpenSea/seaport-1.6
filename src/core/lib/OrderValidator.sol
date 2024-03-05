@@ -517,15 +517,13 @@ contract OrderValidator is Executor, ZoneInteraction {
                         out := _a
                     }
 
-                    // Determine the amount to scale down the fill fractions.
-                    let scaleDown :=
-                        gcd(numerator, gcd(filledNumerator, denominator))
+                    // Determine the amount to scale down the new filled fraction.
+                    let scaleDown := gcd(filledNumerator, denominator)
 
                     // Ensure that the divisor is at least one.
                     let safeScaleDown := add(scaleDown, iszero(scaleDown))
 
-                    // Scale all fractional values down by gcd.
-                    numerator := div(numerator, safeScaleDown)
+                    // Scale new filled fractional values down by gcd.
                     filledNumerator := div(filledNumerator, safeScaleDown)
                     denominator := div(denominator, safeScaleDown)
 
