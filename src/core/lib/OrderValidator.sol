@@ -30,7 +30,9 @@ import { MemoryPointer } from "seaport-types/src/helpers/PointerLibraries.sol";
 import {
     AdvancedOrder_denominator_offset,
     AdvancedOrder_numerator_offset,
+    BasicOrder_basicOrderParameters_cd_offset,
     BasicOrder_offerer_cdPtr,
+    BasicOrder_signature_cdPtr,
     Common_amount_offset,
     Common_endAmount_offset,
     Common_identifier_offset,
@@ -52,6 +54,10 @@ import {
     Panic_error_length,
     Panic_error_selector
 } from "seaport-types/src/lib/ConsiderationErrorConstants.sol";
+
+import {
+    CalldataPointer
+} from "seaport-types/src/helpers/PointerLibraries.sol";
 
 /**
  * @title OrderValidator
@@ -83,12 +89,9 @@ contract OrderValidator is Executor, ZoneInteraction {
      *      must first be validated.
      *
      * @param orderHash The hash of the order.
-     * @param signature A signature from the offerer indicating that the order
-     *                  has been approved.
      */
     function _validateBasicOrder(               
-        bytes32 orderHash,
-        bytes memory signature
+        bytes32 orderHash
     ) internal view returns (OrderStatus storage orderStatus) {
         // Retrieve offerer directly using fixed calldata offset based on strict
         // basic parameter encoding.
@@ -110,7 +113,23 @@ contract OrderValidator is Executor, ZoneInteraction {
 
         // If the order is not already validated, verify the supplied signature.
         if (!orderStatus.isValidated) {
-            _verifySignature(offerer, orderHash, signature);
+            _verifySignature(
+                offerer, 
+                orderHash,
+                _toBytesReturnType(_decodeBytes)(
+                    // Wrap the absolute pointer to the order signature as a
+                    // CalldataPointer.
+                    CalldataPointer.wrap(
+                        // Read the relative pointer to the order signature.
+                        CalldataPointer
+                            .wrap(BasicOrder_signature_cdPtr)
+                            .readMaskedUint256() +
+                            // Add the BasicOrderParameters struct offset to the
+                            // relative pointer.
+                            BasicOrder_basicOrderParameters_cd_offset
+                    )
+                )
+            );
         }
     }
 

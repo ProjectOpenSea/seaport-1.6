@@ -25,7 +25,6 @@ import {
     AdditionalRecipient_size,
     BasicOrder_additionalRecipients_data_cdPtr,
     BasicOrder_additionalRecipients_length_cdPtr,
-    BasicOrder_basicOrderParameters_cd_offset,
     BasicOrder_basicOrderType_cdPtr,
     BasicOrder_common_params_size,
     BasicOrder_considerationAmount_cdPtr,
@@ -58,7 +57,6 @@ import {
     BasicOrder_order_startTime_ptr,
     BasicOrder_order_typeHash_ptr,
     BasicOrder_receivedItemByteMap,
-    BasicOrder_signature_cdPtr,
     BasicOrder_startTime_cdPtr,
     BasicOrder_totalOriginalAdditionalRecipients_cdPtr,
     BasicOrder_zone_cdPtr,
@@ -1059,20 +1057,7 @@ contract BasicOrderFulfiller is OrderValidator {
 
         // Verify the status of the derived order.
         OrderStatus storage orderStatus = _validateBasicOrder(
-            orderHash,
-            _toBytesReturnType(_decodeBytes)(
-                // Wrap the absolute pointer to the order signature as a
-                // CalldataPointer.
-                CalldataPointer.wrap(
-                    // Read the relative pointer to the order signature.
-                    CalldataPointer
-                        .wrap(BasicOrder_signature_cdPtr)
-                        .readMaskedUint256() +
-                        // Add the BasicOrderParameters struct offset to the
-                        // relative pointer.
-                        BasicOrder_basicOrderParameters_cd_offset
-                )
-            )
+            orderHash
         );
 
         // Determine whether order is restricted and, if so, that it is valid.
