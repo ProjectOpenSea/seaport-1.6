@@ -682,67 +682,30 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
 
         // Skip overflow checks as all for loops are indexed starting at zero.
         unchecked {
-            // Track number of filtered executions.
-            uint256 totalFilteredExecutions = 0;
-
             // Iterate over each offer fulfillment.
-            for (uint256 i = 0; i < totalOfferFulfillments;) {
-                // Derive aggregated execution corresponding with fulfillment.
-                Execution memory execution = _aggregateAvailable(
+            for (uint256 i = 0; i < totalOfferFulfillments; ++i) {
+                // Derive aggregated execution corresponding with fulfillment
+                // and assign it to the executions array.
+                executions[i] = _aggregateAvailable(
                     advancedOrders,
                     Side.OFFER,
                     offerFulfillments[i],
                     fulfillerConduitKey,
                     recipient
                 );
-
-                // If the execution is filterable...
-                if (_isFilterableExecution(execution)) {
-                    // Increment total filtered executions.
-                    ++totalFilteredExecutions;
-                } else {
-                    // Otherwise, assign the execution to the executions array.
-                    executions[i - totalFilteredExecutions] = execution;
-                }
-
-                // Increment iterator.
-                ++i;
             }
 
             // Iterate over each consideration fulfillment.
-            for (uint256 i = 0; i < totalConsiderationFulfillments;) {
-                // Derive aggregated execution corresponding with fulfillment.
-                Execution memory execution = _aggregateAvailable(
+            for (uint256 i = 0; i < totalConsiderationFulfillments; ++i) {
+                // Derive aggregated execution corresponding with fulfillment
+                // and assign it to the executions array.
+                executions[i + totalOfferFulfillments] = _aggregateAvailable(
                     advancedOrders,
                     Side.CONSIDERATION,
                     considerationFulfillments[i],
                     fulfillerConduitKey,
                     address(0) // unused
                 );
-
-                // If the execution is filterable...
-                if (_isFilterableExecution(execution)) {
-                    // Increment total filtered executions.
-                    ++totalFilteredExecutions;
-                } else {
-                    // Otherwise, assign the execution to the executions array.
-                    executions[i + totalOfferFulfillments
-                        - totalFilteredExecutions] = execution;
-                }
-
-                // Increment iterator.
-                ++i;
-            }
-
-            // If some number of executions have been filtered...
-            if (totalFilteredExecutions != 0) {
-                // reduce the total length of the executions array.
-                assembly {
-                    mstore(
-                        executions,
-                        sub(mload(executions), totalFilteredExecutions)
-                    )
-                }
             }
         }
 
@@ -815,46 +778,49 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                     _getReadExecutionByOffset()(executions, i)
                 );
 
-                // Retrieve the associated received item.
+                // Retrieve the associated received item and amount.
                 ReceivedItem memory item = execution.item;
+                uint256 amount = item.amount;
 
-                // If execution transfers native tokens, check available value.
-                assembly {
-                    // Ensure sufficient available balance for native transfers.
-                    if and(
-                        iszero(mload(item)), // itemType == ItemType.NATIVE
-                        // item.amount > address(this).balance
-                        gt(
-                            mload(
-                                add(
-                                    item,
-                                    ReceivedItem_amount_offset
-                                )
-                            ),
-                            selfbalance()
-                        )
-                    ) {
-                        // Store left-padded selector with push4,
-                        // mem[28:32] = selector
-                        mstore(
-                            0,
-                            InsufficientNativeTokensSupplied_error_selector
-                        )
+                // Transfer the item specified by the execution as long as the
+                // execution is not a zero-amount execution (which can occur if
+                // the corresponding fulfillment contained only items on orders
+                // that are unavailable or are out of range of the respective
+                // item array).
+                if (amount != 0) {
+                    // Utilize assembly to check for native token balance.
+                    assembly {
+                        // Ensure a sufficient native balance if relevant.
+                        if and(
+                            iszero(mload(item)), // itemType == ItemType.NATIVE
+                            // item.amount > address(this).balance
+                            gt(amount, selfbalance())
+                        ) {
+                            // Store left-padded selector with push4,
+                            // mem[28:32] = selector
+                            mstore(
+                                0,
+                                InsufficientNativeTokensSupplied_error_selector
+                            )
 
-                        // revert(abi.encodeWithSignature(
-                        //   "InsufficientNativeTokensSupplied()"
-                        // ))
-                        revert(
-                            Error_selector_offset,
-                            InsufficientNativeTokensSupplied_error_length
-                        )
+                            // revert(abi.encodeWithSignature(
+                            //   "InsufficientNativeTokensSupplied()"
+                            // ))
+                            revert(
+                                Error_selector_offset,
+                                InsufficientNativeTokensSupplied_error_length
+                            )
+                        }
                     }
-                }
 
-                // Transfer the item specified by the execution.
-                _transfer(
-                    item, execution.offerer, execution.conduitKey, accumulator
-                );
+                    // Transfer the item specified by the execution.
+                    _transfer(
+                        item,
+                        execution.offerer,
+                        execution.conduitKey,
+                        accumulator
+                    );
+                }
             }
         }
 
@@ -1159,41 +1125,19 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
 
         // Skip overflow checks as all for loops are indexed starting at zero.
         unchecked {
-            // Track number of filtered executions.
-            uint256 totalFilteredExecutions = 0;
-
             // Iterate over each fulfillment.
             for (uint256 i = 0; i < totalFulfillments; ++i) {
                 /// Retrieve the fulfillment in question.
                 Fulfillment memory fulfillment = fulfillments[i];
 
-                // Derive the execution corresponding with the fulfillment.
-                Execution memory execution = _applyFulfillment(
+                // Derive the execution corresponding with the fulfillment and
+                // assign it to the executions array.
+                executions[i] = _applyFulfillment(
                     advancedOrders,
                     fulfillment.offerComponents,
                     fulfillment.considerationComponents,
                     i
                 );
-
-                // If the execution is filterable...
-                if (_isFilterableExecution(execution)) {
-                    // Increment total filtered executions.
-                    ++totalFilteredExecutions;
-                } else {
-                    // Otherwise, assign the execution to the executions array.
-                    executions[i - totalFilteredExecutions] = execution;
-                }
-            }
-
-            // If some number of executions have been filtered...
-            if (totalFilteredExecutions != 0) {
-                // reduce the total length of the executions array.
-                assembly {
-                    mstore(
-                        executions,
-                        sub(mload(executions), totalFilteredExecutions)
-                    )
-                }
             }
         }
 

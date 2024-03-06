@@ -283,15 +283,6 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
                 // Set fulfiller conduit key as the conduit key on execution.
                 execution.conduitKey = fulfillerConduitKey;
             }
-
-            // Set the offerer and recipient to null address and the item type
-            // to a non-native item type if the execution amount is zero. This
-            // will cause the execution item to be skipped.
-            if (item.amount == 0) {
-                execution.offerer = address(0);
-                item.recipient = payable(0);
-                item.itemType = ItemType.ERC20;
-            }
         }
     }
 
