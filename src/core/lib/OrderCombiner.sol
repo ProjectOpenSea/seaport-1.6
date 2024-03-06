@@ -1151,45 +1151,6 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
     }
 
     /**
-     * @dev Internal pure function to determine whether a given execution is
-     *      filterable and may be removed from the executions array. The offerer
-     *      and the recipient must be the same address and the item type cannot
-     *      indicate a native token transfer.
-     *
-     * @param execution The execution to check for filterability.
-     *
-     * @return filterable A boolean indicating whether the execution in question
-     *                    can be filtered from the executions array.
-     */
-    function _isFilterableExecution(Execution memory execution)
-        internal
-        pure
-        returns (bool filterable)
-    {
-        // Utilize assembly to efficiently determine if execution is filterable.
-        assembly {
-            // Retrieve the received item referenced by the execution.
-            let item := mload(execution)
-
-            // Determine whether the execution is filterable.
-            filterable :=
-                and(
-                    // Determine if offerer and recipient are the same address.
-                    eq(
-                        // Retrieve recipient's address from the received item.
-                        mload(add(item, ReceivedItem_recipient_offset)),
-                        // Retrieve the offerer's address from the execution.
-                        mload(add(execution, Execution_offerer_offset))
-                    ),
-                    // Determine if received item's item type is non-zero,
-                    // thereby indicating that the execution does not involve
-                    // native tokens.
-                    iszero(iszero(mload(item)))
-                )
-        }
-    }
-
-    /**
      * @dev Internal view function to determine whether a status update failure
      *      should cause a revert or allow a skipped order. The call must revert
      *      if an `authorizeOrder` call has been successfully performed and the
