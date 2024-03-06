@@ -546,7 +546,7 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
      *      using supplied directives on which component items are candidates
      *      for aggregation, skipping items on orders that are not available.
      *      Note that this function depends on memory layout affected by an
-     *      earlier call to _validateOrdersAndPrepareToFulfill.  The memory for
+     *      earlier call to _validateOrdersAndPrepareToFulfill. The memory for
      *      the consideration arrays needs to be updated before calling
      *      _aggregateValidFulfillmentConsiderationItems.
      *      _validateOrdersAndPrepareToFulfill is called in _matchAdvancedOrders
@@ -559,6 +559,10 @@ contract FulfillmentApplier is FulfillmentApplicationErrors {
      *                                of each candidate consideration item for
      *                                aggregation.
      * @param execution               The execution to apply the aggregation to.
+     * @param offerer                 The address of the offerer to set on the
+     *                                execution.
+     * @param conduitKey              A bytes32 value indicating the conduit key
+     *                                to set on the execution.
      */
     function _aggregateValidFulfillmentConsiderationItems(
         AdvancedOrder[] memory advancedOrders,

@@ -444,7 +444,7 @@ contract OrderCombiner is OrderFulfiller, FulfillmentApplier {
                             let considerationItemRecipientPtr :=
                                 add(
                                     considerationItem,
-                                    ConsiderationItem_recipient_offset // recipient
+                                    ConsiderationItem_recipient_offset
                                 )
 
                             // Write recipient to endAmount, as endAmount is not
