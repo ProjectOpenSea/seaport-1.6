@@ -743,15 +743,19 @@ library ExecutionHelper {
             });
         }
 
-        // zero out any execution items with zero amounts
+        // zero out any executions with zero amount items.
         for (uint256 i = 0; i < explicitExecutions.length; i++) {
             if (explicitExecutions[i].item.amount == 0) {
-                explicitExecutions[i].item = ReceivedItem({
-                    itemType: ItemType.NATIVE,
-                    token: address(0),
-                    identifier: 0,
-                    amount: 0,
-                    recipient: payable(address(0))
+                explicitExecutions[i] = Execution({
+                    offerer: address(0),
+                    conduitKey: bytes32(0),
+                    item: ReceivedItem({
+                        itemType: ItemType.NATIVE,
+                        token: address(0),
+                        identifier: 0,
+                        amount: 0,
+                        recipient: payable(address(0))
+                    })
                 });
             }
         }
@@ -993,11 +997,11 @@ library ExecutionHelper {
                 (aggregatedConsiderationAmount - aggregatedOfferAmount);
         }
 
-        // Return an empty execution item if aggregated amount equals zero.
+        // Return an empty execution if aggregated amount equals zero.
         if (amount == 0) {
             return Execution({
-                offerer: sourceOrder.offerer,
-                conduitKey: sourceOrder.conduitKey,
+                offerer: address(0),
+                conduitKey: bytes32(0),
                 item: ReceivedItem({
                     itemType: ItemType.NATIVE,
                     token: address(0),
