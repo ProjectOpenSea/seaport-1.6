@@ -204,21 +204,6 @@ contract ReferenceFulfillmentApplier is
             );
         }
 
-        if (execution.item.amount == 0) {
-            return
-                Execution(
-                    ReceivedItem(
-                        ItemType.ERC20,
-                        address(0),
-                        0,
-                        0,
-                        payable(address(0))
-                    ),
-                    address(0),
-                    bytes32(0)
-                );
-        }
-
         return execution;
     }
 
