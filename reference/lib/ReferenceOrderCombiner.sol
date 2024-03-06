@@ -403,7 +403,13 @@ contract ReferenceOrderCombiner is
         }
 
         // Apply criteria resolvers to each order as applicable.
-        _applyCriteriaResolvers(advancedOrders, ordersToExecute, criteriaResolvers);
+        _applyCriteriaResolvers(
+            advancedOrders,
+            ordersToExecute,
+            criteriaResolvers
+        );
+
+        bool someOrderAvailable;
 
         // Iterate over each order to check authorization status (for restricted
         // orders), generate orders (for contract orders), and emit events (for
@@ -500,6 +506,13 @@ contract ReferenceOrderCombiner is
                 spentItems,
                 receivedItems
             );
+
+            someOrderAvailable = true;
+        }
+
+        // Revert if no orders are available.
+        if (!someOrderAvailable) {
+            revert NoSpecifiedOrdersAvailable();
         }
     }
 
@@ -623,11 +636,6 @@ contract ReferenceOrderCombiner is
                 fulfillerConduitKey,
                 address(0) // unused
             );
-        }
-
-        // Revert if no orders are available.
-        if (executions.length == 0) {
-            revert NoSpecifiedOrdersAvailable();
         }
 
         // Perform final checks and compress executions into standard and batch.

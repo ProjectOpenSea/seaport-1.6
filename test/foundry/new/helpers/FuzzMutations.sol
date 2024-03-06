@@ -3472,21 +3472,14 @@ contract FuzzMutations is Test, FuzzExecutor {
         MutationState memory /* mutationState */
     ) external {
         // This mutation works by wiping out all the orders. Seaport reverts if
-        // `_executeAvailableFulfillments` finishes its loop and produces no
-        // executions.
-
+        // `_validateOrdersAndPrepareToFulfill` finishes its loop and produces
+        // no unskipped orders.
         for (uint256 i; i < context.executionState.orders.length; i++) {
             AdvancedOrder memory order = context.executionState.orders[i];
-            order.parameters.consideration = new ConsiderationItem[](0);
-            order.parameters.totalOriginalConsiderationItems = 0;
+            order.parameters.endTime = 0;
 
             _signOrValidateMutatedOrder(context, i);
         }
-        context.executionState.offerFulfillments = new FulfillmentComponent[][](
-            0
-        );
-        context.executionState.considerationFulfillments =
-            new FulfillmentComponent[][](0);
 
         exec(context);
     }
