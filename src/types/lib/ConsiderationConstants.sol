@@ -288,9 +288,13 @@ uint256 constant OrderFulfilled_baseOffset = 0x180;
 uint256 constant OrderFulfilled_consideration_length_baseOffset = 0x2a0;
 uint256 constant OrderFulfilled_offer_length_baseOffset = 0x200;
 
-uint256 constant OrderFulfilled_offer_length_baseOffset_relativeTo_OrderFulfilled_baseOffset = 0x80;
-uint256 constant OrderFulfilled_offer_itemType_baseOffset_relativeTo_OrderFulfilled_baseOffset = 0xa0;
-uint256 constant OrderFulfilled_offer_token_baseOffset_relativeTo_OrderFulfilled_baseOffset = 0xc0;
+uint256 constant OrderFulfilled_offer_length_offset_relativeTo_baseOffset = (
+    0x80
+);
+uint256 constant OrderFulfilled_offer_itemType_offset_relativeTo_baseOffset = (
+    0xa0
+);
+uint256 constant OrderFulfilled_offer_token_offset_relativeTo_baseOffset = 0xc0;
 
 // Related constants used for restricted order checks on basic orders.
 uint256 constant OrderFulfilled_baseDataSize = 0x160;
