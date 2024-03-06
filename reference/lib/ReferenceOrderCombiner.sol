@@ -403,7 +403,13 @@ contract ReferenceOrderCombiner is
         }
 
         // Apply criteria resolvers to each order as applicable.
-        _applyCriteriaResolvers(advancedOrders, ordersToExecute, criteriaResolvers);
+        _applyCriteriaResolvers(
+            advancedOrders,
+            ordersToExecute,
+            criteriaResolvers
+        );
+
+        bool someOrderAvailable;
 
         // Iterate over each order to check authorization status (for restricted
         // orders), generate orders (for contract orders), and emit events (for
@@ -500,6 +506,13 @@ contract ReferenceOrderCombiner is
                 spentItems,
                 receivedItems
             );
+
+            someOrderAvailable = true;
+        }
+
+        // Revert if no orders are available.
+        if (!someOrderAvailable) {
+            revert NoSpecifiedOrdersAvailable();
         }
     }
 
@@ -599,89 +612,32 @@ contract ReferenceOrderCombiner is
             totalOfferFulfillments + totalConsiderationFulfillments
         );
 
-        // Track number of filtered executions.
-        uint256 totalFilteredExecutions = 0;
-
         // Iterate over each offer fulfillment.
         for (uint256 i = 0; i < totalOfferFulfillments; ++i) {
-            // Derive aggregated execution corresponding with fulfillment.
-            Execution memory execution = _aggregateAvailable(
+            // Derive aggregated execution corresponding with fulfillment and
+            // assign the execution to the executions array.
+            executions[i] = _aggregateAvailable(
                 ordersToExecute,
                 Side.OFFER,
                 offerFulfillments[i],
                 fulfillerConduitKey,
                 recipient
             );
-
-            // If offerer and recipient on the execution are the same and the
-            // execution item has a non-native item type...
-            if (
-                execution.item.recipient == execution.offerer
-                    && execution.item.itemType != ItemType.NATIVE
-            ) {
-                // Increment total filtered executions.
-                ++totalFilteredExecutions;
-            } else {
-                // Otherwise, assign the execution to the executions array.
-                executions[i - totalFilteredExecutions] = execution;
-            }
         }
 
         // Iterate over each consideration fulfillment.
         for (uint256 i = 0; i < totalConsiderationFulfillments; ++i) {
-            // Derive aggregated execution corresponding with fulfillment.
-            Execution memory execution = _aggregateAvailable(
+            // Derive aggregated execution corresponding with fulfillment and
+            // assign the execution to the executions array.
+            executions[i + totalOfferFulfillments] = _aggregateAvailable(
                 ordersToExecute,
                 Side.CONSIDERATION,
                 considerationFulfillments[i],
                 fulfillerConduitKey,
                 address(0) // unused
             );
-
-            // If offerer and recipient on the execution are the same and the
-            // execution item has a non-native item type...
-            if (
-                execution.item.recipient == execution.offerer
-                    && execution.item.itemType != ItemType.NATIVE
-            ) {
-                // Increment total filtered executions.
-                ++totalFilteredExecutions;
-            } else {
-                // Otherwise, assign the execution to the executions array.
-                executions[i + totalOfferFulfillments - totalFilteredExecutions]
-                = execution;
-            }
         }
 
-        // If some number of executions have been filtered...
-        if (totalFilteredExecutions != 0) {
-            /**
-             *   The following is highly inefficient, but written this way
-             *   to show in the most simplest form what the optimized
-             *   contract is performing inside its assembly.
-             */
-
-            // Get the total execution length.
-            uint256 executionLength = (
-                totalOfferFulfillments + totalConsiderationFulfillments
-            ) - totalFilteredExecutions;
-
-            // Create an array of executions that will be executed.
-            Execution[] memory filteredExecutions =
-                new Execution[](executionLength);
-
-            // Create new array from the existing Executions
-            for (uint256 i = 0; i < executionLength; ++i) {
-                filteredExecutions[i] = executions[i];
-            }
-
-            // Set the executions array to the newly created array.
-            executions = filteredExecutions;
-        }
-        // Revert if no orders are available.
-        if (executions.length == 0) {
-            revert NoSpecifiedOrdersAvailable();
-        }
         // Perform final checks and compress executions into standard and batch.
         availableOrders = _performFinalChecksAndExecuteOrders(
             advancedOrders,
@@ -740,6 +696,11 @@ contract ReferenceOrderCombiner is
                 // Retrieve the execution and the associated received item.
                 Execution memory execution = executions[i];
                 ReceivedItem memory item = execution.item;
+
+                // Skip transfers if the execution amount is zero.
+                if (item.amount == 0) {
+                    continue;
+                }
 
                 // If execution transfers native tokens, reduce value available.
                 if (item.itemType == ItemType.NATIVE) {
@@ -1034,52 +995,19 @@ contract ReferenceOrderCombiner is
         // Allocate executions by fulfillment and apply them to each execution.
         executions = new Execution[](totalFulfillments);
 
-        // Track number of filtered executions.
-        uint256 totalFilteredExecutions = 0;
-
         // Iterate over each fulfillment.
         for (uint256 i = 0; i < totalFulfillments; ++i) {
             /// Retrieve the fulfillment in question.
             Fulfillment calldata fulfillment = fulfillments[i];
 
-            // Derive the execution corresponding with the fulfillment.
-            Execution memory execution = _applyFulfillment(
+            // Derive the execution corresponding with the fulfillment and
+            // assign the execution to the executions array.
+            executions[i] = _applyFulfillment(
                 ordersToExecute,
                 fulfillment.offerComponents,
                 fulfillment.considerationComponents,
                 i
             );
-
-            // If offerer and recipient on the execution are the same and the
-            // execution item has a non-native item type...
-            if (
-                execution.item.recipient == execution.offerer
-                    && execution.item.itemType != ItemType.NATIVE
-            ) {
-                // Increment total filtered executions.
-                ++totalFilteredExecutions;
-            } else {
-                // Otherwise, assign the execution to the executions array.
-                executions[i - totalFilteredExecutions] = execution;
-            }
-        }
-
-        // If some number of executions have been filtered...
-        if (totalFilteredExecutions != 0) {
-            uint256 executionLength = (
-                totalFulfillments - totalFilteredExecutions
-            );
-
-            Execution[] memory filteredExecutions = (
-                new Execution[](executionLength)
-            );
-
-            // Create new array from executions.
-            for (uint256 i = 0; i < executionLength; ++i) {
-                filteredExecutions[i] = executions[i];
-            }
-
-            executions = filteredExecutions;
         }
 
         // Perform final checks and execute orders.
