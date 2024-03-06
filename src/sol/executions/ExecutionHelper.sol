@@ -742,6 +742,19 @@ library ExecutionHelper {
                 })
             });
         }
+
+        // zero out any execution items with zero amounts
+        for (uint256 i = 0; i < explicitExecutions.length; i++) {
+            if (explicitExecutions[i].item.amount == 0) {
+                explicitExecutions[i].item = ReceivedItem({
+                    itemType: ItemType.NATIVE,
+                    token: address(0),
+                    identifier: 0,
+                    amount: 0,
+                    recipient: payable(address(0))
+                });
+            }
+        }
     }
 
     /**
@@ -980,6 +993,22 @@ library ExecutionHelper {
                 (aggregatedConsiderationAmount - aggregatedOfferAmount);
         }
 
+        // Return an empty execution item if aggregated amount equals zero.
+        if (amount == 0) {
+            return Execution({
+                offerer: sourceOrder.offerer,
+                conduitKey: sourceOrder.conduitKey,
+                item: ReceivedItem({
+                    itemType: ItemType.NATIVE,
+                    token: address(0),
+                    identifier: 0,
+                    amount: 0,
+                    recipient: payable(address(0))
+                })
+            });
+        }
+
+        // Otherwise, return the full derived execution.
         return Execution({
             offerer: sourceOrder.offerer,
             conduitKey: sourceOrder.conduitKey,
