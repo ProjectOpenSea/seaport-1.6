@@ -64,15 +64,22 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
             revert TloadTestContractDeploymentFailed();
         }
 
-        // Determine if TSTORE is supported & store the result as an immutable.
-        _tstoreInitialSupport = _testTload(tloadTestContract);
+        // Determine if TSTORE is supported.
+        bool tstoreInitialSupport = _testTload(tloadTestContract);
+
+        // Store the result as an immutable.
+        _tstoreInitialSupport = tstoreInitialSupport;
 
         // Set the address of the deployed TLOAD test contract as an immutable.
         _tloadTestContract = tloadTestContract;
 
-        // Initialize storage for the reentrancy guard in a cleared state.
-        assembly {
-            sstore(_REENTRANCY_GUARD_SLOT, _NOT_ENTERED_SSTORE)
+        // If not using TSTORE (where _NOT_ENTERED_TSTORE = 0), set initial
+        // sentinel value (where _NOT_ENTERED_SSTORE = 1).
+        if (!tstoreInitialSupport) {
+            // Initialize storage for the reentrancy guard in a cleared state.
+            assembly {
+                sstore(_REENTRANCY_GUARD_SLOT, _NOT_ENTERED_SSTORE)
+            }
         }
     }
 
