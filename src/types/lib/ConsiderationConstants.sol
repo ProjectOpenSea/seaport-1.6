@@ -49,6 +49,7 @@ uint256 constant information_versionLengthPtr = 0x63;
 uint256 constant information_versionWithLength = 0x03312e36; // 1.6
 uint256 constant information_length = 0xa0;
 
+// uint256(uint32(bytes4(keccak256("_REENTRANCY_GUARD_SLOT"))))
 uint256 constant _REENTRANCY_GUARD_SLOT = 0x929eee14;
 uint256 constant _TLOAD_TEST_PAYLOAD = 0x6002601e613d5c3d52f3;
 uint256 constant _TLOAD_TEST_PAYLOAD_LENGTH = 0x0a;
