@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import { ReentrancyErrors } from
-    "seaport-types/src/interfaces/ReentrancyErrors.sol";
+import {
+    ReentrancyErrors
+} from "seaport-types/src/interfaces/ReentrancyErrors.sol";
 
 import { LowLevelHelpers } from "./LowLevelHelpers.sol";
 
@@ -12,11 +13,17 @@ import {
 } from "seaport-types/src/lib/ConsiderationErrors.sol";
 
 import {
+    _ENTERED_AND_ACCEPTING_NATIVE_TOKENS_SSTORE,
+    _ENTERED_SSTORE,
+    _NOT_ENTERED_SSTORE,
+    _ENTERED_AND_ACCEPTING_NATIVE_TOKENS_TSTORE,
+    _ENTERED_TSTORE,
+    _NOT_ENTERED_TSTORE,
+    _TSTORE_ENABLED_SSTORE,
     _REENTRANCY_GUARD_SLOT,
     _TLOAD_TEST_PAYLOAD,
     _TLOAD_TEST_PAYLOAD_OFFSET,
-    _TLOAD_TEST_PAYLOAD_LENGTH,
-    _TSTORE_SUPPORTED_SLOT
+    _TLOAD_TEST_PAYLOAD_LENGTH
 } from "seaport-types/src/lib/ConsiderationConstants.sol";
 
 import {
@@ -27,12 +34,6 @@ import {
     NoReentrantCalls_error_length,
     Error_selector_offset
 } from "seaport-types/src/lib/ConsiderationErrorConstants.sol";
-
-import {
-    _ENTERED_AND_ACCEPTING_NATIVE_TOKENS,
-    _ENTERED,
-    _NOT_ENTERED
-} from "seaport-types/src/lib/ConsiderationConstants.sol";
 
 /**
  * @title ReentrancyGuard
@@ -58,20 +59,29 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
     constructor() {
         // Deploy the contract testing TLOAD support and store the address.
         address tloadTestContract = _prepareTloadTest();
-        
+
         // Ensure the deployment was successful.
         if (tloadTestContract == address(0)) {
             revert TloadTestContractDeploymentFailed();
         }
 
-        // Determine if TSTORE is supported & store the result as an immutable.
-        _tstoreInitialSupport = _testTload(tloadTestContract);
+        // Determine if TSTORE is supported.
+        bool tstoreInitialSupport = _testTload(tloadTestContract);
+
+        // Store the result as an immutable.
+        _tstoreInitialSupport = tstoreInitialSupport;
 
         // Set the address of the deployed TLOAD test contract as an immutable.
         _tloadTestContract = tloadTestContract;
 
-        // Initialize the reentrancy guard in a cleared state.
-        _clearReentrancyGuard();
+        // If not using TSTORE (where _NOT_ENTERED_TSTORE = 0), set initial
+        // sentinel value (where _NOT_ENTERED_SSTORE = 1).
+        if (!tstoreInitialSupport) {
+            // Initialize storage for the reentrancy guard in a cleared state.
+            assembly {
+                sstore(_REENTRANCY_GUARD_SLOT, _NOT_ENTERED_SSTORE)
+            }
+        }
     }
 
     /**
@@ -82,17 +92,19 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
      *      guard is currently set.
      */
     function __activateTstore() external {
-        // Ensure that the reentrancy guard is not currently set.
-        _assertNonReentrant();
-
-        // Determine if TSTORE is already activated.
-        bool tstoreSupported;
+        // Determine if TSTORE can potentially be activated. If it has already
+        // been activated, or if the reentrancy guard is currently set, then
+        // it cannot be activated.
+        bool tstoreActivatable;
         assembly {
-            tstoreSupported := sload(_TSTORE_SUPPORTED_SLOT)
+            tstoreActivatable := eq(
+                sload(_REENTRANCY_GUARD_SLOT),
+                _NOT_ENTERED_SSTORE
+            )
         }
 
-        // Revert if TSTORE is already activated.
-        if (_tstoreInitialSupport || tstoreSupported) {
+        // Revert if TSTORE is already activated or not activatable.
+        if (_tstoreInitialSupport || !tstoreActivatable) {
             revert TStoreAlreadyActivated();
         }
 
@@ -103,7 +115,7 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
 
         // Mark TSTORE as activated.
         assembly {
-            sstore(_TSTORE_SUPPORTED_SLOT, 1)
+            sstore(_REENTRANCY_GUARD_SLOT, _TSTORE_ENABLED_SSTORE)
         }
     }
 
@@ -125,11 +137,15 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
             // "Loop" over three possible cases for setting the reentrancy guard
             // based on tstore support and state, exiting once the respective
             // state has been identified and a corresponding guard has been set.
-            for {} 1 {} {
+            for {
+
+            } 1 {
+
+            } {
                 // 1: handle case where tstore is supported from the start.
                 if tstoreInitialSupport {
                     // Ensure that the reentrancy guard is not already set.
-                    if iszero(eq(tload(_REENTRANCY_GUARD_SLOT), _NOT_ENTERED)) {
+                    if tload(_REENTRANCY_GUARD_SLOT) {
                         // Store left-padded selector with push4,
                         // mem[28:32] = selector
                         mstore(0, NoReentrantCalls_error_selector)
@@ -141,23 +157,26 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
                         )
                     }
 
-                    // Set the reentrancy guard. A value of 2 indicates that
+                    // Set the reentrancy guard. A value of 1 indicates that
                     // native tokens may not be accepted during execution,
-                    // whereas a value of 3 indicates that they will be accepted
+                    // whereas a value of 2 indicates that they will be accepted
                     // (returning any remaining native tokens to the caller).
                     tstore(
                         _REENTRANCY_GUARD_SLOT,
-                        add(_ENTERED, acceptNativeTokens)
+                        add(_ENTERED_TSTORE, acceptNativeTokens)
                     )
 
                     // Exit the loop.
                     break
                 }
 
+                // Retrieve the reentrancy guard sentinel value.
+                let reentrancyGuard := sload(_REENTRANCY_GUARD_SLOT)
+
                 // 2: handle tstore support that was activated post-deployment.
-                if sload(_TSTORE_SUPPORTED_SLOT) {
+                if iszero(reentrancyGuard) {
                     // Ensure that the reentrancy guard is not already set.
-                    if iszero(eq(tload(_REENTRANCY_GUARD_SLOT), _NOT_ENTERED)) {
+                    if tload(_REENTRANCY_GUARD_SLOT) {
                         // Store left-padded selector with push4,
                         // mem[28:32] = selector
                         mstore(0, NoReentrantCalls_error_selector)
@@ -169,13 +188,13 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
                         )
                     }
 
-                    // Set the reentrancy guard. A value of 2 indicates that
+                    // Set the reentrancy guard. A value of 1 indicates that
                     // native tokens may not be accepted during execution,
-                    // whereas a value of 3 indicates that they will be accepted
+                    // whereas a value of 2 indicates that they will be accepted
                     // (returning any remaining native tokens to the caller).
                     tstore(
                         _REENTRANCY_GUARD_SLOT,
-                        add(_ENTERED, acceptNativeTokens)
+                        add(_ENTERED_TSTORE, acceptNativeTokens)
                     )
 
                     // Exit the loop.
@@ -184,7 +203,7 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
 
                 // 3: handle case where tstore support has not been activated.
                 // Ensure that the reentrancy guard is not already set.
-                if iszero(eq(sload(_REENTRANCY_GUARD_SLOT), _NOT_ENTERED)) {
+                if iszero(eq(reentrancyGuard, _NOT_ENTERED_SSTORE)) {
                     // Store left-padded selector with push4 (reduces bytecode),
                     // mem[28:32] = selector
                     mstore(0, NoReentrantCalls_error_selector)
@@ -199,7 +218,7 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
                 // native tokens returned to the caller).
                 sstore(
                     _REENTRANCY_GUARD_SLOT,
-                    add(_ENTERED, acceptNativeTokens)
+                    add(_ENTERED_SSTORE, acceptNativeTokens)
                 )
 
                 // Exit the loop.
@@ -220,20 +239,27 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
             // "Loop" over three possible cases for clearing reentrancy guard
             // based on tstore support and state, exiting once the respective
             // state has been identified and corresponding guard cleared.
-            for {} 1 {} {
+            for {
+
+            } 1 {
+
+            } {
                 // 1: handle case where tstore is supported from the start.
                 if tstoreInitialSupport {
                     // Clear the reentrancy guard.
-                    tstore(_REENTRANCY_GUARD_SLOT, _NOT_ENTERED)
+                    tstore(_REENTRANCY_GUARD_SLOT, _NOT_ENTERED_TSTORE)
 
                     // Exit the loop.
                     break
                 }
 
+                // Retrieve the reentrancy guard sentinel value.
+                let reentrancyGuard := sload(_REENTRANCY_GUARD_SLOT)
+
                 // 2: handle tstore support that was activated post-deployment.
-                if sload(_TSTORE_SUPPORTED_SLOT) {
+                if iszero(reentrancyGuard) {
                     // Clear the reentrancy guard.
-                    tstore(_REENTRANCY_GUARD_SLOT, _NOT_ENTERED)
+                    tstore(_REENTRANCY_GUARD_SLOT, _NOT_ENTERED_TSTORE)
 
                     // Exit the loop.
                     break
@@ -241,7 +267,7 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
 
                 // 3: handle case where tstore support has not been activated.
                 // Clear the reentrancy guard.
-                sstore(_REENTRANCY_GUARD_SLOT, _NOT_ENTERED)
+                sstore(_REENTRANCY_GUARD_SLOT, _NOT_ENTERED_SSTORE)
 
                 // Exit the loop.
                 break
@@ -259,33 +285,31 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
 
         // Utilize assembly to check reentrancy guard based on tstore support.
         assembly {
-            // "Loop" over three possible cases for setting the reentrancy guard
-            // based on tstore support and state, exiting once the respective
-            // state has been identified and a corresponding guard checked.
-            for {} 1 {} {
-                // 1: handle case where tstore is supported from the start.
-                if tstoreInitialSupport {
-                    // Ensure that the reentrancy guard is not currently set.
-                    if iszero(eq(tload(_REENTRANCY_GUARD_SLOT), _NOT_ENTERED)) {
-                        // Store left-padded selector with push4,
-                        // mem[28:32] = selector
-                        mstore(0, NoReentrantCalls_error_selector)
+            // 1: handle case where tstore is supported from the start.
+            if tstoreInitialSupport {
+                // Ensure that the reentrancy guard is not currently set.
+                if tload(_REENTRANCY_GUARD_SLOT) {
+                    // Store left-padded selector with push4,
+                    // mem[28:32] = selector
+                    mstore(0, NoReentrantCalls_error_selector)
 
-                        // revert(abi.encodeWithSignature("NoReentrantCalls()"))
-                        revert(
-                            Error_selector_offset,
-                            NoReentrantCalls_error_length
-                        )
-                    }
-
-                    // Exit the loop.
-                    break
+                    // revert(abi.encodeWithSignature("NoReentrantCalls()"))
+                    revert(
+                        Error_selector_offset,
+                        NoReentrantCalls_error_length
+                    )
                 }
+            }
+
+            // Handle cases where tstore is not initially supported.
+            if iszero(tstoreInitialSupport) {
+                // Retrieve the reentrancy guard sentinel value.
+                let reentrancyGuard := sload(_REENTRANCY_GUARD_SLOT)
 
                 // 2: handle tstore support that was activated post-deployment.
-                if sload(_TSTORE_SUPPORTED_SLOT) {
+                if iszero(reentrancyGuard) {
                     // Ensure that the reentrancy guard is not currently set.
-                    if iszero(eq(tload(_REENTRANCY_GUARD_SLOT), _NOT_ENTERED)) {
+                    if tload(_REENTRANCY_GUARD_SLOT) {
                         // Store left-padded selector with push4,
                         // mem[28:32] = selector
                         mstore(0, NoReentrantCalls_error_selector)
@@ -296,14 +320,11 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
                             NoReentrantCalls_error_length
                         )
                     }
-
-                    // Exit the loop.
-                    break
                 }
 
                 // 3: handle case where tstore support has not been activated.
                 // Ensure that the reentrancy guard is not currently set.
-                if iszero(eq(sload(_REENTRANCY_GUARD_SLOT), _NOT_ENTERED)) {
+                if gt(reentrancyGuard, _NOT_ENTERED_SSTORE) {
                     // Store left-padded selector with push4 (reduces bytecode),
                     // mem[28:32] = selector
                     mstore(0, NoReentrantCalls_error_selector)
@@ -311,9 +332,6 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
                     // revert(abi.encodeWithSignature("NoReentrantCalls()"))
                     revert(Error_selector_offset, NoReentrantCalls_error_length)
                 }
-
-                // Exit the loop.
-                break
             }
         }
     }
@@ -328,46 +346,44 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
 
         // Utilize assembly to check reentrancy guard based on tstore support.
         assembly {
-            // "Loop" over three possible cases for setting the reentrancy guard
-            // based on tstore support and state, exiting once the respective
-            // state has been identified and a corresponding guard has been set.
-            for {} 1 {} {
-                // 1: handle case where tstore is supported from the start.
-                if tstoreInitialSupport {
-                    // Ensure reentrancy guard is set to accept native tokens.
-                    if iszero(
-                        eq(
-                            tload(_REENTRANCY_GUARD_SLOT),
-                            _ENTERED_AND_ACCEPTING_NATIVE_TOKENS
-                        )
-                    ) {
-                        // Store left-padded selector with push4,
-                        // mem[28:32] = selector
-                        mstore(0, InvalidMsgValue_error_selector)
+            // 1: handle case where tstore is supported from the start.
+            if tstoreInitialSupport {
+                // Ensure reentrancy guard is set to accept native tokens.
+                if iszero(
+                    eq(
+                        tload(_REENTRANCY_GUARD_SLOT),
+                        _ENTERED_AND_ACCEPTING_NATIVE_TOKENS_TSTORE
+                    )
+                ) {
+                    // Store left-padded selector with push4,
+                    // mem[28:32] = selector
+                    mstore(0, InvalidMsgValue_error_selector)
 
-                        // Store argument.
-                        mstore(InvalidMsgValue_error_value_ptr, callvalue())
+                    // Store argument.
+                    mstore(InvalidMsgValue_error_value_ptr, callvalue())
 
-                        // revert(abi.encodeWithSignature(
-                        //   "InvalidMsgValue(uint256)", value)
-                        // )
-                        revert(
-                            Error_selector_offset,
-                            InvalidMsgValue_error_length
-                        )
-                    }
-
-                    // Exit the loop.
-                    break
+                    // revert(abi.encodeWithSignature(
+                    //   "InvalidMsgValue(uint256)", value)
+                    // )
+                    revert(
+                        Error_selector_offset,
+                        InvalidMsgValue_error_length
+                    )
                 }
+            }
+
+            // Handle cases where tstore is not initially supported.
+            if iszero(tstoreInitialSupport) {
+                // Retrieve the reentrancy guard sentinel value.
+                let reentrancyGuard := sload(_REENTRANCY_GUARD_SLOT)
 
                 // 2: handle tstore support that was activated post-deployment.
-                if sload(_TSTORE_SUPPORTED_SLOT) {
+                if iszero(reentrancyGuard) {
                     // Ensure reentrancy guard is set to accept native tokens.
                     if iszero(
                         eq(
                             tload(_REENTRANCY_GUARD_SLOT),
-                            _ENTERED_AND_ACCEPTING_NATIVE_TOKENS
+                            _ENTERED_AND_ACCEPTING_NATIVE_TOKENS_TSTORE
                         )
                     ) {
                         // Store left-padded selector with push4,
@@ -385,17 +401,17 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
                             InvalidMsgValue_error_length
                         )
                     }
-
-                    // Exit the loop.
-                    break
                 }
 
                 // 3: handle case where tstore support has not been activated.
                 // Ensure reentrancy guard is set to accepting native tokens.
-                if iszero(
-                    eq(
-                        sload(_REENTRANCY_GUARD_SLOT),
-                        _ENTERED_AND_ACCEPTING_NATIVE_TOKENS
+                if and(
+                    iszero(iszero(reentrancyGuard)),
+                    iszero(
+                        eq(
+                            reentrancyGuard,
+                            _ENTERED_AND_ACCEPTING_NATIVE_TOKENS_SSTORE
+                        )
                     )
                 ) {
                     // Store left-padded selector with push4 (reduces bytecode),
@@ -410,15 +426,12 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
                     // )
                     revert(Error_selector_offset, InvalidMsgValue_error_length)
                 }
-
-                // Exit the loop.
-                break
             }
         }
     }
 
     /**
-     * @dev Internal function to deploy a test contract that utilizes TLOAD as
+     * @dev Private function to deploy a test contract that utilizes TLOAD as
      *      part of its fallback logic.
      */
     function _prepareTloadTest() private returns (address contractAddress) {
@@ -429,22 +442,24 @@ contract ReentrancyGuard is ReentrancyErrors, LowLevelHelpers {
 
             // Deploy the contract.
             contractAddress := create(
-                    0,
-                    _TLOAD_TEST_PAYLOAD_OFFSET,
-                    _TLOAD_TEST_PAYLOAD_LENGTH
-                )
+                0,
+                _TLOAD_TEST_PAYLOAD_OFFSET,
+                _TLOAD_TEST_PAYLOAD_LENGTH
+            )
         }
     }
 
     /**
-     * @dev Internal function to determine if TSTORE/TLOAD are supported by the
-     *      current EVM implementation by attempting to call the test contract,
-     *      which utilizes TLOAD as part of its fallback logic.
+     * @dev Private view function to determine if TSTORE/TLOAD are supported by
+     *      the current EVM implementation by attempting to call the test
+     *      contract, which utilizes TLOAD as part of its fallback logic.
      */
-    function _testTload(address tloadTestContract) private returns (bool ok) {
+    function _testTload(
+        address tloadTestContract
+    ) private view returns (bool ok) {
         // Call the test contract, which will perform a TLOAD test. If the call
         // does not revert, then TLOAD/TSTORE is supported. Do not forward all
         // available gas, as all forwarded gas will be consumed on revert.
-        (ok, ) = tloadTestContract.call{gas: gasleft() / 10}("");
+        (ok, ) = tloadTestContract.staticcall{ gas: gasleft() / 10 }("");
     }
 }

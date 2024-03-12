@@ -49,14 +49,34 @@ uint256 constant information_versionLengthPtr = 0x63;
 uint256 constant information_versionWithLength = 0x03312e36; // 1.6
 uint256 constant information_length = 0xa0;
 
+// uint256(uint32(bytes4(keccak256("_REENTRANCY_GUARD_SLOT"))))
 uint256 constant _REENTRANCY_GUARD_SLOT = 0x929eee14;
-uint256 constant _TSTORE_SUPPORTED_SLOT = 0x54778ab1;
-uint256 constant _TLOAD_TEST_PAYLOAD = 0x6002601e613d5c3d52f3;
+
+/*
+ *
+ * --------------------------------------------------------------------------+
+ * Opcode      | Mnemonic         | Stack               | Memory             |
+ * --------------------------------------------------------------------------|
+ * 60 0x02     | PUSH1 0x02       | 0x02                |                    |
+ * 60 0x1e     | PUSH1 0x1e       | 0x1e 0x02           |                    |
+ * 61 0x3d5c   | PUSH2 0x3d5c     | 0x3d5c 0x1e 0x02    |                    |
+ * 3d          | RETURNDATASIZE   | 0 0x3d5c 0x1e 0x02  |                    |
+ *                                                                           |
+ * ::: store deployed bytecode in memory: (3d) RETURNDATASIZE (5c) TLOAD ::: |
+ * 52          | MSTORE           | 0x1e 0x02           | [0..0x20): 0x3d5c  |
+ * f3          | RETURN           |                     | [0..0x20): 0x3d5c  |
+ * --------------------------------------------------------------------------+
+ */
+uint256 constant _TLOAD_TEST_PAYLOAD = 0x6002_601e_613d5c_3d_52_f3;
 uint256 constant _TLOAD_TEST_PAYLOAD_LENGTH = 0x0a;
 uint256 constant _TLOAD_TEST_PAYLOAD_OFFSET = 0x16;
-uint256 constant _NOT_ENTERED = 0;
-uint256 constant _ENTERED = 1;
-uint256 constant _ENTERED_AND_ACCEPTING_NATIVE_TOKENS = 2;
+uint256 constant _NOT_ENTERED_TSTORE = 0;
+uint256 constant _ENTERED_TSTORE = 1;
+uint256 constant _ENTERED_AND_ACCEPTING_NATIVE_TOKENS_TSTORE = 2;
+uint256 constant _TSTORE_ENABLED_SSTORE = 0;
+uint256 constant _NOT_ENTERED_SSTORE = 1;
+uint256 constant _ENTERED_SSTORE = 2;
+uint256 constant _ENTERED_AND_ACCEPTING_NATIVE_TOKENS_SSTORE = 3;
 
 uint256 constant Offset_fulfillAdvancedOrder_criteriaResolvers = 0x20;
 uint256 constant Offset_fulfillAvailableOrders_offerFulfillments = 0x20;
@@ -363,7 +383,6 @@ uint256 constant BasicOrder_fulfillerConduit_cdPtr = 0x1e4;
 uint256 constant BasicOrder_totalOriginalAdditionalRecipients_cdPtr = 0x204;
 uint256 constant BasicOrder_additionalRecipients_head_cdPtr = 0x224;
 uint256 constant BasicOrder_signature_cdPtr = 0x244;
-uint256 constant BasicOrder_additionalRecipients_length_cdPtr = 0x264;
 uint256 constant BasicOrder_addlRecipients_length_cdPtr = 0x264;
 uint256 constant BasicOrder_additionalRecipients_data_cdPtr = 0x284;
 uint256 constant BasicOrder_parameters_ptr = 0x20;

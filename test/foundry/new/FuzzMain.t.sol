@@ -23,13 +23,17 @@ contract FuzzMainTest is FuzzEngine {
                 seed: seed,
                 totalOrders: bound(orders, 1, 10),
                 maxOfferItems: bound(maxOfferItemsPerOrder, 0, 10),
-                maxConsiderationItems: bound(maxConsiderationItemsPerOrder, 0, 10),
+                maxConsiderationItems: bound(
+                    maxConsiderationItemsPerOrder,
+                    0,
+                    10
+                ),
                 seedInput: abi.encodePacked(
                     seed,
                     orders,
                     maxOfferItemsPerOrder,
                     maxConsiderationItemsPerOrder
-                    )
+                )
             })
         );
     }
@@ -39,13 +43,13 @@ contract FuzzMainTest is FuzzEngine {
      *      Copy/paste fuzz run parameters into the tuple below and remove the
      *      leading "x" to run a fuzz failure as a concrete test.
      */
-    function xtest_concrete() public {
+    function test_concrete() public {
         (
             uint256 seed,
             uint256 orders,
             uint256 maxOfferItemsPerOrder,
             uint256 maxConsiderationItemsPerOrder
-        ) = (0, 0, 0, 0);
+        ) = (29604057, 4371734480978016729729, 1, 115791978809374646774550386052594111420862745447897009313272701407525548851199);
         bytes memory callData = abi.encodeCall(
             this.test_fuzz_generateOrders,
             (seed, orders, maxOfferItemsPerOrder, maxConsiderationItemsPerOrder)
