@@ -1,3 +1,6 @@
+> [!NOTE]
+> This repository is archived. Seaport 1.6 shipped, and its code now lives in [seaport](https://github.com/ProjectOpenSea/seaport) (tests, docs and the reference implementation), [seaport-core](https://github.com/ProjectOpenSea/seaport-core), [seaport-types](https://github.com/ProjectOpenSea/seaport-types) and [seaport-sol](https://github.com/ProjectOpenSea/seaport-sol). Submodules that pin a commit here keep working.
+
 ## Seaport 1.6 Development Repo
 
 Welcome to the home of Seaport 1.6 development. For the most part, it's safe to treat this repo like you'd treat [Seaport](https://github.com/ProjectOpenSea/seaport). The documentation found there will substantialy serve for this repo.
